@@ -16,7 +16,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          fetch-depth: 1
+
+      - name: Fetch main branch
+        run: |
+          git fetch origin main --depth=1
+          git branch -D main || true
+          git branch --track main origin/main
+
 
       - name: Check default branch
         run: |

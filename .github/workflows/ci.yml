@@ -25,6 +25,12 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+
       - name: Install PNPM
         run: npm install -g pnpm
 

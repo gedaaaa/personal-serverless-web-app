@@ -29,6 +29,24 @@
           "cd apps/backend/helloworld && sam deploy"
         ]
       }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "cd apps/backend/helloworld && ./gradlew ktlintCheck"
+        ],
+        "parallel": false
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "cd apps/backend/helloworld && ./gradlew ktlintFormat"
+        ],
+        "parallel": false
+      }
     }
   }
 }

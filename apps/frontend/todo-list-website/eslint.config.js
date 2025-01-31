@@ -8,7 +8,7 @@ import ts from 'typescript-eslint';
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
 export default ts.config(
-  includeIgnoreFile(gitignorePath),
+  // includeIgnoreFile(gitignorePath),
   js.configs.recommended,
   ...ts.configs.recommended,
   ...svelte.configs['flat/recommended'],
@@ -30,5 +30,11 @@ export default ts.config(
         parser: ts.parser,
       },
     },
+  },
+  {
+    ignores: [
+      'apps/frontend/todo-list-website/.svelte-kit/*',
+      'apps/frontend/todo-list-website/.svelte-kit/**/*',
+    ],
   },
 );

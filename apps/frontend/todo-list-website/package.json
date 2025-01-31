@@ -1,0 +1,13 @@
+{
+  "name": "todo-list-website",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "devDependencies": {
+    "svelte": "../node_modules/svelte"
+  }
+}

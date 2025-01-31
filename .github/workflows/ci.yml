@@ -1,0 +1,48 @@
+name: CI build (lint and test)
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Job 1: Set up Node.js and Svelte build
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Fetch main branch
+        run: |
+          git fetch origin main --depth=1
+          git branch -D main || true
+          git branch --track main origin/main
+
+
+      - name: Check default branch
+        run: |
+          echo "Default branch: $(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+
+      - name: Install PNPM
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: |
+          pnpm nx affected:build --prod

@@ -35,4 +35,4 @@ jobs:
 
       - name: Build
         run: |
-          nx affected:build --prod
+          pnpm nx affected:build --prod

@@ -1,4 +1,4 @@
-name: CI for Svelte and Kotlin projects
+name: CI build (lint and test)
 
 on:
   push:
@@ -16,8 +16,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          ref: main
-          fetch-depth: 0
+          fetch-depth: 1
+
+      - name: Fetch main branch
+        run: |
+          git fetch origin main --depth=1
+          git branch -D main || true
+          git branch --track main origin/main
+
+
+      - name: Check default branch
+        run: |
+          echo "Default branch: $(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')"
 
       - name: Set up Node.js
         uses: actions/setup-node@v3

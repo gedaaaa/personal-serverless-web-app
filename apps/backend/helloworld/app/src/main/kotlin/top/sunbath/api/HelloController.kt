@@ -6,6 +6,6 @@ import io.micronaut.http.annotation.Get
 open class HelloController {
 
     @Get
-    fun greeting() = "good day"
+    fun greeting() = "good day!"
 
 }

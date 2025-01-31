@@ -34,6 +34,7 @@ declare module '$env/static/private' {
 	export const TERM: string;
 	export const HOMEBREW_REPOSITORY: string;
 	export const TMPDIR: string;
+	export const TERM_SESSION_ID: string;
 	export const NX_TASK_TARGET_TARGET: string;
 	export const NVM_DIR: string;
 	export const USER: string;
@@ -43,6 +44,7 @@ declare module '$env/static/private' {
 	export const __CF_USER_TEXT_ENCODING: string;
 	export const NX_TASK_TARGET_PROJECT: string;
 	export const PATH: string;
+	export const TERMINAL_EMULATOR: string;
 	export const IJ_RESTARTER_LOG: string;
 	export const NX_WORKSPACE_ROOT: string;
 	export const __CFBundleIdentifier: string;
@@ -106,6 +108,7 @@ declare module '$env/dynamic/private' {
 		TERM: string;
 		HOMEBREW_REPOSITORY: string;
 		TMPDIR: string;
+		TERM_SESSION_ID: string;
 		NX_TASK_TARGET_TARGET: string;
 		NVM_DIR: string;
 		USER: string;
@@ -115,6 +118,7 @@ declare module '$env/dynamic/private' {
 		__CF_USER_TEXT_ENCODING: string;
 		NX_TASK_TARGET_PROJECT: string;
 		PATH: string;
+		TERMINAL_EMULATOR: string;
 		IJ_RESTARTER_LOG: string;
 		NX_WORKSPACE_ROOT: string;
 		__CFBundleIdentifier: string;

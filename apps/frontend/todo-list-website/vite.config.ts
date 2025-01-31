@@ -19,10 +19,7 @@ export default defineConfig({
     port: 4200,
     host: 'localhost',
     fs: {
-      allow: [
-        // your custom rules
-        '../../../node_modules',
-      ],
+      allow: ['../../../node_modules'],
     },
   },
   preview: {

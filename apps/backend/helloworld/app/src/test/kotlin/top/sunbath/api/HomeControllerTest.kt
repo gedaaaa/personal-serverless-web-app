@@ -1,12 +1,11 @@
-package top.sunbath.api;
+package top.sunbath.api
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
-import io.micronaut.function.aws.proxy.payload1.ApiGatewayProxyRequestEventFunction
 import io.micronaut.function.aws.proxy.MockLambdaContext
+import io.micronaut.function.aws.proxy.payload1.ApiGatewayProxyRequestEventFunction
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class HomeControllerTest {
-
     @Test
     fun testHandler() {
         val handler = ApiGatewayProxyRequestEventFunction()
@@ -20,4 +19,3 @@ class HomeControllerTest {
         handler.applicationContext.close()
     }
 }
-

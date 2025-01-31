@@ -31,4 +31,10 @@ export default ts.config(
       },
     },
   },
+  {
+    ignores: [
+      'apps/frontend/todo-list-website/.svelte-kit/*',
+      'apps/frontend/todo-list-website/.svelte-kit/**/*',
+    ],
+  },
 );

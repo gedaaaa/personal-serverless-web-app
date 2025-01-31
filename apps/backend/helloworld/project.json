@@ -1,0 +1,34 @@
+{
+  "name": "helloworld-service",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/backend/helloworld/app/src",
+  "tags": [],
+  "root": "apps/backend/helloworld",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "cd apps/backend/helloworld && ./gradlew build"
+        ]
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "cd apps/backend/helloworld && ./gradlew run --continuous"
+        ]
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "cd apps/backend/helloworld && sam deploy"
+        ]
+      }
+    }
+  }
+}

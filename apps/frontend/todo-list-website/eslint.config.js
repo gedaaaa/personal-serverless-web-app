@@ -32,9 +32,11 @@ export default ts.config(
     },
   },
   {
+    // lint command running from monorepo root, ignores are relative from it.
     ignores: [
       'apps/frontend/todo-list-website/.svelte-kit/*',
       'apps/frontend/todo-list-website/.svelte-kit/**/*',
+      'apps/frontend/todo-list-website/sst.config.ts',
     ],
   },
 );

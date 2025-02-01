@@ -79,6 +79,24 @@
           "quiet": true
         }
       }
+    },
+    "deploy": {
+      "defaultConfiguration": "staging",
+
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/frontend/todo-list-website",
+        "commands": ["pnpm sst deploy"],
+        "parallel": false
+      },
+      "configurations": {
+        "stage": {
+          "stage": "stage"
+        },
+        "production": {
+          "stage": "production"
+        }
+      }
     }
   }
 }

@@ -58,5 +58,8 @@
     "vite": "^6.0.0",
     "vitest": "^3.0.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "sst": "3.7.1",
+    "svelte-kit-sst": "2.43.5"
+  }
 }

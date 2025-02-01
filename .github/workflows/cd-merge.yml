@@ -1,0 +1,33 @@
+name: Deploy Stage on PR Merge
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-stage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+
+      - name: Install PNPM
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Deploy Affected Projects
+        env:
+          NX_BASE: ${{ github.event.before }}
+          NX_HEAD: ${{ github.sha }}
+        run: npx nx affected --target=deploy:stage

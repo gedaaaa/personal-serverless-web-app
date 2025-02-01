@@ -6,5 +6,7 @@
   "scripts": {},
   "devDependencies": {
     "svelte": "../node_modules/svelte"
+  },
+  "dependencies": {
   }
 }

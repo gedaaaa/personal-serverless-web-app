@@ -46,7 +46,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Fetch main branch
         run: |

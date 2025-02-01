@@ -81,7 +81,7 @@
       }
     },
     "deploy": {
-      "defaultConfiguration": "staging",
+      "defaultConfiguration": "stage",
 
       "executor": "nx:run-commands",
       "options": {

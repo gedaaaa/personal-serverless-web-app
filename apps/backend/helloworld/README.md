@@ -99,3 +99,6 @@ cd ..
 - [https://docs.aws.amazon.com/cdk/v2/guide/home.html](https://docs.aws.amazon.com/cdk/v2/guide/home.html)
 
 
+mn create-app --build=gradle_kotlin --jdk=21 --lang=kotlin --test=junit --features=aws-lambda,aws-cdk,amazon-api-gateway com.example.demo
+
+need cdk bootstrap for aws account if first time use

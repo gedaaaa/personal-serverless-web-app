@@ -22,7 +22,7 @@
         ]
       }
     },
-    "deploy": {
+    "deploy-disabled": {
       "executor": "nx:run-commands",
       "options": {
         "commands": [

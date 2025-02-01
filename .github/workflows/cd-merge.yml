@@ -35,4 +35,5 @@ jobs:
         env:
           NX_BASE: ${{ github.event.before }}
           NX_HEAD: ${{ github.sha }}
-        run: npx nx affected --target=deploy:stage
+        run: |
+          pnpm nx affected --target=deploy --configuration=stage

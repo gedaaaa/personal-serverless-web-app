@@ -27,7 +27,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cd apps/backend/helloworld && ./gradlew :app:optimizedJitJarAll && cd ./infra && cdk deploy"
+          "cd apps/backend/helloworld && ./gradlew :app:optimizedJitJarAll && cd ./infra && cdk deploy --require-approval never"
         ]
       },
       "defaultConfiguration": "stage",

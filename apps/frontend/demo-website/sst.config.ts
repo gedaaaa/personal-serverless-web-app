@@ -10,8 +10,10 @@ export default $config({
     };
   },
   async run() {
-    new sst.aws.SvelteKit('TestWeb', {
+    new sst.aws.SvelteKit('DemoWebsite', {
       buildCommand: 'nx run demo-website:build',
+      domain: "sunbath.top",
+      redirects: ["www.sunbath.top"]
     });
   },
 });

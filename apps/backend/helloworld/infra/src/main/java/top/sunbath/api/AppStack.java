@@ -8,28 +8,20 @@ import software.amazon.awscdk.CfnOutput;
 import software.amazon.awscdk.Duration;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
-import software.amazon.awscdk.services.certificatemanager.Certificate;
-import software.amazon.awscdk.services.lambda.Runtime;
-import software.amazon.awscdk.services.lambda.Architecture;
-import software.amazon.awscdk.services.lambda.SnapStartConf;
+import software.amazon.awscdk.services.apigateway.BasePathMapping;
+import software.amazon.awscdk.services.apigateway.DomainName;
+import software.amazon.awscdk.services.apigateway.DomainNameAttributes;
 import software.amazon.awscdk.services.apigateway.LambdaRestApi;
-import software.amazon.awscdk.services.lambda.Alias;
-import software.amazon.awscdk.services.lambda.Version;
-import software.amazon.awscdk.services.lambda.Code;
-import software.amazon.awscdk.services.lambda.Function;
-import software.amazon.awscdk.services.lambda.Tracing;
+import software.amazon.awscdk.services.lambda.Runtime;
+import software.amazon.awscdk.services.lambda.*;
 import software.amazon.awscdk.services.logs.RetentionDays;
-import software.amazon.awscdk.services.route53.*;
 import software.constructs.Construct;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import software.amazon.awscdk.services.apigateway.DomainName;
-import software.amazon.awscdk.services.apigateway.EndpointType;
-import software.amazon.awscdk.services.apigateway.BasePathMapping;
-import software.amazon.awscdk.services.route53.targets.ApiGatewayDomain;
-
 public class AppStack extends Stack {
+
 
     public AppStack(final Construct parent, final String id) {
         this(parent, id, null);
@@ -38,11 +30,13 @@ public class AppStack extends Stack {
     public AppStack(final Construct parent, final String id, final StackProps props) {
         super(parent, id, props);
 
+        var serviceName = "hello-world";
+
         Map<String, String> environmentVariables = new HashMap<>();
         var function = MicronautFunction.create(ApplicationType.DEFAULT,
-                false,
-                this,
-                "micronaut-function")
+                        false,
+                        this,
+                        serviceName + "-function")
                 .runtime(Runtime.JAVA_21)
                 .handler("io.micronaut.function.aws.proxy.payload1.ApiGatewayProxyRequestEventFunction")
                 .environment(environmentVariables)
@@ -59,51 +53,35 @@ public class AppStack extends Stack {
                 .aliasName("Prod")
                 .version(currentVersion)
                 .build();
-        var api = LambdaRestApi.Builder.create(this, "hello-world-api")
+        var api = LambdaRestApi.Builder.create(this, serviceName + "-api")
                 .handler(prodAlias)
                 .build();
 
         // 配置自定义域名
         var domainName = "api.sunbath.top"; // 替换为你的域名
-        var hostedZoneId = "Z1010701L76WABQ482GB"; // 替换为你的 Route 53 托管区域 ID
-        var certificateArn = "arn:aws:acm:us-east-1:756850059479:certificate/a42140fb-a401-40bb-9e0d-207182e8c74f"; // 替换为你的 ACM 证书 ARN
         var basePath = "hello-world";
-
-        // 创建 API Gateway 域名
-        var apiDomainName = DomainName.Builder.create(this, "ApiDomainName")
-                .domainName(domainName)
-                .certificate(Certificate.fromCertificateArn(this, "ApiCertificate", certificateArn))
-                .endpointType(EndpointType.EDGE)
-                .build();
+        var url = "https://" + domainName + "/" + basePath;
 
         // 创建路径映射
-        BasePathMapping.Builder.create(this, "hello-world")
-                .domainName(apiDomainName)
-                .basePath("hello-world")
-                .restApi(api)
-                .build();
-
-        // 创建 Route 53 A 记录
-        var hostedZone = HostedZone.fromHostedZoneAttributes(this, "HostedZone",
-                HostedZoneAttributes.builder()
-                        .hostedZoneId(hostedZoneId)
-                        .zoneName(domainName)
+        var apiDomainName = DomainName.fromDomainNameAttributes(this, "ApiDomainName",
+                DomainNameAttributes.builder()
+                        .domainName(domainName)
                         .build());
 
-        ARecord.Builder.create(this, "ApiARecord")
-                .zone(hostedZone)
-                .recordName(domainName)
-                .target(RecordTarget.fromAlias(new ApiGatewayDomain(apiDomainName)))
+        BasePathMapping.Builder.create(this, serviceName + "-path-mapping")
+                .domainName(apiDomainName)
+                .basePath(basePath)
+                .restApi(api)
                 .build();
 
         CfnOutput.Builder.create(this, "MnApiUrl")
                 .exportName("MnApiUrl")
-                .value("https://" + domainName + "/" + basePath)
+                .value(url)
                 .build();
 
         CfnOutput.Builder.create(this, "MnTestApiUrl")
                 .exportName("MnTestApiUrl")
-                .value(api.getUrl())
+                .value(url)
                 .build();
     }
 
@@ -113,11 +91,11 @@ public class AppStack extends Stack {
 
     public static String functionFilename() {
         return MicronautFunctionFile.builder()
-            .optimized()
-            .graalVMNative(false)
-            .version("0.1")
-            .archiveBaseName("app")
-            .buildTool(BuildTool.GRADLE)
-            .build();
+                .optimized()
+                .graalVMNative(false)
+                .version("0.1")
+                .archiveBaseName("app")
+                .buildTool(BuildTool.GRADLE)
+                .build();
     }
 }

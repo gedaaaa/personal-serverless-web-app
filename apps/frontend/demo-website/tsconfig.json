@@ -11,10 +11,9 @@
     "strict": true,
     "moduleResolution": "bundler"
   },
-  "exclude": ["**/*.stories.ts", "**/*.stories.js"],
   "references": [
     {
-      "path": "./tsconfig.storybook.json"
+      "path": "./tsconfig.app.json"
     }
   ]
 }

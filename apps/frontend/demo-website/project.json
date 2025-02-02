@@ -67,19 +67,6 @@
         "parallel": false
       }
     },
-    "storybook": {
-      "executor": "@nx/storybook:storybook",
-      "options": {
-        "uiFramework": "@storybook/react",
-        "port": 4400,
-        "configDir": "apps/frontend/demo-website/.storybook"
-      },
-      "configurations": {
-        "ci": {
-          "quiet": true
-        }
-      }
-    },
     "deploy": {
       "defaultConfiguration": "stage",
 

@@ -13,7 +13,7 @@ const config: StorybookConfig = {
     name: '@storybook/sveltekit',
     options: {
       builder: {
-        viteConfigPath: 'apps/frontend/todo-list-website/vite.config.ts',
+        viteConfigPath: 'apps/frontend/demo-website/vite.config.ts',
       },
     },
   },

@@ -14,7 +14,7 @@ const sveltekitFix = async () => {
 
 export default defineConfig({
   root: __dirname,
-  cacheDir: '../../../node_modules/.vite/todo-list-website',
+  cacheDir: '../../../node_modules/.vite/demo-website',
   server: {
     port: 4200,
     host: 'localhost',

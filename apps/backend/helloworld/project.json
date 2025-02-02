@@ -10,41 +10,37 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cd apps/backend/helloworld && ./gradlew build"
-        ]
+          "./gradlew :apps:backend:helloworld:app:build",
+          "./gradlew :apps:backend:helloworld:infra:build"
+        ],
+        "parallel": false
+
       }
     },
     "dev": {
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cd apps/backend/helloworld && ./gradlew build && ./gradlew run --continuous"
+          "./gradlew :apps:backend:helloworld:app:run --continuous"
         ]
       }
     },
     "deploy": {
-      "_comment": "TODO: figure out how to deploy to stage/prod separately",
+      "// TODO": "figure out how to deploy to stage/prod separately",
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cd apps/backend/helloworld && ./gradlew :app:optimizedJitJarAll && cd ./infra && cdk deploy --require-approval never"
-        ]
-      },
-      "defaultConfiguration": "stage",
-      "configurations": {
-        "stage": {
-          "stage": "stage"
-        },
-        "production": {
-          "stage": "production"
-        }
+          "./gradlew :apps:backend:helloworld:app:optimizedJitJarAll",
+          "cd apps/backend/helloworld/infra && cdk deploy --require-approval never"
+        ],
+        "parallel": false
       }
     },
     "lint": {
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cd apps/backend/helloworld && ./gradlew ktlintCheck"
+          "./gradlew :apps:backend:helloworld:app:ktlintCheck"
         ],
         "parallel": false
       }
@@ -53,7 +49,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cd apps/backend/helloworld && ./gradlew ktlintFormat"
+          "./gradlew :apps:backend:helloworld:app:ktlintFormat"
         ],
         "parallel": false
       }

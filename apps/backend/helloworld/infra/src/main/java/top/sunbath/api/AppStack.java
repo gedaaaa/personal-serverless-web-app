@@ -60,12 +60,16 @@ public class AppStack extends Stack {
         // 配置自定义域名
         var domainName = "api.sunbath.top"; // 替换为你的域名
         var basePath = "hello-world";
+        var domainHostedZoneId = "Z2FDTNDATAQYW2";
+        var domainAlias = "d3pupwziyvimsd.cloudfront.net";
         var url = "https://" + domainName + "/" + basePath;
 
         // 创建路径映射
         var apiDomainName = DomainName.fromDomainNameAttributes(this, "ApiDomainName",
                 DomainNameAttributes.builder()
                         .domainName(domainName)
+                        .domainNameAliasHostedZoneId(domainHostedZoneId)
+                        .domainNameAliasTarget(domainAlias)
                         .build());
 
         BasePathMapping.Builder.create(this, serviceName + "-path-mapping")

@@ -39,7 +39,7 @@ public class AppStack extends Stack {
         super(parent, id, props);
 
         Map<String, String> environmentVariables = new HashMap<>();
-        Function function = MicronautFunction.create(ApplicationType.DEFAULT,
+        var function = MicronautFunction.create(ApplicationType.DEFAULT,
                 false,
                 this,
                 "micronaut-function")
@@ -54,23 +54,23 @@ public class AppStack extends Stack {
                 .architecture(Architecture.X86_64)
                 .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS)
                 .build();
-        Version currentVersion = function.getCurrentVersion();
-        Alias prodAlias = Alias.Builder.create(this, "ProdAlias")
+        var currentVersion = function.getCurrentVersion();
+        var prodAlias = Alias.Builder.create(this, "ProdAlias")
                 .aliasName("Prod")
                 .version(currentVersion)
                 .build();
-        LambdaRestApi api = LambdaRestApi.Builder.create(this, "hello-world-api")
+        var api = LambdaRestApi.Builder.create(this, "hello-world-api")
                 .handler(prodAlias)
                 .build();
 
         // 配置自定义域名
-        String domainName = "api.sunbath.top"; // 替换为你的域名
-        String hostedZoneId = "Z1010701L76WABQ482GB"; // 替换为你的 Route 53 托管区域 ID
-        String certificateArn = "arn:aws:acm:us-east-1:756850059479:certificate/a42140fb-a401-40bb-9e0d-207182e8c74f"; // 替换为你的 ACM 证书 ARN
-        String basePath = "hello-world";
+        var domainName = "api.sunbath.top"; // 替换为你的域名
+        var hostedZoneId = "Z1010701L76WABQ482GB"; // 替换为你的 Route 53 托管区域 ID
+        var certificateArn = "arn:aws:acm:us-east-1:756850059479:certificate/a42140fb-a401-40bb-9e0d-207182e8c74f"; // 替换为你的 ACM 证书 ARN
+        var basePath = "hello-world";
 
         // 创建 API Gateway 域名
-        DomainName apiDomainName = DomainName.Builder.create(this, "ApiDomainName")
+        var apiDomainName = DomainName.Builder.create(this, "ApiDomainName")
                 .domainName(domainName)
                 .certificate(Certificate.fromCertificateArn(this, "ApiCertificate", certificateArn))
                 .endpointType(EndpointType.EDGE)
@@ -84,16 +84,20 @@ public class AppStack extends Stack {
                 .build();
 
         // 创建 Route 53 A 记录
-        IHostedZone hostedZone = HostedZone.fromHostedZoneId(this, "HostedZone",
-                hostedZoneId);
+        var hostedZone = HostedZone.fromHostedZoneAttributes(this, "HostedZone",
+                HostedZoneAttributes.builder()
+                        .hostedZoneId(hostedZoneId)
+                        .zoneName(domainName)
+                        .build());
+
         ARecord.Builder.create(this, "ApiARecord")
                 .zone(hostedZone)
                 .recordName(domainName)
                 .target(RecordTarget.fromAlias(new ApiGatewayDomain(apiDomainName)))
                 .build();
 
-        CfnOutput.Builder.create(this, "MnTestApiUrl")
-                .exportName("MnTestApiUrl")
+        CfnOutput.Builder.create(this, "MnApiUrl")
+                .exportName("MnApiUrl")
                 .value("https://" + domainName + "/" + basePath)
                 .build();
 

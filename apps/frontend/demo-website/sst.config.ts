@@ -13,7 +13,10 @@ export default $config({
     new sst.aws.SvelteKit('DemoWebsite', {
       buildCommand: 'nx run demo-website:build',
       domain: "sunbath.top",
-      redirects: ["www.sunbath.top"]
+      redirects: ["www.sunbath.top"],
+      server: {
+        memory: '256 MB'
+      }
     });
   },
 });

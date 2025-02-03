@@ -1,16 +1,15 @@
 package top.sunbath.api
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
+import top.sunbath.shared.GREETING_POOL
+import kotlin.random.Random
 
 @Controller("/greeting")
 open class HelloController {
     @Get
-    fun greeting() = "good day?"
-
-
-    @Get("/123")
-    fun greeting2(): String {
-//        val s = TestEnum.RED
-        return "123"
+    fun getRandomGreeting(): String {
+        val randomIndex = Random.nextInt(GREETING_POOL.size)
+        return GREETING_POOL[randomIndex]
     }
+
 }

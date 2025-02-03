@@ -18,7 +18,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cd apps/backend/helloworld && ./gradlew build && ./gradlew run --continuous"
+          "cd apps/backend/helloworld && ./gradlew run --continuous"
         ]
       }
     },

@@ -11,5 +11,4 @@ open class HelloController {
         val randomIndex = Random.nextInt(GREETING_POOL.size)
         return GREETING_POOL[randomIndex]
     }
-
 }

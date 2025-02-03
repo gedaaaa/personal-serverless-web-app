@@ -24,6 +24,10 @@ node_modules
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# gradle
+build
+.gradle
+
 # misc
 /.sass-cache
 /connect.lock

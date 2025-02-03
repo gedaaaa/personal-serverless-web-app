@@ -10,15 +10,17 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cd apps/backend/helloworld && ./gradlew build"
-        ]
+          {"command":  "./gradlew :apps:backend:helloworld:app:build"},
+          {"command":  "./gradlew :apps:backend:helloworld:infra:build"}
+        ],
+        "parallel": true
       }
     },
     "dev": {
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cd apps/backend/helloworld && ./gradlew build && ./gradlew run --continuous"
+          "./gradlew :apps:backend:helloworld:app:run --continuous"
         ]
       }
     },
@@ -27,7 +29,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cd apps/backend/helloworld && ./gradlew :app:optimizedJitJarAll && cd ./infra && cdk deploy --require-approval never"
+          "./gradlew :apps:backend:helloworld:app:optimizedJitJarAll && cd cd apps/backend/helloworld/infra && cdk deploy --require-approval never"
         ]
       },
       "defaultConfiguration": "stage",
@@ -44,7 +46,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cd apps/backend/helloworld && ./gradlew ktlintCheck"
+          "./gradlew :apps:backend:helloworld:app:ktlintCheck"
         ],
         "parallel": false
       }
@@ -53,7 +55,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "cd apps/backend/helloworld && ./gradlew ktlintFormat"
+          "./gradlew :apps:backend:helloworld:app:ktlintFormat"
         ],
         "parallel": false
       }

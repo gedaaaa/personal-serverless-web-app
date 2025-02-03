@@ -1,5 +1,5 @@
 {
-  "app": "../gradlew :infra:run",
+  "app": "../../../../gradlew apps:backend:helloworld:infra",
   "context": {
     "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
     "@aws-cdk/core:stackRelativeExports": true,

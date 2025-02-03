@@ -10,8 +10,8 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          {"command":  "./gradlew :apps:backend:helloworld:app:build"},
-          {"command":  "./gradlew :apps:backend:helloworld:infra:build"}
+          "./gradlew :apps:backend:helloworld:app:build",
+          "./gradlew :apps:backend:helloworld:infra:build"
         ],
         "parallel": true
       }
@@ -29,7 +29,9 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "./gradlew :apps:backend:helloworld:app:optimizedJitJarAll && cd cd apps/backend/helloworld/infra && cdk deploy --require-approval never"
+          "./gradlew :apps:backend:helloworld:app:optimizedJitJarAll",
+          "cd apps/backend/helloworld/infra",
+          "cdk deploy --require-approval never"
         ]
       },
       "defaultConfiguration": "stage",

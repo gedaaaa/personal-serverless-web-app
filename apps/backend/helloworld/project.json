@@ -12,7 +12,9 @@
         "commands": [
           "./gradlew :apps:backend:helloworld:app:build",
           "./gradlew :apps:backend:helloworld:infra:build"
-        ]
+        ],
+        "parallel": false
+
       }
     },
     "dev": {
@@ -31,7 +33,8 @@
           "./gradlew :apps:backend:helloworld:app:optimizedJitJarAll",
           "cd apps/backend/helloworld/infra",
           "cdk deploy --require-approval never"
-        ]
+        ],
+        "parallel": false
       }
     },
     "lint": {

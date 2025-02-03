@@ -6,4 +6,11 @@ import io.micronaut.http.annotation.Get
 open class HelloController {
     @Get
     fun greeting() = "good day?"
+
+
+    @Get("/123")
+    fun greeting2(): String {
+//        val s = TestEnum.RED
+        return "123"
+    }
 }

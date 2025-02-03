@@ -12,8 +12,7 @@
         "commands": [
           "./gradlew :apps:backend:helloworld:app:build",
           "./gradlew :apps:backend:helloworld:infra:build"
-        ],
-        "parallel": true
+        ]
       }
     },
     "dev": {
@@ -25,7 +24,7 @@
       }
     },
     "deploy": {
-      "_comment": "TODO: figure out how to deploy to stage/prod separately",
+      "// TODO": "figure out how to deploy to stage/prod separately",
       "executor": "nx:run-commands",
       "options": {
         "commands": [
@@ -33,15 +32,6 @@
           "cd apps/backend/helloworld/infra",
           "cdk deploy --require-approval never"
         ]
-      },
-      "defaultConfiguration": "stage",
-      "configurations": {
-        "stage": {
-          "stage": "stage"
-        },
-        "production": {
-          "stage": "production"
-        }
       }
     },
     "lint": {

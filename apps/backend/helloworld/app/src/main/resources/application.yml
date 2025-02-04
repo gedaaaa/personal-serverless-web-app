@@ -8,18 +8,19 @@ micronaut:
       enabled: true
       configurations:
         web:
-          allowedOrigins:
-            #TODO figure out how to set proper domain for production
-            - '*'
-          allowedMethods:
+          allowed-origins:
+            - "https://sunbath.top"
+            - "http://localhost:*"
+          allow-credentials: true
+          allowed-methods:
             - GET
             - POST
             - PUT
             - DELETE
             - OPTIONS
-          allowedHeaders:
-            - '*'
-          exposedHeaders:
+          allowed-headers:
+            - "*"
+          exposed-headers:
             - Content-Type
             - Authorization
-          maxAge: 1800
+          max-age: 1800

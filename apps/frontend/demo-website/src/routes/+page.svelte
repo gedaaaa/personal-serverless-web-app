@@ -13,7 +13,7 @@
       );
       greeting = response.message;
     } catch {
-      error = 'Server is quite mad now.';
+      error = 'Server is quite mad now!';
     }
   };
 </script>

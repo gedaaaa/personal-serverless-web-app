@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./.sst/platform/config.d.ts" />
 
 export default $config({
@@ -12,11 +13,11 @@ export default $config({
   async run() {
     new sst.aws.SvelteKit('DemoWebsite', {
       buildCommand: 'nx run demo-website:build',
-      domain: "sunbath.top",
-      redirects: ["www.sunbath.top"],
+      domain: 'sunbath.top',
+      redirects: ['www.sunbath.top'],
       server: {
-        memory: '256 MB'
-      }
+        memory: '256 MB',
+      },
     });
   },
 });

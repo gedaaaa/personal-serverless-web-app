@@ -10,7 +10,7 @@ Resources:
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ../../apps/backend/helloworld/app/build/libs/app-0.1-all.jar  # point to project fat jar
+      CodeUri: ../../apps/backend/helloworld/app/build/libs/app-0.1-all.jar # point to project fat jar
       Handler: io.micronaut.function.aws.proxy.payload1.ApiGatewayProxyRequestEventFunction
       Runtime: java21
       MemorySize: 512
@@ -34,11 +34,11 @@ Resources:
           /hello-world:
             x-amazon-apigateway-any-method:
               parameters:
-                - name: "proxy"
-                  in: "path"
+                - name: 'proxy'
+                  in: 'path'
                   required: true
-                  type: "string"
-              responses: { }
+                  type: 'string'
+              responses: {}
               x-amazon-apigateway-integration:
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HelloWorldFunction.Arn}/invocations
                 passthroughBehavior: when_no_match
@@ -47,10 +47,10 @@ Resources:
           /hello-world/{proxy+}:
             x-amazon-apigateway-any-method:
               parameters:
-                - name: "proxy"
-                  in: "path"
+                - name: 'proxy'
+                  in: 'path'
                   required: true
-                  type: "string"
+                  type: 'string'
               responses: {}
               x-amazon-apigateway-integration:
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HelloWorldFunction.Arn}/invocations

@@ -10,7 +10,7 @@ micronaut:
         web:
           allowedOrigins:
             #TODO figure out how to set proper domain for production
-            - "*"
+            - '*'
           allowedMethods:
             - GET
             - POST
@@ -18,10 +18,8 @@ micronaut:
             - DELETE
             - OPTIONS
           allowedHeaders:
-            - "*"
+            - '*'
           exposedHeaders:
             - Content-Type
             - Authorization
           maxAge: 1800
-
-

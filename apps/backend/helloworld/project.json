@@ -14,15 +14,12 @@
           "./gradlew :apps:backend:helloworld:infra:build"
         ],
         "parallel": false
-
       }
     },
     "dev": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-          "./gradlew :apps:backend:helloworld:app:run --continuous"
-        ]
+        "commands": ["./gradlew :apps:backend:helloworld:app:run --continuous"]
       }
     },
     "deploy": {
@@ -39,18 +36,14 @@
     "lint": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-          "./gradlew :apps:backend:helloworld:app:ktlintCheck"
-        ],
+        "commands": ["./gradlew :apps:backend:helloworld:app:ktlintCheck"],
         "parallel": false
       }
     },
     "format": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-          "./gradlew :apps:backend:helloworld:app:ktlintFormat"
-        ],
+        "commands": ["./gradlew :apps:backend:helloworld:app:ktlintFormat"],
         "parallel": false
       }
     }

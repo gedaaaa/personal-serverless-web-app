@@ -3,4 +3,29 @@ defaultPackage: top.sunbath.api
 testFramework: junit
 sourceLanguage: kotlin
 buildTool: gradle_kotlin
-features: [amazon-api-gateway, app-name, aws-cdk, aws-lambda, aws-lambda-events-serde, aws-lambda-handler-default, gradle, http-client-test, junit, kotlin, kotlin-application, ksp, logback, micronaut-aot, micronaut-build, micronaut-http-validation, properties, readme, serialization-jackson, shade, snapstart, static-resources, x86]
+features:
+  [
+    amazon-api-gateway,
+    app-name,
+    aws-cdk,
+    aws-lambda,
+    aws-lambda-events-serde,
+    aws-lambda-handler-default,
+    gradle,
+    http-client-test,
+    junit,
+    kotlin,
+    kotlin-application,
+    ksp,
+    logback,
+    micronaut-aot,
+    micronaut-build,
+    micronaut-http-validation,
+    properties,
+    readme,
+    serialization-jackson,
+    shade,
+    snapstart,
+    static-resources,
+    x86,
+  ]

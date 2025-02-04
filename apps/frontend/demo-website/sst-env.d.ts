@@ -5,7 +5,7 @@
 
 declare module "sst" {
   export interface Resource {
-    "TestWeb": {
+    "DemoWebsite": {
       "type": "sst.aws.SvelteKit"
       "url": string
     }

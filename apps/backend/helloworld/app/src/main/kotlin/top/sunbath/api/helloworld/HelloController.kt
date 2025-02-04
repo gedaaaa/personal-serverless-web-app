@@ -1,4 +1,4 @@
-package top.sunbath.api
+package top.sunbath.api.helloworld
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import top.sunbath.shared.GREETING_POOL

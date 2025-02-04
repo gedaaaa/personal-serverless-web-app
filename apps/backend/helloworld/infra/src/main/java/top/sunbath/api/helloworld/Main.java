@@ -1,4 +1,4 @@
-package top.sunbath.api;
+package top.sunbath.api.helloworld;
 
 import software.amazon.awscdk.App;
 

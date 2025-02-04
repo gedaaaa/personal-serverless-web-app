@@ -1,4 +1,4 @@
-package top.sunbath.api
+package top.sunbath.api.helloworld
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
 import io.micronaut.function.aws.proxy.MockLambdaContext
 import io.micronaut.function.aws.proxy.payload1.ApiGatewayProxyRequestEventFunction

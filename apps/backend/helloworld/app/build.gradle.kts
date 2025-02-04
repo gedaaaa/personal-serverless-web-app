@@ -29,7 +29,7 @@ tasks.withType<org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask>().configure
 }
 
 version = "0.1"
-group = "top.sunbath.api"
+group = "top.sunbath.api.helloworld"
 
 val kotlinVersion = project.properties.get("kotlinVersion")
 repositories {
@@ -56,7 +56,7 @@ dependencies {
 }
 
 application {
-    mainClass = "top.sunbath.api.ApplicationKt"
+    mainClass = "top.sunbath.api.helloworld.ApplicationKt"
 }
 java {
     sourceCompatibility = JavaVersion.toVersion("21")
@@ -72,7 +72,7 @@ micronaut {
     }
     processing {
         incremental(true)
-        annotations("top.sunbath.api.*")
+        annotations("top.sunbath.api.helloworld.*")
     }
     aot {
         // Please review carefully the optimizations enabled below

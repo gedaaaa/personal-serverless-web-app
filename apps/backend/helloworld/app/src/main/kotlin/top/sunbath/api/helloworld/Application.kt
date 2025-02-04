@@ -1,4 +1,4 @@
-package top.sunbath.api
+package top.sunbath.api.helloworld
 
 import io.micronaut.runtime.Micronaut.run
 

@@ -1,4 +1,4 @@
-package top.sunbath.api;
+package top.sunbath.api.helloworld;
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awscdk.App;

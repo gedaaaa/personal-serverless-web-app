@@ -17,7 +17,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
 }
 application {
-    mainClass = "top.sunbath.api.Main"
+    mainClass = "top.sunbath.api.helloworld.Main"
 }
 tasks.withType<Test> {
     useJUnitPlatform()

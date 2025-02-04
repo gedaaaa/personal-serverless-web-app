@@ -8,15 +8,13 @@ import software.amazon.awscdk.CfnOutput;
 import software.amazon.awscdk.Duration;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
-import software.amazon.awscdk.services.apigateway.BasePathMapping;
-import software.amazon.awscdk.services.apigateway.DomainName;
-import software.amazon.awscdk.services.apigateway.DomainNameAttributes;
-import software.amazon.awscdk.services.apigateway.LambdaRestApi;
+import software.amazon.awscdk.services.apigateway.*;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.amazon.awscdk.services.lambda.*;
 import software.amazon.awscdk.services.logs.RetentionDays;
 import software.constructs.Construct;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,6 +53,12 @@ public class AppStack extends Stack {
                 .build();
         var api = LambdaRestApi.Builder.create(this, serviceName + "-api")
                 .handler(prodAlias)
+                .defaultCorsPreflightOptions(CorsOptions.builder()
+                        .allowOrigins(Arrays.asList("https://sunbath.top", "http://localhost:4200"))
+                        .allowMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"))
+                        .allowHeaders(Arrays.asList("Content-Type", "Authorization", "X-Amz-Date", "X-Api-Key"))
+                        .maxAge(Duration.days(1))
+                        .build())
                 .build();
 
         // 配置自定义域名

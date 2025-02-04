@@ -2,7 +2,10 @@
   "name": "@personal-todo-list-webapp/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "gateway:start": "local-env/scripts/start-local.sh",
+    "api:reload": "./gradlew shadowJar"
+  },
   "private": true,
   "devDependencies": {
     "@eslint/compat": "^1.2.5",

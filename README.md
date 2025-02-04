@@ -109,4 +109,8 @@ And join the Nx community:
 - [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 
 
-环境: node, pnpm, jdk, micronaut
+环境: node, pnpm, jdk, micronaut, cdk(ci) aws(ci), docker(dev)
+
+python3 venv direnv 自动切换至包括sam的venv
+
+local-env 中的脚本来启动本地后端开发环境, package json中定义了script 来运行这个脚本, 以及reload server

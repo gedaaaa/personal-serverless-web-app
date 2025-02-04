@@ -7,8 +7,8 @@ import kotlin.random.Random
 @Controller("/greeting")
 open class HelloController {
     @Get
-    fun getRandomGreeting(): String {
+    fun getRandomGreeting(): Map<String, String> {
         val randomIndex = Random.nextInt(GREETING_POOL.size)
-        return GREETING_POOL[randomIndex]
+        return mapOf("message" to GREETING_POOL[randomIndex])
     }
 }

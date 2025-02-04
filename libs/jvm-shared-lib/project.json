@@ -9,27 +9,21 @@
     "build": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-           "./gradlew :libs:jvm-shared-lib:build"
-        ]
+        "commands": ["./gradlew :libs:jvm-shared-lib:build"]
       }
     },
 
     "lint": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-          "./gradlew :libs:jvm-shared-lib:ktlintCheck"
-        ],
+        "commands": ["./gradlew :libs:jvm-shared-lib:ktlintCheck"],
         "parallel": false
       }
     },
     "format": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": [
-          "./gradlew :libs:jvm-shared-lib:ktlintFormat"
-        ],
+        "commands": ["./gradlew :libs:jvm-shared-lib:ktlintFormat"],
         "parallel": false
       }
     }

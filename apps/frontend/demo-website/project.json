@@ -18,7 +18,9 @@
     "lint": {
       "executor": "@nx/eslint:lint",
       "options": {
-        "lintFilePatterns": ["apps/frontend/demo-website/**/*.{ts,svelte,spec.ts}"]
+        "lintFilePatterns": [
+          "apps/frontend/demo-website/**/*.{ts,svelte,spec.ts}"
+        ]
       }
     },
     "build": {

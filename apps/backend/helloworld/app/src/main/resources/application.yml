@@ -1,0 +1,27 @@
+#Fri Jan 31 20:10:03 CST 2025
+micronaut:
+  application:
+    name: helloworld
+  server:
+    context-path: hello-world
+    cors:
+      enabled: true
+      configurations:
+        web:
+          allowedOrigins:
+            #TODO figure out how to set proper domain for production
+            - "*"
+          allowedMethods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          allowedHeaders:
+            - "*"
+          exposedHeaders:
+            - Content-Type
+            - Authorization
+          maxAge: 1800
+
+

@@ -15,7 +15,7 @@ class HomeControllerTest {
         val response = handler.handleRequest(request, MockLambdaContext())
 
         assertEquals(200, response.statusCode)
-        assertEquals("{\"message\":\"Hello World\"}", response.body)
+        assertEquals("{\"message\":\"Hello World!\"}", response.body)
         handler.applicationContext.close()
     }
 }

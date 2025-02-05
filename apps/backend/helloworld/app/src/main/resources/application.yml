@@ -3,7 +3,6 @@ micronaut:
   application:
     name: helloworld
   server:
-    context-path: hello-world
     cors:
       enabled: true
       configurations:

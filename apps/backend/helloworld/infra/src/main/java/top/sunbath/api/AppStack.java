@@ -33,6 +33,11 @@ public class AppStack extends Stack {
         var serviceName = "hello-world";
 
         Map<String, String> environmentVariables = new HashMap<>();
+        // TODO: use environment to get param from system manager
+        // String environment = this.getNode().tryGetContext("environment").toString();
+        environmentVariables.put("MICRONAUT_ENVIRONMENTS", "production");
+
+
         var function = MicronautFunction.create(ApplicationType.DEFAULT,
                         false,
                         this,

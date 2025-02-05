@@ -11,7 +11,7 @@ class HomeControllerTest {
         val handler = ApiGatewayProxyRequestEventFunction()
         val request = APIGatewayProxyRequestEvent()
         request.httpMethod = "GET"
-        request.path = "/hello-world"
+        request.path = "/"
         val response = handler.handleRequest(request, MockLambdaContext())
 
         assertEquals(200, response.statusCode)

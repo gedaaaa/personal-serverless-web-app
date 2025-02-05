@@ -17,7 +17,9 @@ class OptionsController {
      */
     @Options("{/path:.*}")
     @Suppress("unused")
-    fun handleOptions(@Nullable @PathVariable path: String?) {
+    fun handleOptions(
+        @Nullable @PathVariable path: String?,
+    ) {
         // let the cors filter do its job
     }
 }

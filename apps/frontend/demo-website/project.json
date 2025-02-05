@@ -69,6 +69,14 @@
         "parallel": false
       }
     },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/frontend/demo-website",
+        "commands": ["prettier --write ."],
+        "parallel": false
+      }
+    },
     "deploy": {
       "defaultConfiguration": "stage",
 

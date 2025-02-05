@@ -112,4 +112,5 @@ val GREETING_POOL =
         "How’s the weather treating you?",
         "What’s cracking, dude?",
         "Feeling good today?",
+        "GOOOOOOOOD!",
     )

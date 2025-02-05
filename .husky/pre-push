@@ -1,0 +1,2 @@
+nx affected:build
+nx affected:lint

@@ -9,7 +9,7 @@ import io.micronaut.http.annotation.PathVariable
 class OptionsController {
     /**
      * Workaround for OPTIONS preflight not return properly.
-     * AWS http api with CORS configured will ignore OPTIONS response **headers** from origin,
+     * AWS http api with CORS configured will ignore OPTIONS response **headers** from origin
      * but will follow the status code.
      * Seems io.micronaut.function.aws.proxy.payload2.APIGatewayV2HTTPEventFunction
      * is not handling OPTIONS, and we got 405.

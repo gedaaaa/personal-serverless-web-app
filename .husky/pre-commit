@@ -1,0 +1,7 @@
+nx affected --target=format
+
+if ! git diff --quiet; then
+  git add .
+fi
+
+exit 0

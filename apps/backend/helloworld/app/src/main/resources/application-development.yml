@@ -1,5 +1,7 @@
 #Fri Jan 31 20:10:03 CST 2025
 micronaut:
+  application:
+    name: helloworld
   server:
 #    set context path for development.
 #    because sam only simulates api gateway v1 and will pass mapped basepath to lambda.

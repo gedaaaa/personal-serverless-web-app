@@ -1,1 +1,25 @@
 #Fri Jan 31 20:10:03 CST 2025
+micronaut:
+  application:
+    name: helloworld
+  server:
+    cors:
+      enabled: true
+      configurations:
+        web:
+          allowed-origins:
+            - "https://sunbath.top"
+            - "http://localhost:*"
+          allow-credentials: true
+          allowed-methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - OPTIONS
+          allowed-headers:
+            - "*"
+          exposed-headers:
+            - Content-Type
+            - Authorization
+          max-age: 1800

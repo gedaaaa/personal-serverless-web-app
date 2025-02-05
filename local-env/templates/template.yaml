@@ -23,7 +23,7 @@ Resources:
       Environment:
         Variables:
           MICRONAUT_ENVIRONMENTS: development
-        # sync with CDK
+  # sync with CDK
   HelloWorldApi:
     Type: AWS::Serverless::Api
     Properties:

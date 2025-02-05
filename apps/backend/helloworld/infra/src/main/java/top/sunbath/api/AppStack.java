@@ -17,7 +17,6 @@ import software.constructs.Construct;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class AppStack extends Stack {
@@ -69,8 +68,15 @@ public class AppStack extends Stack {
                 .defaultIntegration(lambdaIntegration)
                 .corsPreflight(CorsPreflightOptions.builder()
                         .allowOrigins(Arrays.asList("https://sunbath.top", "http://localhost:4200"))
-                        .allowMethods(List.of(CorsHttpMethod.ANY))
+                        .allowMethods(Arrays.asList(
+                                CorsHttpMethod.GET,
+                                CorsHttpMethod.POST,
+                                CorsHttpMethod.PUT,
+                                CorsHttpMethod.DELETE,
+                                CorsHttpMethod.OPTIONS // 显式添加OPTIONS
+                        ))
                         .allowHeaders(Arrays.asList("Content-Type", "Authorization", "X-Amz-Date", "X-Api-Key"))
+                        .allowCredentials(true) // 允许携带凭证
                         .maxAge(Duration.days(1))
                         .build())
                 .build();

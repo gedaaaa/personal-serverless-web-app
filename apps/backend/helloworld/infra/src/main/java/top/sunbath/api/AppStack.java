@@ -8,7 +8,8 @@ import software.amazon.awscdk.CfnOutput;
 import software.amazon.awscdk.Duration;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
-import software.amazon.awscdk.services.apigateway.*;
+import software.amazon.awscdk.aws_apigatewayv2_integrations.HttpLambdaIntegration;
+import software.amazon.awscdk.services.apigatewayv2.*;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.amazon.awscdk.services.lambda.*;
 import software.amazon.awscdk.services.logs.RetentionDays;
@@ -16,6 +17,7 @@ import software.constructs.Construct;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AppStack extends Stack {
@@ -51,11 +53,18 @@ public class AppStack extends Stack {
                 .aliasName("Prod")
                 .version(currentVersion)
                 .build();
-        var api = LambdaRestApi.Builder.create(this, serviceName + "-api")
-                .handler(prodAlias)
-                .defaultCorsPreflightOptions(CorsOptions.builder()
+
+
+
+        HttpLambdaIntegration lambdaIntegration = HttpLambdaIntegration.Builder
+                .create("LambdaIntegration", prodAlias)
+                .build();
+
+        HttpApi httpApi = HttpApi.Builder.create(this, serviceName + "-http-api")
+                .defaultIntegration(lambdaIntegration)
+                .corsPreflight(CorsPreflightOptions.builder()
                         .allowOrigins(Arrays.asList("https://sunbath.top", "http://localhost:4200"))
-                        .allowMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"))
+                        .allowMethods(List.of(CorsHttpMethod.ANY))
                         .allowHeaders(Arrays.asList("Content-Type", "Authorization", "X-Amz-Date", "X-Api-Key"))
                         .maxAge(Duration.days(1))
                         .build())
@@ -64,22 +73,25 @@ public class AppStack extends Stack {
         // 配置自定义域名
         var domainName = "api.sunbath.top"; // 替换为你的域名
         var basePath = "hello-world";
-        var domainHostedZoneId = "Z2FDTNDATAQYW2";
-        var domainAlias = "d3pupwziyvimsd.cloudfront.net";
+        var domainHostedZoneId = "ZL327KTPIQFUL";
+        var domainAlias = "d-she55i1zs4.execute-api.ap-southeast-1.amazonaws.com";
         var url = "https://" + domainName + "/" + basePath;
 
-        // 创建路径映射
-        var apiDomainName = DomainName.fromDomainNameAttributes(this, "ApiDomainName",
+        var domainNameV2 = DomainName.fromDomainNameAttributes(
+                this,
+                "ApiDomainNameV2",
                 DomainNameAttributes.builder()
-                        .domainName(domainName)
-                        .domainNameAliasHostedZoneId(domainHostedZoneId)
-                        .domainNameAliasTarget(domainAlias)
-                        .build());
+                        .name(domainName)
+                        .regionalHostedZoneId(domainHostedZoneId)
+                        .regionalDomainName(domainAlias)
+                        .build()
+        );
 
-        BasePathMapping.Builder.create(this, serviceName + "-path-mapping")
-                .domainName(apiDomainName)
-                .basePath(basePath)
-                .restApi(api)
+        ApiMapping.Builder.create(this, serviceName + "-api-mapping")
+                .api(httpApi)
+                .domainName(domainNameV2)
+                .apiMappingKey(basePath) // 对应原basePath
+                .stage(httpApi.getDefaultStage()) // 关联默认阶段
                 .build();
 
         CfnOutput.Builder.create(this, "MnApiUrl")

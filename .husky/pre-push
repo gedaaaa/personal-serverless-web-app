@@ -1,11 +1,2 @@
 nx affected:build
 nx affected:lint
-
-# 检查是否有文件被修改
-if ! git diff --quiet; then
-  # 将修改的文件添加到暂存区
-  git add .
-fi
-
-# 继续执行后续的提交操作
-exit 0

@@ -38,7 +38,7 @@ public class AppStack extends Stack {
                         this,
                         serviceName + "-function")
                 .runtime(Runtime.JAVA_21)
-                .handler("io.micronaut.function.aws.proxy.payload1.ApiGatewayProxyRequestEventFunction")
+                .handler("io.micronaut.function.aws.proxy.payload2.APIGatewayV2HTTPEventFunction")
                 .environment(environmentVariables)
                 .code(Code.fromAsset(functionPath()))
                 .timeout(Duration.seconds(10))

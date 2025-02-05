@@ -5,3 +5,5 @@ yarn.lock
 
 #svelte-kit
 .svelte-kit/*
+
+sst-env.d.ts

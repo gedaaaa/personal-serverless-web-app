@@ -4,7 +4,8 @@
   "license": "MIT",
   "scripts": {
     "gateway:start": "local-env/scripts/start-local.sh",
-    "api:reload": "./gradlew shadowJar"
+    "api:reload": "./gradlew shadowJar",
+    "prepare": "husky"
   },
   "private": true,
   "devDependencies": {
@@ -32,6 +33,7 @@
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-svelte": "^2.46.1",
     "globals": "^15.14.0",
+    "husky": "^9.1.7",
     "jsdom": "~22.1.0",
     "nx": "20.4.0",
     "prettier": "^3.4.2",

@@ -9,14 +9,15 @@ services:
     environment:
       - NODE_ENV=development
     ports:
-      - "3000:3000"
-      - "5173:5173"
-      - "8080:8080"
+      - '3000:3000'
+      - '5173:5173'
+      - '4200:4200'
+      - '8080:8080'
     networks:
       - app-network
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
 
 networks:
   app-network:
-    driver: bridge 
+    driver: bridge

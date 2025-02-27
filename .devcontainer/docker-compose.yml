@@ -5,6 +5,14 @@ services:
     image: mcr.microsoft.com/devcontainers/base:ubuntu
     volumes:
       - ..:/workspace:cached
+      - ~/.cursor-server:/root/.cursor-server:cached
+      - ~/.vscode-server:/root/.vscode-server:cached
+      - ~/.vscode:/root/.vscode:cached
+      - ~/.gradle:/root/.gradle:cached
+      - ~/.m2:/root/.m2:cached
+      - ~/.pnpm-store:/root/.pnpm-store:cached
+      - ~/.npm:/root/.npm:cached
+      - ~/.cache/pnpm:/root/.cache/pnpm:cached
     command: sleep infinity
     environment:
       - NODE_ENV=development

@@ -38,10 +38,10 @@ services:
       - NODE_ENV=development
     ports:
       # Web 应用端口
-      - '3000:3000' # React/Next.js
-      - '5173:5173' # Vite
-      - '4200:4200' # Angular
-      - '8080:8080' # Spring Boot/通用后端
+      - '3000:3000' # API gateway
+      - '5173:5173' # Vite dev
+      - '4200:4200' # frontend svelte
+      - '8080:8080' #
     networks:
       - app-network
     extra_hosts:

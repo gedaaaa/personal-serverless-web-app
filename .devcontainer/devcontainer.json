@@ -53,6 +53,6 @@
   },
 
   "forwardPorts": [3000, 5173, 4200, 8080],
-  "postCreateCommand": "pnpm install && (gh auth login || echo 'GitHub 认证跳过，请稍后手动运行 gh auth login')",
+  "postCreateCommand": "pnpm install",
   "remoteUser": "root"
 }

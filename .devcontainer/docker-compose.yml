@@ -8,7 +8,6 @@ services:
       - ..:/workspace:cached
 
       # 开发者身份和认证
-      - ~/.gitconfig:/root/.gitconfig:cached # Git 全局配置
       - ~/.ssh:/root/.ssh:cached # SSH 密钥和配置
       - ~/.config/gh:/root/.config/gh:cached # GitHub CLI 配置
       - ~/.aws:/root/.aws:cached # AWS 凭证和配置

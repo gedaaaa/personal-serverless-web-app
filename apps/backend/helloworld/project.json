@@ -19,7 +19,9 @@
     "dev": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["./gradlew :apps:backend:helloworld:app:run --continuous"]
+        "commands": [
+          "export MICRONAUT_ENVIRONMENTS=development && ./gradlew :apps:backend:helloworld:app:run --continuous"
+        ]
       }
     },
     "deploy": {

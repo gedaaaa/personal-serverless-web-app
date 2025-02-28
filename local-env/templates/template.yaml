@@ -58,30 +58,3 @@ Resources:
                 passthroughBehavior: when_no_match
                 httpMethod: ANY
                 type: aws_proxy
-
-          /hello:
-            x-amazon-apigateway-any-method:
-              parameters:
-                - name: 'proxy'
-                  in: 'path'
-                  required: true
-                  type: 'string'
-              responses: {}
-              x-amazon-apigateway-integration:
-                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HelloWorldFunction.Arn}/invocations
-                passthroughBehavior: when_no_match
-                httpMethod: ANY
-                type: aws_proxy
-          /hello/{proxy+}:
-            x-amazon-apigateway-any-method:
-              parameters:
-                - name: 'proxy'
-                  in: 'path'
-                  required: true
-                  type: 'string'
-              responses: {}
-              x-amazon-apigateway-integration:
-                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HelloWorldFunction.Arn}/invocations
-                passthroughBehavior: when_no_match
-                httpMethod: ANY
-                type: aws_proxy

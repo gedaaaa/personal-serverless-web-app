@@ -4,26 +4,45 @@ services:
   app:
     image: mcr.microsoft.com/devcontainers/base:ubuntu
     volumes:
+      # 项目文件映射
       - ..:/workspace:cached
+
+      # 开发者身份和认证
+      - ~/.ssh:/root/.ssh:cached # SSH 密钥和配置
+      - ~/.config/gh:/root/.config/gh:cached # GitHub CLI 配置
+      - ~/.aws:/root/.aws:cached # AWS 凭证和配置
+      - ~/.docker:/root/.docker:cached # Docker 配置和凭证
+
+      # 编辑器和IDE配置
       - ~/.cursor-server:/root/.cursor-server:cached
       - ~/.vscode-server:/root/.vscode-server:cached
       - ~/.vscode:/root/.vscode:cached
+
+      # 命令行体验优化
+      - ~/.bash_history:/root/.bash_history:cached # Bash 历史记录
+      - ~/.zsh_history:/root/.zsh_history:cached # Zsh 历史记录
+
+      # 构建工具缓存
       - ~/.gradle:/root/.gradle:cached
       - ~/.m2:/root/.m2:cached
+
+      # Node.js 包管理器缓存
       - ~/.pnpm-store:/root/.pnpm-store:cached
       - ~/.npm:/root/.npm:cached
       - ~/.cache/pnpm:/root/.cache/pnpm:cached
+      - ~/.cache/typescript:/root/.cache/typescript:cached # TypeScript 编译缓存
+
     command: sleep infinity
     environment:
       - NODE_ENV=development
     ports:
-      - '3000:3000'
-      - '5173:5173'
-      - '8080:8080'
+      # Web 应用端口
+      - '3000:3000' # API gateway
+      - '5173:5173' # Vite dev
+      - '4200:4200' # frontend svelte
+      - '8080:8080' #
     networks:
       - app-network
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
 
 networks:
   app-network:

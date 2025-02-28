@@ -43,8 +43,6 @@ services:
       - '8080:8080' #
     networks:
       - app-network
-    extra_hosts:
-      - 'host.docker.internal:host-gateway' # 允许容器访问宿主机服务
 
 networks:
   app-network:

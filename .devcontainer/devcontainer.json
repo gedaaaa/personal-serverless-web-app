@@ -15,7 +15,7 @@
       "nvmVersion": "0.40.1",
       "pnpmVersion": "9.15.5"
     },
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/aws-cli:1": {},
     "ghcr.io/audacioustux/devcontainers/aws-sam-cli:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {

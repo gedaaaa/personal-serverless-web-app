@@ -1,0 +1,11 @@
+#Fri Feb 28 04:15:00 CST 2025
+micronaut:
+  application:
+    name: auth
+  server:
+    port: 8080
+    # 设置开发环境的上下文路径
+    # 因为 sam 只模拟 API Gateway v1，并将映射的基本路径传递给 Lambda
+    # 生产环境使用 API Gateway v2，HTTP API ($default) Lambda 集成，API 映射
+    # 这不会将映射的路径键传递给 Lambda
+    context-path: auth 

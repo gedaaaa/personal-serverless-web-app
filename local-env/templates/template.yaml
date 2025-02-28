@@ -23,6 +23,23 @@ Resources:
       Environment:
         Variables:
           MICRONAUT_ENVIRONMENTS: development
+  # 添加 Auth 服务
+  AuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/backend/auth/app/build/libs/app-0.1-all.jar # point to project fat jar
+      Handler: io.micronaut.function.aws.proxy.payload1.ApiGatewayProxyRequestEventFunction
+      Runtime: java21
+      MemorySize: 512
+      Timeout: 10
+      Tracing: Active
+      SnapStart:
+        ApplyOn: PublishedVersions
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          MICRONAUT_ENVIRONMENTS: development
   # sync with CDK
   HelloWorldApi:
     Type: AWS::Serverless::Api
@@ -55,6 +72,41 @@ Resources:
               responses: {}
               x-amazon-apigateway-integration:
                 uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${HelloWorldFunction.Arn}/invocations
+                passthroughBehavior: when_no_match
+                httpMethod: ANY
+                type: aws_proxy
+  # 添加 Auth API
+  AuthApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      DefinitionBody:
+        swagger: 2.0
+        paths:
+          # both bath path and proxy path
+          /auth:
+            x-amazon-apigateway-any-method:
+              parameters:
+                - name: 'proxy'
+                  in: 'path'
+                  required: true
+                  type: 'string'
+              responses: {}
+              x-amazon-apigateway-integration:
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthFunction.Arn}/invocations
+                passthroughBehavior: when_no_match
+                httpMethod: ANY
+                type: aws_proxy
+          /auth/{proxy+}:
+            x-amazon-apigateway-any-method:
+              parameters:
+                - name: 'proxy'
+                  in: 'path'
+                  required: true
+                  type: 'string'
+              responses: {}
+              x-amazon-apigateway-integration:
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthFunction.Arn}/invocations
                 passthroughBehavior: when_no_match
                 httpMethod: ANY
                 type: aws_proxy

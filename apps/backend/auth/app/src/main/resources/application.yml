@@ -1,0 +1,28 @@
+#Fri Feb 28 04:15:00 CST 2025
+micronaut:
+  application:
+    name: auth
+  server:
+    cors:
+      enabled: true
+  router:
+    static-resources:
+      swagger:
+        paths: classpath:META-INF/swagger
+        mapping: /swagger/**
+      swagger-ui:
+        paths: classpath:META-INF/swagger/views/swagger-ui
+        mapping: /swagger-ui/**
+  security:
+    enabled: false
+
+endpoints:
+  health:
+    enabled: true
+    sensitive: false
+    details-visible: ANONYMOUS
+
+netty:
+  default:
+    allocator:
+      max-order: 3 

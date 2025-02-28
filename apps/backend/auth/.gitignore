@@ -1,0 +1,22 @@
+# Gradle
+.gradle/
+build/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+*.iws
+.idea_modules/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Micronaut
+.micronaut/
+
+# Logs
+*.log 

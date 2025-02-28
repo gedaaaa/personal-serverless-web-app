@@ -1,0 +1,4 @@
+#Fri Feb 28 04:15:00 CST 2025
+micronaut:
+  application:
+    name: auth 

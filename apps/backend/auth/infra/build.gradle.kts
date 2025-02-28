@@ -1,5 +1,6 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm")
+    id("application")
+    id("java")
 }
 
 repositories {
@@ -7,21 +8,17 @@ repositories {
 }
 
 dependencies {
-    implementation("software.amazon.awscdk:aws-cdk-lib:2.118.0")
-    implementation("software.constructs:constructs:10.3.0")
-    implementation("io.micronaut.cdk:micronaut-function-aws-cdk:2.5.0")
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
-}
-
-tasks.register("synth") {
-    dependsOn("compileKotlin")
-    doLast {
-        exec {
-            workingDir(projectDir)
-            commandLine("cdk", "synth")
-        }
+    implementation(platform("io.micronaut.platform:micronaut-platform:4.7.4"))
+    implementation("io.micronaut.starter:micronaut-starter-aws-cdk:4.6.3") {
+        exclude(group = "software.amazon.awscdk", module = "aws-cdk-lib")
     }
-} 
+    implementation("software.amazon.awscdk:aws-cdk-lib:2.166.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine")
+}
+application {
+    mainClass = "top.sunbath.api.auth.Main"
+}
+tasks.withType<Test> {
+    useJUnitPlatform()
+}

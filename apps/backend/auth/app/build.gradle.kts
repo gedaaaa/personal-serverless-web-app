@@ -64,7 +64,7 @@ dependencies {
     implementation("com.github.ksuid:ksuid:1.1.3")
     implementation("io.projectreactor:reactor-core")
 
-    compileOnly("io.micronaut:micronaut-http-client-jdk")
+    implementation("io.micronaut:micronaut-http-client-jdk")
 
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")

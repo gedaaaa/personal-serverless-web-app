@@ -39,16 +39,23 @@ repositories {
 dependencies {
     ksp("io.micronaut:micronaut-http-validation")
     ksp("io.micronaut.serde:micronaut-serde-processor")
+    ksp("io.micronaut.validation:micronaut-validation-processor")
 
     implementation(project(":libs:jvm-shared-lib"))
+    implementation("io.micronaut.validation:micronaut-validation")
 
     implementation("io.micronaut.aws:micronaut-aws-apigateway")
     implementation("io.micronaut.aws:micronaut-aws-lambda-events-serde")
     implementation("io.micronaut.crac:micronaut-crac")
+
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+    implementation("jakarta.validation:jakarta.validation-api:3.0.2")
+    implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
+    implementation("software.amazon.awssdk:dynamodb")
+    implementation("com.github.ksuid:ksuid:1.1.3")
     compileOnly("io.micronaut:micronaut-http-client-jdk")
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")

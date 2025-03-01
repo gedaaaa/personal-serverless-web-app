@@ -20,7 +20,8 @@
     "ghcr.io/audacioustux/devcontainers/aws-sam-cli:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {
       "version": "2.67.0"
-    }
+    },
+    "ghcr.io/devcontainers-extra/features/aws-cdk:2": {}
   },
 
   "remoteEnv": {

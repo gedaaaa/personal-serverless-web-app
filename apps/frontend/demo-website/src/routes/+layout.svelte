@@ -3,8 +3,6 @@
   let { children } = $props();
 </script>
 
-<div class="min-h-screen bg-gray-50">
-  <main>
-    {@render children()}
-  </main>
-</div>
+<main class="min-w-screen mx-auto min-h-screen bg-gray-50 py-8">
+  {@render children()}
+</main>

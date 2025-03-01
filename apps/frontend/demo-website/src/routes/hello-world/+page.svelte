@@ -33,13 +33,12 @@
       Logout
     </button>
   </div>
-
-  {#if $auth.user}
-    <p class="mb-6 text-gray-600">
-      Welcome, <span class="font-medium">{$auth.user.username}</span>!
-    </p>
-  {/if}
-
+  <p class="mb-6 text-gray-600">
+    Welcome,
+    {#if $auth.user}
+      <span class="font-medium">{$auth.user.username}</span>!
+    {/if}
+  </p>
   <div class="rounded-lg bg-white p-6 shadow-sm">
     {#if error}
       <div class="mb-4 rounded-md bg-red-50 p-4 text-red-600">{error}</div>

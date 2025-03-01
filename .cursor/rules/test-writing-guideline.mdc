@@ -1,0 +1,8 @@
+---
+description: test writing guideline
+globs: 
+alwaysApply: false
+---
+- 前端项目使用 vitest 测试框架
+- 后端项目使用 micronaut-test 和 junit
+- 每次仅对一个文件更新测试, 确认测试通过后再处理其他文件

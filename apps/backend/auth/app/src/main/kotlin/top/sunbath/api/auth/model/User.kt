@@ -22,6 +22,12 @@ class User : Identified {
     @get:NonNull
     var email: String? = null
 
+    @get:NonNull
+    var password: String? = null
+
+    @get:NonNull
+    var roles: Set<String> = setOf("ROLE_USER")
+
     @get:Nullable
     var fullName: String? = null
 
@@ -35,6 +41,8 @@ class User : Identified {
      * @param id The user ID
      * @param username The username
      * @param email The email
+     * @param password The hashed password
+     * @param roles The user roles
      * @param fullName The full name
      */
     @Creator
@@ -42,11 +50,15 @@ class User : Identified {
         id: String,
         username: String,
         email: String,
-        fullName: String?,
+        password: String,
+        roles: Set<String> = setOf("ROLE_USER"),
+        fullName: String? = null,
     ) {
         this.id = id
         this.username = username
         this.email = email
+        this.password = password
+        this.roles = roles
         this.fullName = fullName
     }
 }

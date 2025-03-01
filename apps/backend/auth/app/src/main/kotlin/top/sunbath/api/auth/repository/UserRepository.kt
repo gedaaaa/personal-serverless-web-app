@@ -26,6 +26,16 @@ interface UserRepository {
     ): User?
 
     /**
+     * Find a user by username.
+     * @param username The username
+     * @return The user if found
+     */
+    @NonNull
+    fun findByUsername(
+        @NonNull @NotBlank username: String,
+    ): User?
+
+    /**
      * Delete a user by ID.
      * @param id The user ID
      */
@@ -37,6 +47,8 @@ interface UserRepository {
      * Save a new user.
      * @param username The username
      * @param email The email
+     * @param password The hashed password
+     * @param roles The user roles
      * @param fullName The full name (optional)
      * @return The ID of the saved user
      */
@@ -44,6 +56,8 @@ interface UserRepository {
     fun save(
         @NonNull @NotBlank username: String,
         @NonNull @NotBlank email: String,
+        @NonNull @NotBlank password: String,
+        @NonNull roles: Set<String>,
         fullName: String?,
     ): String
 }

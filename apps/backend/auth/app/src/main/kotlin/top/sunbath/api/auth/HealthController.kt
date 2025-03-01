@@ -2,6 +2,8 @@ package top.sunbath.api.auth
 
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
+import io.micronaut.security.annotation.Secured
+import io.micronaut.security.rules.SecurityRule
 import java.time.LocalDateTime
 
 /**
@@ -9,6 +11,7 @@ import java.time.LocalDateTime
  * Provides endpoints to verify the service is running correctly.
  */
 @Controller("/health")
+@Secured(SecurityRule.IS_ANONYMOUS)
 open class HealthController {
     /**
      * Simple health check endpoint that returns the current status and timestamp.

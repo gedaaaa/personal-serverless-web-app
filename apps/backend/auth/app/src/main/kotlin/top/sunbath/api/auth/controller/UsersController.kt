@@ -61,6 +61,8 @@ class UsersController(
             userRepository.save(
                 request.username,
                 request.email,
+                request.password,
+                setOf("ROLE_USER"),
                 request.fullName,
             )
         val uri: URI =

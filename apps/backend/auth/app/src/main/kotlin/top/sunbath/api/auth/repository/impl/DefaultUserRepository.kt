@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest
 import top.sunbath.api.auth.config.DynamoConfiguration
 import top.sunbath.api.auth.dynamodbUtil.DynamoRepository
 import top.sunbath.api.auth.dynamodbUtil.IdGenerator
@@ -32,6 +33,8 @@ open class DefaultUserRepository(
         private const val ATTRIBUTE_ID = "id"
         private const val ATTRIBUTE_USERNAME = "username"
         private const val ATTRIBUTE_EMAIL = "email"
+        private const val ATTRIBUTE_PASSWORD = "password"
+        private const val ATTRIBUTE_ROLES = "roles"
         private const val ATTRIBUTE_FULLNAME = "fullName"
     }
 
@@ -39,10 +42,12 @@ open class DefaultUserRepository(
     override fun save(
         @NonNull @NotBlank username: String,
         @NonNull @NotBlank email: String,
+        @NonNull @NotBlank password: String,
+        @NonNull roles: Set<String>,
         fullName: String?,
     ): String {
         val id = idGenerator.generate()
-        save(User(id, username, email, fullName))
+        save(User(id, username, email, password, roles, fullName))
         return id
     }
 
@@ -67,6 +72,23 @@ open class DefaultUserRepository(
         @NonNull @NotBlank id: String,
     ): User? {
         return findById(User::class.java, id)?.let { return userOf(it) }
+    }
+
+    @NonNull
+    override fun findByUsername(
+        @NonNull @NotBlank username: String,
+    ): User? {
+        val scanRequest =
+            ScanRequest
+                .builder()
+                .tableName(dynamoConfiguration.tableName)
+                .filterExpression("#username = :username")
+                .expressionAttributeNames(mapOf("#username" to ATTRIBUTE_USERNAME))
+                .expressionAttributeValues(mapOf(":username" to AttributeValue.builder().s(username).build()))
+                .build()
+
+        val response = dynamoDbClient.scan(scanRequest)
+        return if (response.items().isEmpty()) null else userOf(response.items()[0])
     }
 
     override fun delete(
@@ -110,6 +132,8 @@ open class DefaultUserRepository(
             item[ATTRIBUTE_ID]!!.s(),
             item[ATTRIBUTE_USERNAME]!!.s(),
             item[ATTRIBUTE_EMAIL]!!.s(),
+            item[ATTRIBUTE_PASSWORD]!!.s(),
+            item[ATTRIBUTE_ROLES]?.ss()?.toSet() ?: setOf("ROLE_USER"),
             item[ATTRIBUTE_FULLNAME]?.s(),
         )
 
@@ -121,6 +145,8 @@ open class DefaultUserRepository(
         result[ATTRIBUTE_ID] = AttributeValue.builder().s(entity.id).build()
         result[ATTRIBUTE_USERNAME] = AttributeValue.builder().s(entity.username).build()
         result[ATTRIBUTE_EMAIL] = AttributeValue.builder().s(entity.email).build()
+        result[ATTRIBUTE_PASSWORD] = AttributeValue.builder().s(entity.password).build()
+        result[ATTRIBUTE_ROLES] = AttributeValue.builder().ss(entity.roles).build()
         entity.fullName?.let {
             result[ATTRIBUTE_FULLNAME] = AttributeValue.builder().s(it).build()
         }

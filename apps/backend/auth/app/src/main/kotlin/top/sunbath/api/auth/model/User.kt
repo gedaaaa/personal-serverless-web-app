@@ -1,13 +1,17 @@
 package top.sunbath.api.auth.model
 
 import io.micronaut.core.annotation.Creator
+import io.micronaut.core.annotation.Introspected
 import io.micronaut.core.annotation.NonNull
 import io.micronaut.core.annotation.Nullable
+import io.micronaut.serde.annotation.Serdeable
 import top.sunbath.api.auth.dynamodbUtil.Identified
 
 /**
  * A User entity.
  */
+@Introspected
+@Serdeable
 class User : Identified {
     @get:NonNull
     override var id: String? = null

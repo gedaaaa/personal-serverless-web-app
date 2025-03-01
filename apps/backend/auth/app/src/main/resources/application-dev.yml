@@ -12,8 +12,14 @@ micronaut:
 
 # 为了在本地开发环境中使用 DynamoDB，我们需要配置 DynamoDB 的端点
 # 以及 AWS 认证信息
+dynamodb-local:
+  host: localhost
+  port: 8000
+
 dynamodb:
-  endpoint: http://dynamodb-local.host:8000
+  table-name: users
+
+aws:
   region: us-east-1
-  access-key-id: fake-key-id
-  secret-access-key: fake-access-key
+  access-key-id: fakeMyKeyId
+  secret-access-key: fakeSecretAccessKey

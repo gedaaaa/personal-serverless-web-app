@@ -60,4 +60,4 @@ class DynamoDbClientFactory {
             .credentialsProvider(credentialsProvider)
             .build()
     }
-} 
+}

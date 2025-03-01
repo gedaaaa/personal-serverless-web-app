@@ -38,4 +38,4 @@ class AwsRegionProviderFactory {
         log.info("Using default AWS region provider chain")
         return DefaultAwsRegionProviderChain.builder().build()
     }
-} 
+}

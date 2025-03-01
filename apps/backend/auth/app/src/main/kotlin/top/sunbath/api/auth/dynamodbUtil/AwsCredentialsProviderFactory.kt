@@ -52,4 +52,4 @@ class AwsCredentialsProviderFactory {
         log.info("Using default AWS credentials provider chain for production environment")
         return DefaultCredentialsProvider.create()
     }
-} 
+}

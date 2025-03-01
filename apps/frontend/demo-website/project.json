@@ -23,6 +23,22 @@
         ]
       }
     },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/frontend/demo-website",
+        "commands": ["pnpm vitest run"],
+        "parallel": false
+      },
+      "configurations": {
+        "watch": {
+          "commands": ["pnpm vitest"]
+        },
+        "coverage": {
+          "commands": ["pnpm vitest run --coverage"]
+        }
+      }
+    },
     "build": {
       "executor": "nx:run-commands",
       "options": {

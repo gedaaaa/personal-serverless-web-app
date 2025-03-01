@@ -23,5 +23,6 @@ open class HealthController {
             "status" to "UP",
             "service" to "auth",
             "timestamp" to LocalDateTime.now().toString(),
+            "depolyment_trigger" to 1,
         )
 }

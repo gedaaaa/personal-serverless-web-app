@@ -34,7 +34,7 @@ class AuthControllerTest {
         // When
         val response =
             client.toBlocking().exchange(
-                HttpRequest.POST("/auth/register", request),
+                HttpRequest.POST("/register", request),
                 Map::class.java,
             )
 
@@ -57,7 +57,7 @@ class AuthControllerTest {
         // When/Then
         assertThrows<HttpClientResponseException> {
             client.toBlocking().exchange(
-                HttpRequest.POST("/auth/register", request),
+                HttpRequest.POST("/register", request),
                 Map::class.java,
             )
         }
@@ -77,7 +77,7 @@ class AuthControllerTest {
         // When/Then
         assertThrows<HttpClientResponseException> {
             client.toBlocking().exchange(
-                HttpRequest.POST("/auth/register", request),
+                HttpRequest.POST("/register", request),
                 Map::class.java,
             )
         }
@@ -96,7 +96,7 @@ class AuthControllerTest {
                 fullName = "Login User",
             )
         client.toBlocking().exchange(
-            HttpRequest.POST("/auth/register", registerRequest),
+            HttpRequest.POST("/register", registerRequest),
             Map::class.java,
         )
 
@@ -104,7 +104,7 @@ class AuthControllerTest {
         val loginRequest = LoginRequest(username, password)
         val response =
             client.toBlocking().exchange(
-                HttpRequest.POST("/auth/login", loginRequest),
+                HttpRequest.POST("/login", loginRequest),
                 Map::class.java,
             )
 
@@ -122,7 +122,7 @@ class AuthControllerTest {
         val exception =
             assertThrows<HttpClientResponseException> {
                 client.toBlocking().exchange(
-                    HttpRequest.POST("/auth/login", request),
+                    HttpRequest.POST("/login", request),
                     Map::class.java,
                 )
             }

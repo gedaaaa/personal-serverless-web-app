@@ -49,6 +49,19 @@ open class DynamoRepository<T : Identified>(
         protected const val ATTRIBUTE_GSI_1_SK = "GSI1SK"
         protected const val INDEX_GSI_1 = "GSI1"
 
+        private val SUPPORTED_INDEXES =
+            mutableListOf(
+                IndexDefinition(INDEX_GSI_1, ATTRIBUTE_GSI_1_PK, ATTRIBUTE_GSI_1_SK),
+            )
+
+        fun registerIndex(indexDefinition: IndexDefinition) {
+            if (SUPPORTED_INDEXES.none { it.indexName == indexDefinition.indexName }) {
+                SUPPORTED_INDEXES.add(indexDefinition)
+            }
+        }
+
+        fun getIndexDefinitions(): List<IndexDefinition> = SUPPORTED_INDEXES.toList()
+
         @NonNull
         fun lastEvaluatedId(
             @NonNull response: QueryResponse,
@@ -76,6 +89,28 @@ open class DynamoRepository<T : Identified>(
                     KeySchemaElement
                         .builder()
                         .attributeName(ATTRIBUTE_GSI_1_SK)
+                        .keyType(KeyType.RANGE)
+                        .build(),
+                ).projection(
+                    Projection
+                        .builder()
+                        .projectionType(ProjectionType.ALL)
+                        .build(),
+                ).build()
+
+        private fun buildGlobalSecondaryIndex(indexDefinition: IndexDefinition): GlobalSecondaryIndex =
+            GlobalSecondaryIndex
+                .builder()
+                .indexName(indexDefinition.indexName)
+                .keySchema(
+                    KeySchemaElement
+                        .builder()
+                        .attributeName(indexDefinition.partitionKeyName)
+                        .keyType(KeyType.HASH)
+                        .build(),
+                    KeySchemaElement
+                        .builder()
+                        .attributeName(indexDefinition.sortKeyName)
                         .keyType(KeyType.RANGE)
                         .build(),
                 ).projection(
@@ -128,32 +163,194 @@ open class DynamoRepository<T : Identified>(
             false
         }
 
+    /**
+     * Updates the table's indexes if new ones have been registered.
+     */
+    fun updateTableIndexes() {
+        try {
+            // Get current table description
+            val tableDescription =
+                dynamoDbClient
+                    .describeTable(
+                        DescribeTableRequest
+                            .builder()
+                            .tableName(dynamoConfiguration.tableName)
+                            .build(),
+                    ).table()
+
+            // Get existing GSIs
+            val existingGSIs = tableDescription.globalSecondaryIndexes() ?: emptyList()
+            val existingGSINames = existingGSIs.map { it.indexName() }.toSet()
+
+            // Find indexes that need to be added
+            val indexesToAdd =
+                SUPPORTED_INDEXES.filter {
+                    !existingGSINames.contains(it.indexName)
+                }
+
+            if (indexesToAdd.isNotEmpty()) {
+                LOG.info("Adding ${indexesToAdd.size} new indexes to table ${dynamoConfiguration.tableName}")
+
+                // Create attribute definitions for new indexes
+                val attributeDefinitions = mutableListOf<AttributeDefinition>()
+                indexesToAdd.forEach { index ->
+                    attributeDefinitions.add(
+                        AttributeDefinition
+                            .builder()
+                            .attributeName(index.partitionKeyName)
+                            .attributeType(ScalarAttributeType.S)
+                            .build(),
+                    )
+                    attributeDefinitions.add(
+                        AttributeDefinition
+                            .builder()
+                            .attributeName(index.sortKeyName)
+                            .attributeType(ScalarAttributeType.S)
+                            .build(),
+                    )
+                }
+
+                // Create GSIs for new indexes
+                val gsisToAdd =
+                    indexesToAdd.map {
+                        if (it.indexName == INDEX_GSI_1) gsi1() else buildGlobalSecondaryIndex(it)
+                    }
+
+                // Update the table with new indexes
+                dynamoDbClient.updateTable(
+                    software.amazon.awssdk.services.dynamodb.model.UpdateTableRequest
+                        .builder()
+                        .tableName(dynamoConfiguration.tableName)
+                        .attributeDefinitions(attributeDefinitions)
+                        .globalSecondaryIndexUpdates(
+                            gsisToAdd.map { gsi ->
+                                software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndexUpdate
+                                    .builder()
+                                    .create(
+                                        software.amazon.awssdk.services.dynamodb.model.CreateGlobalSecondaryIndexAction
+                                            .builder()
+                                            .indexName(gsi.indexName())
+                                            .keySchema(gsi.keySchema())
+                                            .projection(gsi.projection())
+                                            .build(),
+                                    ).build()
+                            },
+                        ).build(),
+                )
+
+                LOG.info("Started adding new indexes to table ${dynamoConfiguration.tableName}")
+
+                // Wait for indexes to become active (optional, can be removed if not needed)
+                waitForIndexesToBecomeActive(indexesToAdd.map { it.indexName })
+            } else {
+                LOG.info("No new indexes to add to table ${dynamoConfiguration.tableName}")
+            }
+        } catch (e: Exception) {
+            LOG.error("Error updating table indexes", e)
+            throw e
+        }
+    }
+
+    /**
+     * Waits for the specified indexes to become active.
+     * This is an optional step but helps ensure indexes are ready before use.
+     */
+    private fun waitForIndexesToBecomeActive(indexNames: List<String>) {
+        if (indexNames.isEmpty()) return
+
+        LOG.info("Waiting for indexes ${indexNames.joinToString(", ")} to become active")
+
+        var allActive = false
+        var attempts = 0
+        val maxAttempts = 60 // Maximum wait time: 10 minutes (60 * 10 seconds)
+
+        while (!allActive && attempts < maxAttempts) {
+            try {
+                Thread.sleep(10000) // Wait 10 seconds between checks
+
+                val tableDescription =
+                    dynamoDbClient
+                        .describeTable(
+                            DescribeTableRequest
+                                .builder()
+                                .tableName(dynamoConfiguration.tableName)
+                                .build(),
+                        ).table()
+
+                val gsiStatuses =
+                    tableDescription
+                        .globalSecondaryIndexes()
+                        ?.filter { indexNames.contains(it.indexName()) }
+                        ?.map { it.indexName() to it.indexStatus() }
+                        ?.toMap() ?: emptyMap()
+
+                if (gsiStatuses.size == indexNames.size &&
+                    gsiStatuses.values.all { it == software.amazon.awssdk.services.dynamodb.model.IndexStatus.ACTIVE }
+                ) {
+                    allActive = true
+                    LOG.info("All indexes are now active")
+                } else {
+                    val pendingIndexes =
+                        gsiStatuses
+                            .filter { it.value != software.amazon.awssdk.services.dynamodb.model.IndexStatus.ACTIVE }
+                            .keys
+                            .joinToString(", ")
+                    LOG.info("Waiting for indexes to become active: $pendingIndexes")
+                }
+            } catch (e: Exception) {
+                LOG.warn("Error checking index status", e)
+            }
+
+            attempts++
+        }
+
+        if (!allActive) {
+            LOG.warn("Timed out waiting for indexes to become active")
+        }
+    }
+
     fun createTable() {
+        val attributeDefinitions =
+            mutableListOf(
+                AttributeDefinition
+                    .builder()
+                    .attributeName(ATTRIBUTE_PK)
+                    .attributeType(ScalarAttributeType.S)
+                    .build(),
+                AttributeDefinition
+                    .builder()
+                    .attributeName(ATTRIBUTE_SK)
+                    .attributeType(ScalarAttributeType.S)
+                    .build(),
+            )
+
+        SUPPORTED_INDEXES.forEach { index ->
+            attributeDefinitions.add(
+                AttributeDefinition
+                    .builder()
+                    .attributeName(index.partitionKeyName)
+                    .attributeType(ScalarAttributeType.S)
+                    .build(),
+            )
+            attributeDefinitions.add(
+                AttributeDefinition
+                    .builder()
+                    .attributeName(index.sortKeyName)
+                    .attributeType(ScalarAttributeType.S)
+                    .build(),
+            )
+        }
+
+        val globalSecondaryIndexes =
+            SUPPORTED_INDEXES.map {
+                if (it.indexName == INDEX_GSI_1) gsi1() else buildGlobalSecondaryIndex(it)
+            }
+
         dynamoDbClient.createTable(
             CreateTableRequest
                 .builder()
-                .attributeDefinitions(
-                    AttributeDefinition
-                        .builder()
-                        .attributeName(ATTRIBUTE_PK)
-                        .attributeType(ScalarAttributeType.S)
-                        .build(),
-                    AttributeDefinition
-                        .builder()
-                        .attributeName(ATTRIBUTE_SK)
-                        .attributeType(ScalarAttributeType.S)
-                        .build(),
-                    AttributeDefinition
-                        .builder()
-                        .attributeName(ATTRIBUTE_GSI_1_PK)
-                        .attributeType(ScalarAttributeType.S)
-                        .build(),
-                    AttributeDefinition
-                        .builder()
-                        .attributeName(ATTRIBUTE_GSI_1_SK)
-                        .attributeType(ScalarAttributeType.S)
-                        .build(),
-                ).keySchema(
+                .attributeDefinitions(attributeDefinitions)
+                .keySchema(
                     Arrays.asList(
                         KeySchemaElement
                             .builder()
@@ -168,7 +365,7 @@ open class DynamoRepository<T : Identified>(
                     ),
                 ).billingMode(BillingMode.PAY_PER_REQUEST)
                 .tableName(dynamoConfiguration.tableName)
-                .globalSecondaryIndexes(gsi1())
+                .globalSecondaryIndexes(globalSecondaryIndexes)
                 .build(),
         )
     }
@@ -261,6 +458,56 @@ open class DynamoRepository<T : Identified>(
         item[ATTRIBUTE_SK] = pk
         item[ATTRIBUTE_GSI_1_PK] = classAttributeValue(entity.javaClass)
         item[ATTRIBUTE_GSI_1_SK] = pk
+
+        if (entity is Indexable) {
+            val indexValues = entity.getIndexValues()
+            for ((key, value) in indexValues) {
+                item[key] = AttributeValue.builder().s(value).build()
+            }
+        }
+
         return item
     }
+
+    fun <E : Identified> createIndexQuery(
+        indexName: String,
+        partitionKeyName: String,
+        partitionKeyValue: String,
+        sortKeyName: String? = null,
+        sortKeyValue: String? = null,
+        sortKeyOperator: String = "=",
+    ): QueryRequest {
+        val builder =
+            QueryRequest
+                .builder()
+                .tableName(dynamoConfiguration.tableName)
+                .indexName(indexName)
+
+        if (sortKeyName != null && sortKeyValue != null) {
+            builder
+                .keyConditionExpression("#pk = :pk and #sk $sortKeyOperator :sk")
+                .expressionAttributeNames(
+                    mapOf(
+                        "#pk" to partitionKeyName,
+                        "#sk" to sortKeyName,
+                    ),
+                ).expressionAttributeValues(
+                    mapOf(
+                        ":pk" to AttributeValue.builder().s(partitionKeyValue).build(),
+                        ":sk" to AttributeValue.builder().s(sortKeyValue).build(),
+                    ),
+                )
+        } else {
+            builder
+                .keyConditionExpression("#pk = :pk")
+                .expressionAttributeNames(mapOf("#pk" to partitionKeyName))
+                .expressionAttributeValues(
+                    mapOf(":pk" to AttributeValue.builder().s(partitionKeyValue).build()),
+                )
+        }
+
+        return builder.build()
+    }
+
+    fun getTableName(): String = dynamoConfiguration.tableName
 }

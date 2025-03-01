@@ -14,10 +14,10 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse
-import software.amazon.awssdk.services.dynamodb.model.ScanRequest
 import top.sunbath.api.auth.config.DynamoConfiguration
 import top.sunbath.api.auth.dynamodbUtil.DynamoRepository
 import top.sunbath.api.auth.dynamodbUtil.IdGenerator
+import top.sunbath.api.auth.dynamodbUtil.IndexDefinition
 import top.sunbath.api.auth.model.User
 import top.sunbath.api.auth.repository.UserRepository
 
@@ -36,6 +36,23 @@ open class DefaultUserRepository(
         private const val ATTRIBUTE_PASSWORD = "password"
         private const val ATTRIBUTE_ROLES = "roles"
         private const val ATTRIBUTE_FULLNAME = "fullName"
+
+        // Define index constants
+        private const val USERNAME_INDEX = "USERNAME_INDEX"
+        private const val USERNAME_PK = "USERNAME_PK"
+        private const val USERNAME_SK = "USERNAME_SK"
+
+        // Register the username index
+        init {
+            DynamoRepository.registerIndex(IndexDefinition(USERNAME_INDEX, USERNAME_PK, USERNAME_SK))
+        }
+    }
+
+    // Add a constructor init block to ensure indexes are registered
+    init {
+        // This ensures that the companion object's init block is executed
+        // and the indexes are registered before the repository is used
+        LOG.debug("Initializing DefaultUserRepository with username index: $USERNAME_INDEX")
     }
 
     @NonNull
@@ -78,16 +95,15 @@ open class DefaultUserRepository(
     override fun findByUsername(
         @NonNull @NotBlank username: String,
     ): User? {
-        val scanRequest =
-            ScanRequest
-                .builder()
-                .tableName(dynamoConfiguration.tableName)
-                .filterExpression("#username = :username")
-                .expressionAttributeNames(mapOf("#username" to ATTRIBUTE_USERNAME))
-                .expressionAttributeValues(mapOf(":username" to AttributeValue.builder().s(username).build()))
-                .build()
+        // Use the generic index query method
+        val queryRequest =
+            createIndexQuery<User>(
+                indexName = USERNAME_INDEX,
+                partitionKeyName = USERNAME_PK,
+                partitionKeyValue = username,
+            )
 
-        val response = dynamoDbClient.scan(scanRequest)
+        val response = dynamoDbClient.query(queryRequest)
         return if (response.items().isEmpty()) null else userOf(response.items()[0])
     }
 
@@ -150,6 +166,7 @@ open class DefaultUserRepository(
         entity.fullName?.let {
             result[ATTRIBUTE_FULLNAME] = AttributeValue.builder().s(it).build()
         }
+
         return result
     }
 }

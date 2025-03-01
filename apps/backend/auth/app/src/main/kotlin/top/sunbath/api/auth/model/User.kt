@@ -6,13 +6,16 @@ import io.micronaut.core.annotation.NonNull
 import io.micronaut.core.annotation.Nullable
 import io.micronaut.serde.annotation.Serdeable
 import top.sunbath.api.auth.dynamodbUtil.Identified
+import top.sunbath.api.auth.dynamodbUtil.Indexable
 
 /**
  * A User entity.
  */
 @Introspected
 @Serdeable
-class User : Identified {
+class User :
+    Identified,
+    Indexable {
     @get:NonNull
     override var id: String? = null
 
@@ -60,5 +63,26 @@ class User : Identified {
         this.password = password
         this.roles = roles
         this.fullName = fullName
+    }
+
+    /**
+     * Returns index values for this user.
+     */
+    override fun getIndexValues(): Map<String, String> {
+        val indexValues = mutableMapOf<String, String>()
+
+        // Add username index values - use the same constants as in DefaultUserRepository
+        username?.let {
+            indexValues["USERNAME_PK"] = it
+            indexValues["USERNAME_SK"] = id ?: ""
+        }
+
+        // Add email index values if needed in the future
+        email?.let {
+            indexValues["EMAIL_PK"] = it
+            indexValues["EMAIL_SK"] = id ?: ""
+        }
+
+        return indexValues
     }
 }

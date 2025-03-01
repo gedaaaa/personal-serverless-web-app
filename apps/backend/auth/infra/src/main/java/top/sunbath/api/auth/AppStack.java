@@ -35,7 +35,6 @@ public class AppStack extends Stack {
         var serviceName = "auth";
 
         // 创建 DynamoDB 表
-        // 注意：我们只创建基本表结构，索引将由应用程序自动创建和管理
         Table usersTable = Table.Builder.create(this, "UsersTable")
                 .tableName("users")
                 .partitionKey(Attribute.builder()
@@ -46,23 +45,11 @@ public class AppStack extends Stack {
                 .removalPolicy(software.amazon.awscdk.RemovalPolicy.RETAIN) // 保留表，防止意外删除
                 .build();
 
-        // 注释掉手动创建索引的代码，因为应用程序会自动创建
-        // usersTable.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
-        //         .indexName("USERNAME_INDEX")
-        //         .partitionKey(Attribute.builder()
-        //                 .name("username")
-        //                 .type(AttributeType.STRING)
-        //                 .build())
-        //         .projectionType(ProjectionType.ALL)
-        //         .build());
-
         Map<String, String> environmentVariables = new HashMap<>();
         // 设置生产环境
         environmentVariables.put("MICRONAUT_ENVIRONMENTS", "production");
         // 设置 DynamoDB 表名
         environmentVariables.put("DYNAMODB_TABLE_NAME", usersTable.getTableName());
-        // 设置 AWS 区域
-        environmentVariables.put("AWS_REGION", this.getRegion());
 
         var function = MicronautFunction.create(ApplicationType.DEFAULT,
                         false,

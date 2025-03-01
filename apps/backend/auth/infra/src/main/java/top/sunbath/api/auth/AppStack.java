@@ -20,7 +20,6 @@ import software.constructs.Construct;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class AppStack extends Stack {
@@ -37,10 +36,7 @@ public class AppStack extends Stack {
         // 创建 DynamoDB 表，不指定物理表名，让AWS自动生成
         Table usersTable = Table.Builder.create(this, "UsersTable")
                 // 移除显式表名设置，使用逻辑ID生成唯一表名
-                .partitionKey(Attribute.builder()
-                        .name("id")
-                        .type(AttributeType.STRING)
-                        .build())
+                .partitionKey(Attribute.builder().name("id").type(AttributeType.STRING).build())
                 .billingMode(BillingMode.PAY_PER_REQUEST) // 按需计费模式，适合开发和低流量场景
                 .removalPolicy(software.amazon.awscdk.RemovalPolicy.RETAIN) // 保留表，防止意外删除
                 .build();
@@ -51,63 +47,43 @@ public class AppStack extends Stack {
         // 设置 DynamoDB 表名
         environmentVariables.put("DYNAMODB_TABLE_NAME", usersTable.getTableName());
 
-        var function = MicronautFunction.create(ApplicationType.DEFAULT,
-                        false,
-                        this,
-                        serviceName + "-function")
+        var function = MicronautFunction.create(ApplicationType.DEFAULT, false, this, serviceName + "-function")
                 .runtime(Runtime.JAVA_21)
                 .handler("io.micronaut.function.aws.proxy.payload2.APIGatewayV2HTTPEventFunction")
-                .environment(environmentVariables)
-                .code(Code.fromAsset(functionPath()))
-                .timeout(Duration.seconds(10))
-                .memorySize(512)
-                .logRetention(RetentionDays.ONE_WEEK)
-                .tracing(Tracing.ACTIVE)
-                .architecture(Architecture.X86_64)
-                .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS)
-                .build();
+                .environment(environmentVariables).code(Code.fromAsset(functionPath())).timeout(Duration.seconds(10))
+                .memorySize(512).logRetention(RetentionDays.ONE_WEEK).tracing(Tracing.ACTIVE)
+                .architecture(Architecture.X86_64).snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS).build();
 
         // 授予 Lambda 函数对 DynamoDB 表的读写权限
         usersTable.grantReadWriteData(function);
-        
+
         // 额外授予 Lambda 函数创建和管理索引的权限
-        function.addToRolePolicy(PolicyStatement.Builder.create()
-                .effect(Effect.ALLOW)
-                .actions(Arrays.asList(
-                        "dynamodb:UpdateTable",
-                        "dynamodb:DescribeTable",
-                        "dynamodb:CreateTable"
-                ))
-                .resources(Arrays.asList(
-                        usersTable.getTableArn()
-                ))
+        function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
+                .actions(Arrays.asList("dynamodb:UpdateTable", "dynamodb:DescribeTable", "dynamodb:CreateTable"))
+                .resources(Arrays.asList(usersTable.getTableArn(), usersTable.getTableArn() + "/*" // 添加对所有索引的权限
+                )).build());
+
+        // 授予 Lambda 函数对 DynamoDB 表及其索引的查询权限
+        function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
+                .actions(Arrays.asList("dynamodb:Query", "dynamodb:Scan", "dynamodb:GetItem", "dynamodb:PutItem",
+                        "dynamodb:UpdateItem", "dynamodb:DeleteItem"))
+                .resources(Arrays.asList(usersTable.getTableArn(), usersTable.getTableArn() + "/*", // 添加索引权限
+                        "arn:aws:dynamodb:ap-southeast-1::table/distributed_locks"))
                 .build());
 
         var currentVersion = function.getCurrentVersion();
-        var prodAlias = Alias.Builder.create(this, "ProdAlias")
-                .aliasName("Prod")
-                .version(currentVersion)
+        var prodAlias = Alias.Builder.create(this, "ProdAlias").aliasName("Prod").version(currentVersion).build();
+
+        HttpLambdaIntegration lambdaIntegration = HttpLambdaIntegration.Builder.create("LambdaIntegration", prodAlias)
                 .build();
 
-        HttpLambdaIntegration lambdaIntegration = HttpLambdaIntegration.Builder
-                .create("LambdaIntegration", prodAlias)
-                .build();
-
-        HttpApi httpApi = HttpApi.Builder.create(this, serviceName + "-http-api")
-                .defaultIntegration(lambdaIntegration)
+        HttpApi httpApi = HttpApi.Builder.create(this, serviceName + "-http-api").defaultIntegration(lambdaIntegration)
                 .corsPreflight(CorsPreflightOptions.builder()
                         .allowOrigins(Arrays.asList("https://sunbath.top", "http://localhost:4200"))
-                        .allowMethods(Arrays.asList(
-                                CorsHttpMethod.GET,
-                                CorsHttpMethod.POST,
-                                CorsHttpMethod.PUT,
-                                CorsHttpMethod.DELETE,
-                                CorsHttpMethod.OPTIONS
-                        ))
+                        .allowMethods(Arrays.asList(CorsHttpMethod.GET, CorsHttpMethod.POST, CorsHttpMethod.PUT,
+                                CorsHttpMethod.DELETE, CorsHttpMethod.OPTIONS))
                         .allowHeaders(Arrays.asList("Content-Type", "Authorization", "X-Amz-Date", "X-Api-Key"))
-                        .allowCredentials(true)
-                        .maxAge(Duration.days(1))
-                        .build())
+                        .allowCredentials(true).maxAge(Duration.days(1)).build())
                 .build();
 
         // 配置自定义域名
@@ -117,33 +93,17 @@ public class AppStack extends Stack {
         var domainAlias = "d-she55i1zs4.execute-api.ap-southeast-1.amazonaws.com";
         var url = "https://" + domainName + "/" + basePath;
 
-        var domainNameV2 = DomainName.fromDomainNameAttributes(
-                this,
-                "ApiDomainNameV2",
-                DomainNameAttributes.builder()
-                        .name(domainName)
-                        .regionalHostedZoneId(domainHostedZoneId)
-                        .regionalDomainName(domainAlias)
-                        .build()
-        );
+        var domainNameV2 = DomainName.fromDomainNameAttributes(this, "ApiDomainNameV2", DomainNameAttributes.builder()
+                .name(domainName).regionalHostedZoneId(domainHostedZoneId).regionalDomainName(domainAlias).build());
 
-        ApiMapping.Builder.create(this, serviceName + "-api-mapping")
-                .api(httpApi)
-                .domainName(domainNameV2)
-                .apiMappingKey(basePath)
-                .stage(httpApi.getDefaultStage())
-                .build();
+        ApiMapping.Builder.create(this, serviceName + "-api-mapping").api(httpApi).domainName(domainNameV2)
+                .apiMappingKey(basePath).stage(httpApi.getDefaultStage()).build();
 
         // 输出 DynamoDB 表名
-        CfnOutput.Builder.create(this, "UsersTableName")
-                .exportName("UsersTableName")
-                .value(usersTable.getTableName())
+        CfnOutput.Builder.create(this, "UsersTableName").exportName("UsersTableName").value(usersTable.getTableName())
                 .build();
 
-        CfnOutput.Builder.create(this, "AuthApiUrl")
-                .exportName("AuthApiUrl")
-                .value(url)
-                .build();
+        CfnOutput.Builder.create(this, "AuthApiUrl").exportName("AuthApiUrl").value(url).build();
     }
 
     public static String functionPath() {
@@ -151,12 +111,7 @@ public class AppStack extends Stack {
     }
 
     public static String functionFilename() {
-        return MicronautFunctionFile.builder()
-                .optimized()
-                .graalVMNative(false)
-                .version("0.1")
-                .archiveBaseName("app")
-                .buildTool(BuildTool.GRADLE)
-                .build();
+        return MicronautFunctionFile.builder().optimized().graalVMNative(false).version("0.1").archiveBaseName("app")
+                .buildTool(BuildTool.GRADLE).build();
     }
-} 
+}

@@ -24,7 +24,7 @@ micronaut:
               secret: ${JWT_SECRET:pleaseChangeThisSecretForANewOne}
         generator:
           access-token:
-            expiration: 86400  # 24 hours in seconds
+            expiration: 86400 # 24 hours in seconds
 
 endpoints:
   health:
@@ -40,8 +40,3 @@ netty:
 # DynamoDB configuration
 dynamodb:
   table-name: 'users'
-
-aws:
-  region: 'us-east-1'
-  access-key-id: 'fake-key-id'
-  secret-access-key: 'fake-access-key'

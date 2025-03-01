@@ -1,7 +1,7 @@
 const API_BASE_URL =
   import.meta.env.VITE_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
-import { getAuthToken } from '$lib/auth';
+import { getAuthToken } from '$lib/auth/auth';
 
 interface ApiError {
   status: number;

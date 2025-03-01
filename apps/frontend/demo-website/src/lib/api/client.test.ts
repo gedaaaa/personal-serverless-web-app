@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ApiClient } from './client';
-import * as authModule from '$lib/auth';
+import * as authModule from '$lib/auth/auth';
 
 // Mock dependencies
 vi.mock('$lib/auth', () => ({

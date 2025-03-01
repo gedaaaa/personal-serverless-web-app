@@ -16,6 +16,9 @@ micronaut:
   security:
     enabled: true
     authentication: bearer
+    endpoints:
+      login:
+        enabled: false
     token:
       jwt:
         signatures:

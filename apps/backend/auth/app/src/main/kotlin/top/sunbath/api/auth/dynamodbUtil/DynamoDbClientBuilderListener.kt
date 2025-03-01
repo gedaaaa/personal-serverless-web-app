@@ -14,6 +14,7 @@ import java.net.URISyntaxException
 
 @Requires(property = "dynamodb-local.host")
 @Requires(property = "dynamodb-local.port")
+@Requires(notEnv = ["production"])
 @Singleton
 class DynamoDbClientBuilderListener(
     @Value("\${dynamodb-local.host}") host: String,

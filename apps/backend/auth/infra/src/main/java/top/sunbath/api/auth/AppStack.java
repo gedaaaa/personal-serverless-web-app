@@ -10,6 +10,9 @@ import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
 import software.amazon.awscdk.aws_apigatewayv2_integrations.HttpLambdaIntegration;
 import software.amazon.awscdk.services.apigatewayv2.*;
+import software.amazon.awscdk.services.dynamodb.*;
+import software.amazon.awscdk.services.iam.PolicyStatement;
+import software.amazon.awscdk.services.iam.Effect;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.amazon.awscdk.services.lambda.*;
 import software.amazon.awscdk.services.logs.RetentionDays;
@@ -17,6 +20,7 @@ import software.constructs.Construct;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class AppStack extends Stack {
@@ -30,9 +34,35 @@ public class AppStack extends Stack {
 
         var serviceName = "auth";
 
+        // 创建 DynamoDB 表
+        // 注意：我们只创建基本表结构，索引将由应用程序自动创建和管理
+        Table usersTable = Table.Builder.create(this, "UsersTable")
+                .tableName("users")
+                .partitionKey(Attribute.builder()
+                        .name("id")
+                        .type(AttributeType.STRING)
+                        .build())
+                .billingMode(BillingMode.PAY_PER_REQUEST) // 按需计费模式，适合开发和低流量场景
+                .removalPolicy(software.amazon.awscdk.RemovalPolicy.RETAIN) // 保留表，防止意外删除
+                .build();
+
+        // 注释掉手动创建索引的代码，因为应用程序会自动创建
+        // usersTable.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
+        //         .indexName("USERNAME_INDEX")
+        //         .partitionKey(Attribute.builder()
+        //                 .name("username")
+        //                 .type(AttributeType.STRING)
+        //                 .build())
+        //         .projectionType(ProjectionType.ALL)
+        //         .build());
+
         Map<String, String> environmentVariables = new HashMap<>();
         // 设置生产环境
         environmentVariables.put("MICRONAUT_ENVIRONMENTS", "production");
+        // 设置 DynamoDB 表名
+        environmentVariables.put("DYNAMODB_TABLE_NAME", usersTable.getTableName());
+        // 设置 AWS 区域
+        environmentVariables.put("AWS_REGION", this.getRegion());
 
         var function = MicronautFunction.create(ApplicationType.DEFAULT,
                         false,
@@ -49,6 +79,23 @@ public class AppStack extends Stack {
                 .architecture(Architecture.X86_64)
                 .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS)
                 .build();
+
+        // 授予 Lambda 函数对 DynamoDB 表的读写权限
+        usersTable.grantReadWriteData(function);
+        
+        // 额外授予 Lambda 函数创建和管理索引的权限
+        function.addToRolePolicy(PolicyStatement.Builder.create()
+                .effect(Effect.ALLOW)
+                .actions(Arrays.asList(
+                        "dynamodb:UpdateTable",
+                        "dynamodb:DescribeTable",
+                        "dynamodb:CreateTable"
+                ))
+                .resources(Arrays.asList(
+                        usersTable.getTableArn()
+                ))
+                .build());
+
         var currentVersion = function.getCurrentVersion();
         var prodAlias = Alias.Builder.create(this, "ProdAlias")
                 .aliasName("Prod")
@@ -98,6 +145,12 @@ public class AppStack extends Stack {
                 .domainName(domainNameV2)
                 .apiMappingKey(basePath)
                 .stage(httpApi.getDefaultStage())
+                .build();
+
+        // 输出 DynamoDB 表名
+        CfnOutput.Builder.create(this, "UsersTableName")
+                .exportName("UsersTableName")
+                .value(usersTable.getTableName())
                 .build();
 
         CfnOutput.Builder.create(this, "AuthApiUrl")

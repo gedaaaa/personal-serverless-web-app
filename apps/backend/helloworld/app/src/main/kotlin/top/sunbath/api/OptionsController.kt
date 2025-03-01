@@ -16,9 +16,10 @@ class OptionsController {
      * Add OPTIONS controller for all possible path and always return 200. Let API gateway handle the real CORS response.
      */
     @Options("{/path:.*}")
-    @Suppress("unused")
     fun handleOptions(
-        @Nullable @PathVariable path: String?,
+        @Suppress("unused")
+        @Nullable
+        @PathVariable path: String?,
     ) {
         // let the cors filter do its job
     }

@@ -7,6 +7,7 @@ node_modules
 .wrangler
 /build
 .svelte-kit
+/workspace
 
 
 # OS

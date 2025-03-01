@@ -34,9 +34,9 @@ public class AppStack extends Stack {
 
         var serviceName = "auth";
 
-        // 创建 DynamoDB 表
+        // 创建 DynamoDB 表，不指定物理表名，让AWS自动生成
         Table usersTable = Table.Builder.create(this, "UsersTable")
-                .tableName("users")
+                // 移除显式表名设置，使用逻辑ID生成唯一表名
                 .partitionKey(Attribute.builder()
                         .name("id")
                         .type(AttributeType.STRING)

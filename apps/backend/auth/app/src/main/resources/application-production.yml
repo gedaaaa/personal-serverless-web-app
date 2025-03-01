@@ -5,7 +5,7 @@ micronaut:
 
 # DynamoDB configuration
 dynamodb:
-  table-name: ${DYNAMODB_TABLE_NAME:users}
+  table-name: ${DYNAMODB_TABLE_NAME}
 
 # AWS configuration
 aws:

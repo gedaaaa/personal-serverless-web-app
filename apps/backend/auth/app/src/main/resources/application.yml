@@ -45,12 +45,3 @@ aws:
   region: 'us-east-1'
   access-key-id: 'fake-key-id'
   secret-access-key: 'fake-access-key'
-
-test-resources:
-  containers:
-    dynamodb:
-      image-name: amazon/dynamodb-local
-      hostnames:
-        - dynamodb-local.host
-      exposed-ports:
-        - dynamodb-local.port: 8000

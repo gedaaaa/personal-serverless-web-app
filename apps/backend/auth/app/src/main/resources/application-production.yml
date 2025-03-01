@@ -1,0 +1,15 @@
+#Fri Feb 28 04:15:00 CST 2025
+micronaut:
+  application:
+    name: auth 
+
+# DynamoDB configuration
+dynamodb:
+  table-name: ${DYNAMODB_TABLE_NAME:users}
+
+# AWS configuration
+aws:
+  region: ${AWS_REGION:us-east-1}
+  # 在生产环境中，我们不需要显式配置 access-key-id 和 secret-access-key
+  # 应用将使用 AWS 默认凭证提供者链来获取凭证
+  # 例如：EC2 实例角色、ECS 任务角色、Lambda 执行角色等 

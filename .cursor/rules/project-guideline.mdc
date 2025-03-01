@@ -1,0 +1,13 @@
+---
+description: project guideline
+globs: 
+alwaysApply: false
+---
+- monorepo, 使用 nx 管理
+- 前端语言为 typescript, 最主要框架为 sveltekit
+- 后端语言为 koltin, 最主要框架为 micronaut
+
+- CI/CD 部署时会直接使用 `pnpm nx affected --target=deploy` 命令
+- CI/CD 过程中同样会利用 nx affected 判断 build, lint, test 的范围
+
+- 必要时可以引入新的依赖

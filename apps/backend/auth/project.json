@@ -1,17 +1,17 @@
 {
-  "name": "helloworld-service",
+  "name": "auth-service",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "apps/backend/helloworld/app/src",
+  "sourceRoot": "apps/backend/auth/app/src",
   "tags": [],
-  "root": "apps/backend/helloworld",
+  "root": "apps/backend/auth",
   "targets": {
     "build": {
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "./gradlew :apps:backend:helloworld:app:build",
-          "./gradlew :apps:backend:helloworld:infra:build"
+          "./gradlew :apps:backend:auth:app:build",
+          "./gradlew :apps:backend:auth:infra:build"
         ],
         "parallel": false
       }
@@ -20,17 +20,16 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "export MICRONAUT_ENVIRONMENTS=dev && ./gradlew :apps:backend:helloworld:app:run --continuous"
+          "export MICRONAUT_ENVIRONMENTS=dev && ./gradlew :apps:backend:auth:app:run --continuous"
         ]
       }
     },
     "deploy": {
-      "// TODO": "figure out how to deploy to stage/prod separately",
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "./gradlew :apps:backend:helloworld:app:optimizedJitJarAll",
-          "cd apps/backend/helloworld/infra && cdk deploy --require-approval never"
+          "./gradlew :apps:backend:auth:app:optimizedJitJarAll",
+          "cd apps/backend/auth/infra && cdk deploy --require-approval never"
         ],
         "parallel": false
       }
@@ -38,15 +37,21 @@
     "lint": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["./gradlew :apps:backend:helloworld:app:ktlintCheck"],
+        "commands": ["./gradlew :apps:backend:auth:app:ktlintCheck"],
         "parallel": false
       }
     },
     "format": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["./gradlew :apps:backend:helloworld:app:ktlintFormat"],
+        "commands": ["./gradlew :apps:backend:auth:app:ktlintFormat"],
         "parallel": false
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["./gradlew :apps:backend:auth:app:test"]
       }
     }
   }

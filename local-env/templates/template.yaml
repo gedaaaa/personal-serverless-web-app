@@ -22,7 +22,24 @@ Resources:
         - x86_64
       Environment:
         Variables:
-          MICRONAUT_ENVIRONMENTS: development
+          MICRONAUT_ENVIRONMENTS: dev
+  # 添加 Auth 服务
+  AuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../apps/backend/auth/app/build/libs/app-0.1-all.jar # point to project fat jar
+      Handler: io.micronaut.function.aws.proxy.payload1.ApiGatewayProxyRequestEventFunction
+      Runtime: java21
+      MemorySize: 512
+      Timeout: 10
+      Tracing: Active
+      SnapStart:
+        ApplyOn: PublishedVersions
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          MICRONAUT_ENVIRONMENTS: dev
   # sync with CDK
   HelloWorldApi:
     Type: AWS::Serverless::Api
@@ -58,3 +75,64 @@ Resources:
                 passthroughBehavior: when_no_match
                 httpMethod: ANY
                 type: aws_proxy
+  # 添加 Auth API
+  AuthApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      DefinitionBody:
+        swagger: 2.0
+        paths:
+          # both bath path and proxy path
+          /auth:
+            x-amazon-apigateway-any-method:
+              parameters:
+                - name: 'proxy'
+                  in: 'path'
+                  required: true
+                  type: 'string'
+              responses: {}
+              x-amazon-apigateway-integration:
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthFunction.Arn}/invocations
+                passthroughBehavior: when_no_match
+                httpMethod: ANY
+                type: aws_proxy
+          /auth/{proxy+}:
+            x-amazon-apigateway-any-method:
+              parameters:
+                - name: 'proxy'
+                  in: 'path'
+                  required: true
+                  type: 'string'
+              responses: {}
+              x-amazon-apigateway-integration:
+                uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthFunction.Arn}/invocations
+                passthroughBehavior: when_no_match
+                httpMethod: ANY
+                type: aws_proxy
+  MyDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: users
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: username
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: username-index
+          KeySchema:
+            - AttributeName: username
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      BillingMode: PAY_PER_REQUEST

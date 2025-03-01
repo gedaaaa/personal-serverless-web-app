@@ -1,0 +1,20 @@
+---
+description: backend guideline
+globs: 
+alwaysApply: false
+---
+- 使用 nx, gradle 作为管理工具
+
+- 后端使用 koltin+micronaut 的微服务模式
+- 遵循 restful 规范
+- 数据库使用 dynamodb
+- 遵循 DDD 设计
+
+- 开发过程中直接使用 gradle run 运行和调试, 参考 helloworld 的 project.json
+- 部署过程使用 cdk, 参考 helloworld 项目的 infra 目录
+
+- 为了方便前端开发, 在 local-env 目录下有一个运行 sam local-api 的脚本. 需要按照现有模式将后端服务注册为本地 lambda 并绑定至 api gateway
+
+- 保持完善的单元测试覆盖
+
+- 面向的用户是英文用户

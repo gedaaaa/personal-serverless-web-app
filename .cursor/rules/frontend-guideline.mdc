@@ -1,0 +1,12 @@
+---
+description: frontend guideline
+globs: 
+alwaysApply: false
+---
+- 使用 nx 和 pnpm 作为管理工具
+- 前端使用sveltekit+tailwindcss
+- 保持简洁大方且现代的美术风格
+- 前端在线上会依靠 sst 部署至 aws lambda
+- 保持完善单元测试覆盖
+- 必要时可以引入新的依赖
+- 面向的用户是英文用户

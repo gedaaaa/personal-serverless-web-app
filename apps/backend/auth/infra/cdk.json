@@ -1,5 +1,5 @@
 {
-  "app": "java -cp build/classes/java/main:build/classes/kotlin/main:../../../node_modules/aws-cdk-lib/lib:../../../node_modules/.pnpm/aws-cdk-lib@2.118.0_constructs@10.3.0/node_modules/aws-cdk-lib/lib:../../../node_modules/.pnpm/constructs@10.3.0/node_modules/constructs/lib top.sunbath.api.auth.Main",
+  "app": "../../../../gradlew :apps:backend:auth:infra:run",
   "watch": {
     "include": [
       "**"

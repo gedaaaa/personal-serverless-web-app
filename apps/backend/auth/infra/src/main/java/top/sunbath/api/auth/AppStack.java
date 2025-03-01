@@ -32,20 +32,14 @@ public class AppStack extends Stack {
         super(parent, id, props);
 
         var serviceName = "auth";
-
-        // 创建 DynamoDB 表，不指定物理表名，让AWS自动生成
-        Table usersTable = Table.Builder.create(this, "UsersTable")
-                // 移除显式表名设置，使用逻辑ID生成唯一表名
-                .partitionKey(Attribute.builder().name("id").type(AttributeType.STRING).build())
-                .billingMode(BillingMode.PAY_PER_REQUEST) // 按需计费模式，适合开发和低流量场景
-                .removalPolicy(software.amazon.awscdk.RemovalPolicy.RETAIN) // 保留表，防止意外删除
-                .build();
+        var dynamodbSingleTableName = "auth-service-single-table";
+        var dynamodbDistributedLocksTableName = "distributed_locks";
 
         Map<String, String> environmentVariables = new HashMap<>();
         // 设置生产环境
         environmentVariables.put("MICRONAUT_ENVIRONMENTS", "production");
         // 设置 DynamoDB 表名
-        environmentVariables.put("DYNAMODB_TABLE_NAME", usersTable.getTableName());
+        environmentVariables.put("DYNAMODB_TABLE_NAME", dynamodbSingleTableName);
 
         var function = MicronautFunction.create(ApplicationType.DEFAULT, false, this, serviceName + "-function")
                 .runtime(Runtime.JAVA_21)
@@ -54,21 +48,36 @@ public class AppStack extends Stack {
                 .memorySize(512).logRetention(RetentionDays.ONE_WEEK).tracing(Tracing.ACTIVE)
                 .architecture(Architecture.X86_64).snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS).build();
 
+        // 获取当前区域和账户 ID
+        String region = this.getRegion();
+        String accountId = this.getAccount();
+
+        // 构建分布式锁表的 ARN（包含账户 ID）
+        String distributedLocksArn = String.format("arn:aws:dynamodb:%s:%s:table/%s", region, accountId,
+                dynamodbDistributedLocksTableName);
+        var distributedLocksTable = Table.fromTableArn(this, "DistributedLocksTable", distributedLocksArn);
+
+        String dynamodbSingleTableArn = String.format("arn:aws:dynamodb:%s:%s:table/%s", region, accountId,
+                dynamodbSingleTableName);
+        var authSingleTable = Table.fromTableArn(this, "SingleTable", dynamodbSingleTableArn);
+
         // 授予 Lambda 函数对 DynamoDB 表的读写权限
-        usersTable.grantReadWriteData(function);
+        authSingleTable.grantReadWriteData(function);
+        distributedLocksTable.grantReadWriteData(function);
 
         // 额外授予 Lambda 函数创建和管理索引的权限
         function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
                 .actions(Arrays.asList("dynamodb:UpdateTable", "dynamodb:DescribeTable", "dynamodb:CreateTable"))
-                .resources(Arrays.asList(usersTable.getTableArn(), usersTable.getTableArn() + "/*" // 添加对所有索引的权限
-                )).build());
-
-        // 授予 Lambda 函数对 DynamoDB 表及其索引的查询权限
+                .resources(Arrays.asList(authSingleTable.getTableArn(),
+                        // index
+                        authSingleTable.getTableArn() + "/*", distributedLocksArn))
+                .build());
         function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
                 .actions(Arrays.asList("dynamodb:Query", "dynamodb:Scan", "dynamodb:GetItem", "dynamodb:PutItem",
                         "dynamodb:UpdateItem", "dynamodb:DeleteItem"))
-                .resources(Arrays.asList(usersTable.getTableArn(), usersTable.getTableArn() + "/*", // 添加索引权限
-                        "arn:aws:dynamodb:ap-southeast-1::table/distributed_locks"))
+                .resources(Arrays.asList(authSingleTable.getTableArn(),
+                        // index
+                        authSingleTable.getTableArn() + "/*", distributedLocksArn))
                 .build());
 
         var currentVersion = function.getCurrentVersion();
@@ -100,8 +109,8 @@ public class AppStack extends Stack {
                 .apiMappingKey(basePath).stage(httpApi.getDefaultStage()).build();
 
         // 输出 DynamoDB 表名
-        CfnOutput.Builder.create(this, "UsersTableName").exportName("UsersTableName").value(usersTable.getTableName())
-                .build();
+        CfnOutput.Builder.create(this, "SingleTableName").exportName("SingleTableName")
+                .value(authSingleTable.getTableName()).build();
 
         CfnOutput.Builder.create(this, "AuthApiUrl").exportName("AuthApiUrl").value(url).build();
     }

@@ -7,7 +7,21 @@ settings:
 importers:
 
   .:
+    dependencies:
+      jwt-decode:
+        specifier: ^4.0.0
+        version: 4.0.0
     devDependencies:
       svelte:
         specifier: ../node_modules/svelte
         version: link:../node_modules/svelte
+
+packages:
+
+  jwt-decode@4.0.0:
+    resolution: {integrity: sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==}
+    engines: {node: '>=18'}
+
+snapshots:
+
+  jwt-decode@4.0.0: {}

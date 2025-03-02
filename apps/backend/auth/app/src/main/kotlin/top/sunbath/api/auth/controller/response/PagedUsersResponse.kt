@@ -13,4 +13,4 @@ data class PagedUsersResponse(
     val users: List<User>,
     val nextCursor: String?,
     val hasMore: Boolean,
-) 
+)

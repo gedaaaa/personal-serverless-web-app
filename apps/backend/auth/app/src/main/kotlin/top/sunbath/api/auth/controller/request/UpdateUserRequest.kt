@@ -20,4 +20,4 @@ data class UpdateUserRequest(
     val password: String?,
     val fullName: String?,
     val roles: Set<String>?,
-) 
+)

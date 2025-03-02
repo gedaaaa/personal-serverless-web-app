@@ -57,7 +57,19 @@ export class ApiClient {
         throw error;
       }
 
-      return (await response.json()) as Promise<T>;
+      // 检查响应内容长度，如果为0则返回空对象
+      const contentLength = response.headers.get('content-length');
+      if (contentLength === '0' || response.status === 204) {
+        return {} as T;
+      }
+
+      // 尝试解析 JSON，如果失败则返回空对象
+      try {
+        return (await response.json()) as T;
+      } catch (e) {
+        console.warn('Empty or invalid JSON response, returning empty object');
+        return {} as T;
+      }
     } catch (error) {
       console.error('API request failed:', error);
       throw error;

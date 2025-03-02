@@ -9,6 +9,7 @@ micronaut:
     # 生产环境使用 API Gateway v2，HTTP API ($default) Lambda 集成，API 映射
     # 这不会将映射的路径键传递给 Lambda
     context-path: auth
+  environments: dev
 
 # 为了在本地开发环境中使用 DynamoDB，我们需要配置 DynamoDB 的端点
 # 以及 AWS 认证信息

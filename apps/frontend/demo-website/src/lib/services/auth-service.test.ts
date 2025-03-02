@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthService } from './auth-service';
 import type { LoginRequest, RegisterRequest } from './auth-service';
-import { ApiClient } from '$lib/api';
+import { getDefaultClient } from '$lib/api/client';
 import * as authModule from '$lib/auth';
 
 // Mock dependencies
-vi.mock('$lib/api', () => ({
-  ApiClient: vi.fn(),
+vi.mock('$lib/api/client', () => ({
+  getDefaultClient: vi.fn(),
 }));
 
 vi.mock('$lib/auth', () => ({
@@ -33,9 +33,9 @@ describe('AuthService', () => {
     vi.clearAllMocks();
 
     // Setup ApiClient mock
-    (ApiClient as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      () => mockApiClient,
-    );
+    (
+      getDefaultClient as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => mockApiClient);
 
     // Create service instance
     authService = new AuthService();

@@ -138,12 +138,12 @@ describe('Auth Module', () => {
       expect(goto).toHaveBeenCalledWith('/custom-path');
     });
 
-    it('should redirect to home page by default', () => {
+    it('should not redirect to by default', () => {
       // Call logout without specifying path
       logout();
 
-      // Verify redirect to default path
-      expect(goto).toHaveBeenCalledWith('/');
+      // Verify no redirect
+      expect(goto).not.toHaveBeenCalled();
     });
   });
 

@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import Page from './+page.svelte';
-import { ApiClient } from '$lib/api';
+import { getDefaultClient } from '$lib/api/client';
 import * as authModule from '$lib/auth';
 import { tick } from 'svelte';
 
 // Mock dependencies
-vi.mock('$lib/api', () => ({
-  ApiClient: vi.fn(),
+vi.mock('$lib/api/client', () => ({
+  getDefaultClient: vi.fn(),
 }));
 
 vi.mock('$lib/auth', () => ({
@@ -36,9 +36,9 @@ describe('Hello World Page', () => {
     vi.clearAllMocks();
 
     // Setup API client mock
-    (ApiClient as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      () => mockApiClient,
-    );
+    (
+      getDefaultClient as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => mockApiClient);
   });
 
   afterEach(() => {

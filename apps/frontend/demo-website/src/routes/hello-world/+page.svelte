@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { ApiClient } from '$lib/api';
+  import { getDefaultClient } from '$lib/api/client';
   import { auth, logout } from '$lib/auth';
 
   let error: string | null = null;
   let greeting: string;
-  const api = new ApiClient();
 
   const sayHello = async () => {
     try {
+      const api = getDefaultClient();
       const response = await api.get<{ message: string }>(
         '/hello-world/greeting',
       );

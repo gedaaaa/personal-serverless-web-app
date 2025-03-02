@@ -70,9 +70,9 @@ export const login = (token: string, username: string): void => {
 
 /**
  * Logout current user
- * @param redirectTo Optional path to redirect after logout, defaults to home page
+ * @param redirectTo Optional path to redirect after logout
  */
-export const logout = (redirectTo = '/'): void => {
+export const logout = (redirectTo: string | null = null): void => {
   // Update store
   auth.update(() => ({
     token: null,
@@ -87,7 +87,9 @@ export const logout = (redirectTo = '/'): void => {
   }
 
   // Redirect to specified page
-  goto(redirectTo);
+  if (redirectTo) {
+    goto(redirectTo);
+  }
 };
 
 /**

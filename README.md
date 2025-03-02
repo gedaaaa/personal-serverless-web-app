@@ -104,4 +104,4 @@ Required development environment components:
 
 The `local-env` directory contains scripts to start the local backend development environment. The package.json defines scripts to run these scripts and reload the server.
 
-# PersonalTodoListWebapp
+rm -rf ./apps/backend/auth/app/.micronaut/test-resources/

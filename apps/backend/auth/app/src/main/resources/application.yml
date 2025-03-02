@@ -2,9 +2,6 @@
 micronaut:
   application:
     name: auth
-  server:
-    cors:
-      enabled: false
   router:
     static-resources:
       swagger:

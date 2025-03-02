@@ -113,6 +113,27 @@ open class DefaultUserRepository(
         delete(User::class.java, id)
     }
 
+    override fun update(
+        @NonNull @NotBlank id: String,
+        email: String?,
+        password: String?,
+        roles: Set<String>?,
+        fullName: String?,
+    ): Boolean {
+        val existingUser = findById(id) ?: return false
+
+        // Update only the non-null fields
+        email?.let { existingUser.email = it }
+        password?.let { existingUser.password = it }
+        roles?.let { existingUser.roles = it }
+        // fullName can be set to null explicitly
+        existingUser.fullName = fullName
+
+        // Save the updated user
+        save(existingUser)
+        return true
+    }
+
     @NonNull
     override fun findAll(): List<User> {
         val result = ArrayList<User>()
@@ -127,6 +148,28 @@ open class DefaultUserRepository(
             beforeId = lastEvaluatedId(response, User::class.java).orElse(null)
         } while (beforeId != null)
         return result
+    }
+
+    @NonNull
+    override fun findAllWithCursor(
+        limit: Int,
+        lastEvaluatedId: String?,
+    ): Pair<List<User>, String?> {
+        if (limit <= 0) {
+            return Pair(emptyList(), null)
+        }
+
+        val request: QueryRequest = findAllQueryRequest(User::class.java, lastEvaluatedId, limit)
+        val response: QueryResponse = dynamoDbClient.query(request)
+
+        if (LOG.isTraceEnabled) {
+            LOG.trace(response.toString())
+        }
+
+        val users = parseInResponse(response)
+        val nextCursor = lastEvaluatedId(response, User::class.java).orElse(null)
+
+        return Pair(users, nextCursor)
     }
 
     private fun parseInResponse(response: QueryResponse): List<User> {

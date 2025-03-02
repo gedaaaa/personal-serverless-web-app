@@ -16,6 +16,18 @@ interface UserRepository {
     fun findAll(): List<User>
 
     /**
+     * Find users with cursor-based pagination.
+     * @param limit The maximum number of items to return
+     * @param lastEvaluatedId The ID of the last evaluated item from the previous page (null for first page)
+     * @return Pair of users list and the last evaluated ID (null if no more pages)
+     */
+    @NonNull
+    fun findAllWithCursor(
+        limit: Int,
+        lastEvaluatedId: String?,
+    ): Pair<List<User>, String?>
+
+    /**
      * Find a user by ID.
      * @param id The user ID
      * @return The user if found
@@ -60,4 +72,21 @@ interface UserRepository {
         @NonNull roles: Set<String>,
         fullName: String?,
     ): String
+
+    /**
+     * Update an existing user.
+     * @param id The user ID
+     * @param email The updated email (optional)
+     * @param password The updated password (optional)
+     * @param roles The updated roles (optional)
+     * @param fullName The updated full name (optional)
+     * @return True if the user was updated, false otherwise
+     */
+    fun update(
+        @NonNull @NotBlank id: String,
+        email: String?,
+        password: String?,
+        roles: Set<String>?,
+        fullName: String?,
+    ): Boolean
 }

@@ -31,43 +31,53 @@ export class ApiClient {
     this.authToken = token;
   }
 
-  async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
-
-    // Create new headers object
-    const headers = new Headers(options.headers);
-    headers.set('Content-Type', 'application/json');
-
-    // Add auth token if available
-    if (this.authToken) {
-      headers.set('Authorization', `Bearer ${this.authToken}`);
-    }
-
+  async request<T>(url: string, options: RequestInit = {}): Promise<T> {
     try {
-      const response = await fetch(url, {
-        ...options,
-        headers,
+      const headers = new Headers({
+        'Content-Type': 'application/json',
       });
 
+      if (this.authToken) {
+        headers.set('Authorization', `Bearer ${this.authToken}`);
+      }
+
+      // Merge provided headers with default headers
+      const requestOptions: RequestInit = {
+        ...options,
+        headers,
+        credentials: 'include',
+      };
+
+      const response = await fetch(`${this.baseUrl}${url}`, requestOptions);
+
       if (!response.ok) {
-        const error: ApiError = {
+        let errorMessage = response.statusText;
+        try {
+          const errorText = await response.text();
+          if (errorText) {
+            errorMessage = errorText;
+          }
+        } catch (e) {
+          // Ignore error if text() fails
+        }
+
+        throw {
           status: response.status,
-          message: response.statusText,
+          message: errorMessage,
         };
-        throw error;
       }
 
       // 检查响应内容长度，如果为0则返回空对象
-      const contentLength = response.headers.get('content-length');
+      const contentLength = response.headers?.get('content-length');
       if (contentLength === '0' || response.status === 204) {
         return {} as T;
       }
 
-      // 尝试解析 JSON，如果失败则返回空对象
       try {
         return (await response.json()) as T;
       } catch (e) {
-        console.warn('Empty or invalid JSON response, returning empty object');
+        // 如果JSON解析失败，返回空对象
+        console.warn('Failed to parse JSON response:', e);
         return {} as T;
       }
     } catch (error) {
@@ -77,7 +87,9 @@ export class ApiClient {
   }
 
   get<T>(endpoint: string) {
-    return this.request<T>(endpoint, { method: 'GET' });
+    return this.request<T>(endpoint, {
+      method: 'GET',
+    });
   }
 
   post<T>(endpoint: string, body: unknown) {
@@ -95,6 +107,8 @@ export class ApiClient {
   }
 
   delete<T>(endpoint: string) {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+    return this.request<T>(endpoint, {
+      method: 'DELETE',
+    });
   }
 }

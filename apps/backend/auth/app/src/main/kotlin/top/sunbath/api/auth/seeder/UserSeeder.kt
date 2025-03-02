@@ -74,4 +74,4 @@ class UserSeeder(
      * @return 加密后的密码
      */
     private fun hashPassword(password: String): String = BCrypt.withDefaults().hashToString(BCRYPT_COST, password.toCharArray())
-} 
+}

@@ -3,12 +3,6 @@ const API_BASE_URL =
 
 import { getAuthToken } from '$lib/auth';
 
-interface ApiError {
-  status: number;
-  message: string;
-  details?: unknown;
-}
-
 let _client: ApiClient | null = null;
 export const getDefaultClient = () => {
   if (!_client) {
@@ -57,7 +51,7 @@ export class ApiClient {
           if (errorText) {
             errorMessage = errorText;
           }
-        } catch (e) {
+        } catch {
           // Ignore error if text() fails
         }
 
@@ -75,9 +69,9 @@ export class ApiClient {
 
       try {
         return (await response.json()) as T;
-      } catch (e) {
+      } catch {
         // 如果JSON解析失败，返回空对象
-        console.warn('Failed to parse JSON response:', e);
+        console.warn('Failed to parse JSON response');
         return {} as T;
       }
     } catch (error) {

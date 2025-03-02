@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/svelte';
 import { waitFor } from '@testing-library/dom';
 import UsersPage from './+page.svelte';
 import { UserService } from '$lib/services/user-service';
+import type { Mock } from 'vitest';
 
 // 模拟 UserService
 vi.mock('$lib/services/user-service', () => {
@@ -17,10 +18,17 @@ vi.mock('$lib/services/user-service', () => {
 });
 
 describe('UsersPage', () => {
-  let mockUserService: any;
+  // 定义一个包含模拟方法的接口
+  interface MockUserService extends UserService {
+    getUsers: Mock;
+    updateUser: Mock;
+    deleteUser: Mock;
+  }
+
+  let mockUserService: MockUserService;
 
   beforeEach(() => {
-    mockUserService = new UserService();
+    mockUserService = new UserService() as MockUserService;
 
     // 重置所有模拟函数
     vi.resetAllMocks();

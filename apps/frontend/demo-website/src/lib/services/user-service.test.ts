@@ -4,6 +4,7 @@ import {
   type User,
   type PagedUsersResponse,
 } from './user-service';
+import { getDefaultClient } from '$lib/api/client';
 
 // 模拟 ApiClient
 vi.mock('$lib/api/client', () => {
@@ -21,11 +22,17 @@ vi.mock('$lib/api/client', () => {
 
 describe('UserService', () => {
   let userService: UserService;
-  let mockApiClient: any;
+  let mockApiClient: {
+    get: ReturnType<typeof vi.fn>;
+    post: ReturnType<typeof vi.fn>;
+    put: ReturnType<typeof vi.fn>;
+    delete: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     userService = new UserService();
-    mockApiClient = (userService as any).apiClient;
+    // 使用类型断言访问私有属性，仅用于测试
+    mockApiClient = vi.mocked(getDefaultClient());
 
     // 重置所有模拟函数
     vi.resetAllMocks();

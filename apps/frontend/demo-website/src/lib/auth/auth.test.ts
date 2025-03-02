@@ -33,7 +33,7 @@ const mockLocalStorage = (() => {
 })();
 
 // Setup global localStorage before importing auth module
-global.localStorage = mockLocalStorage as any;
+global.localStorage = mockLocalStorage as unknown as Storage;
 
 // Now import auth module
 import {
@@ -44,7 +44,6 @@ import {
   getAuthToken,
   getCurrentUser,
   type User,
-  type AuthState,
 } from './auth';
 import { goto } from '$app/navigation';
 
@@ -262,7 +261,7 @@ describe('Auth Module', () => {
             user,
             isAuthenticated: true,
           });
-        } catch (e) {
+        } catch (_) {
           // Invalid stored data
           mockLocalStorage.removeItem('auth_token');
           mockLocalStorage.removeItem('auth_user');
@@ -321,7 +320,7 @@ describe('Auth Module', () => {
             user,
             isAuthenticated: true,
           });
-        } catch (e) {
+        } catch (_) {
           // Invalid stored data - should clear localStorage
           mockLocalStorage.removeItem('auth_token');
           mockLocalStorage.removeItem('auth_user');

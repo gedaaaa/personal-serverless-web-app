@@ -45,7 +45,9 @@ describe('ApiClient', () => {
   describe('constructor', () => {
     it('should use provided base URL', () => {
       const client = new ApiClient('http://custom-url.com');
-      expect((client as any).baseUrl).toBe('http://custom-url.com');
+      expect((client as unknown as { baseUrl: string }).baseUrl).toBe(
+        'http://custom-url.com',
+      );
     });
 
     it('should get auth token from auth module', () => {
@@ -53,20 +55,26 @@ describe('ApiClient', () => {
         'existing-token',
       );
       const client = new ApiClient(API_BASE_URL);
-      expect((client as any).authToken).toBe('existing-token');
+      expect((client as unknown as { authToken: string }).authToken).toBe(
+        'existing-token',
+      );
     });
   });
 
   describe('setAuthToken', () => {
     it('should set auth token', () => {
       apiClient.setAuthToken('test-token');
-      expect((apiClient as any).authToken).toBe('test-token');
+      expect((apiClient as unknown as { authToken: string }).authToken).toBe(
+        'test-token',
+      );
     });
 
     it('should allow setting null token', () => {
       apiClient.setAuthToken('test-token');
       apiClient.setAuthToken(null);
-      expect((apiClient as any).authToken).toBeNull();
+      expect(
+        (apiClient as unknown as { authToken: string }).authToken,
+      ).toBeNull();
     });
   });
 

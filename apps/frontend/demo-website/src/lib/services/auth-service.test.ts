@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthService } from './auth-service';
 import type { LoginRequest, RegisterRequest } from './auth-service';
 import { ApiClient } from '$lib/api';

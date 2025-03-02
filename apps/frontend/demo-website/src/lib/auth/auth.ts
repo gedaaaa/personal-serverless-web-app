@@ -31,7 +31,7 @@ if (browser) {
       initialState.token = storedToken;
       initialState.user = JSON.parse(storedUser);
       initialState.isAuthenticated = true;
-    } catch (e) {
+    } catch (_) {
       // Invalid stored data, clear it
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
@@ -122,7 +122,7 @@ export const getCurrentUser = (): User | null => {
     if (userJson) {
       try {
         return JSON.parse(userJson);
-      } catch (e) {
+      } catch (_) {
         return null;
       }
     }

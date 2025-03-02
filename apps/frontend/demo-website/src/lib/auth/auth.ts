@@ -87,7 +87,9 @@ export const logout = (redirectTo: string | null = null): void => {
   }
 
   // Redirect to specified page
-  redirectTo && goto(redirectTo);
+  if (redirectTo) {
+    goto(redirectTo);
+  }
 };
 
 /**

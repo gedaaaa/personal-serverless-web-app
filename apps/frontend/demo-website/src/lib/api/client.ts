@@ -1,6 +1,8 @@
 const API_BASE_URL =
   import.meta.env.VITE_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
+import { getAuthToken } from '$lib/auth';
+
 interface ApiError {
   status: number;
   message: string;
@@ -9,20 +11,35 @@ interface ApiError {
 
 export class ApiClient {
   private readonly baseUrl: string;
+  private authToken: string | null = null;
 
   constructor(baseUrl = API_BASE_URL) {
     this.baseUrl = baseUrl;
+    // Try to get token using auth helper
+    this.authToken = getAuthToken();
+  }
+
+  setAuthToken(token: string | null): void {
+    this.authToken = token;
   }
 
   async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
+
+    // Create new headers object
+    const headers = new Headers(options.headers);
+    headers.set('Content-Type', 'application/json');
+
+    // Add auth token if available
+    if (this.authToken) {
+      headers.set('Authorization', `Bearer ${this.authToken}`);
+    }
 
     try {
-      const response = await fetch(url, { ...options, headers });
+      const response = await fetch(url, {
+        ...options,
+        headers,
+      });
 
       if (!response.ok) {
         const error: ApiError = {
@@ -50,5 +67,14 @@ export class ApiClient {
     });
   }
 
-  // TODO: PUT DELETE
+  put<T>(endpoint: string, body: unknown) {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+  }
+
+  delete<T>(endpoint: string) {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
 }

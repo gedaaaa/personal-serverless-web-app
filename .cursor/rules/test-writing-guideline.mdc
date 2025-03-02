@@ -1,0 +1,9 @@
+---
+description: test writing guideline
+globs: 
+alwaysApply: false
+---
+- 前端项目使用 vitest 测试框架
+- 后端项目使用 micronaut-test 和 junit
+- 每次仅对一个文件更新测试, 确认测试通过后再处理其他文件
+- 测试应从根目录以 pnpx nx 启动, 如果项目没有 nx 脚本时应该先添加脚本

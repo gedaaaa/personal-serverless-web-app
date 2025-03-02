@@ -1,4 +1,4 @@
-package top.sunbath.api
+package top.sunbath.api.auth.controller
 
 import io.micronaut.core.annotation.Nullable
 import io.micronaut.http.annotation.Controller

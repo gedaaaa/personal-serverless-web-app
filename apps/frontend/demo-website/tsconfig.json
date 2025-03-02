@@ -9,11 +9,13 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "references": [
     {
       "path": "./tsconfig.app.json"
     }
-  ]
+  ],
+  "include": ["src/**/*.d.ts", "src/types/**/*.d.ts"]
 }

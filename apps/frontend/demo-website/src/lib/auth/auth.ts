@@ -31,6 +31,7 @@ if (browser) {
       initialState.token = storedToken;
       initialState.user = JSON.parse(storedUser);
       initialState.isAuthenticated = true;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       // Invalid stored data, clear it
       localStorage.removeItem('auth_token');
@@ -122,6 +123,7 @@ export const getCurrentUser = (): User | null => {
     if (userJson) {
       try {
         return JSON.parse(userJson);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_) {
         return null;
       }

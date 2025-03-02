@@ -261,6 +261,7 @@ describe('Auth Module', () => {
             user,
             isAuthenticated: true,
           });
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_) {
           // Invalid stored data
           mockLocalStorage.removeItem('auth_token');
@@ -320,6 +321,7 @@ describe('Auth Module', () => {
             user,
             isAuthenticated: true,
           });
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_) {
           // Invalid stored data - should clear localStorage
           mockLocalStorage.removeItem('auth_token');

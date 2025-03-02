@@ -1,4 +1,5 @@
 import { ApiClient } from '$lib/api';
+import { getDefaultClient } from '$lib/api/client';
 import { login as authLogin } from '$lib/auth';
 
 // Auth API path prefix
@@ -20,11 +21,7 @@ export interface RegisterRequest {
  * Service for handling authentication operations
  */
 export class AuthService {
-  private apiClient: ApiClient;
-
-  constructor(apiClient = new ApiClient()) {
-    this.apiClient = apiClient;
-  }
+  private apiClient: ApiClient = getDefaultClient();
 
   /**
    * User login

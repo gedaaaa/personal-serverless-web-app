@@ -9,6 +9,14 @@ interface ApiError {
   details?: unknown;
 }
 
+let _client: ApiClient | null = null;
+export const getDefaultClient = () => {
+  if (!_client) {
+    _client = new ApiClient();
+  }
+  return _client;
+};
+
 export class ApiClient {
   private readonly baseUrl: string;
   private authToken: string | null = null;

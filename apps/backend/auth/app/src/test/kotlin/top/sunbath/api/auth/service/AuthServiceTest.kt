@@ -214,4 +214,4 @@ class AuthServiceTest {
 
         verify(exactly = 1) { userRepository.findByUsername(username) }
     }
-} 
+}

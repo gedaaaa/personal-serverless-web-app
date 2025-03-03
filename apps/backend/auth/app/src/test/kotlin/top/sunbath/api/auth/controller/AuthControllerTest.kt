@@ -84,4 +84,4 @@ class AuthControllerTest {
 
         verify(exactly = 1) { authService.login(loginRequest) }
     }
-} 
+}

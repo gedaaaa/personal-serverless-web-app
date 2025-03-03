@@ -64,4 +64,4 @@ class JwtServiceTest {
 
         verify(exactly = 1) { jwtTokenGenerator.generateToken(any()) }
     }
-} 
+}

@@ -33,4 +33,4 @@ class HealthControllerTest {
         assertEquals("auth", result["service"])
         assertNotNull(result["timestamp"])
     }
-} 
+}

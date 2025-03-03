@@ -231,4 +231,4 @@ class UsersControllerTest {
 
         verify(exactly = 1) { userRepository.delete(userId) }
     }
-} 
+}

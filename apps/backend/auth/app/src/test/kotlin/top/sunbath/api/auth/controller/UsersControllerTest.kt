@@ -149,6 +149,15 @@ class UsersControllerTest {
                 fullName = "Updated User",
                 roles = setOf("ROLE_USER", "ROLE_MANAGER"),
             )
+        val updatedUser =
+            User(
+                id = userId,
+                username = "existinguser",
+                email = request.email!!,
+                password = "hashedpassword",
+                roles = request.roles!!,
+                fullName = request.fullName,
+            )
 
         every {
             userRepository.update(
@@ -160,11 +169,14 @@ class UsersControllerTest {
             )
         } returns true
 
+        every { userRepository.findById(userId) } returns updatedUser
+
         // When
         val response = controller.update(userId, request)
 
         // Then
-        assertEquals(HttpStatus.NO_CONTENT, response.status)
+        assertEquals(HttpStatus.OK, response.status)
+        assertEquals(updatedUser, response.body())
 
         verify(exactly = 1) {
             userRepository.update(
@@ -175,6 +187,7 @@ class UsersControllerTest {
                 request.fullName,
             )
         }
+        verify(exactly = 1) { userRepository.findById(userId) }
     }
 
     @Test
@@ -214,6 +227,49 @@ class UsersControllerTest {
                 request.fullName,
             )
         }
+        verify(exactly = 0) { userRepository.findById(userId) }
+    }
+
+    @Test
+    fun `test update user when update succeeds but user cannot be found`() {
+        // Given
+        val userId = "user123"
+        val request =
+            UpdateUserRequest(
+                email = "updated@example.com",
+                password = null,
+                fullName = "Updated User",
+                roles = setOf("ROLE_USER"),
+            )
+
+        every {
+            userRepository.update(
+                userId,
+                request.email,
+                request.password,
+                request.roles,
+                request.fullName,
+            )
+        } returns true
+
+        every { userRepository.findById(userId) } returns null
+
+        // When
+        val response = controller.update(userId, request)
+
+        // Then
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.status)
+
+        verify(exactly = 1) {
+            userRepository.update(
+                userId,
+                request.email,
+                request.password,
+                request.roles,
+                request.fullName,
+            )
+        }
+        verify(exactly = 1) { userRepository.findById(userId) }
     }
 
     @Test

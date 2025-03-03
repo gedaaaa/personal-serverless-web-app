@@ -110,13 +110,13 @@ class UsersController(
      * Update a user by ID.
      * @param id The user ID
      * @param request The update user request
-     * @return HTTP response
+     * @return HTTP response with updated user data
      */
     @Put("/{id}")
     fun update(
         @PathVariable id: String,
         @Body @Valid request: UpdateUserRequest,
-    ): HttpResponse<Void> {
+    ): HttpResponse<User> {
         val updated =
             userRepository.update(
                 id,
@@ -127,7 +127,13 @@ class UsersController(
             )
 
         return if (updated) {
-            HttpResponse.noContent()
+            val user = userRepository.findById(id)
+            if (user != null) {
+                HttpResponse.ok(user)
+            } else {
+                // This should never happen as we just updated the user
+                HttpResponse.serverError()
+            }
         } else {
             HttpResponse.notFound()
         }

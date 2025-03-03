@@ -58,12 +58,10 @@ export class UserService {
    * Update user
    * @param id User ID
    * @param data Update data
+   * @returns Updated user data
    */
-  async updateUser(id: string, data: UpdateUserRequest): Promise<void> {
-    await this.apiClient.put<Record<string, never>>(
-      `${AUTH_API_PREFIX}/users/${id}`,
-      data,
-    );
+  async updateUser(id: string, data: UpdateUserRequest): Promise<User> {
+    return this.apiClient.put<User>(`${AUTH_API_PREFIX}/users/${id}`, data);
   }
 
   /**

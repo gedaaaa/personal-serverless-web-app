@@ -119,38 +119,60 @@ We follow a "directory as component" pattern for organizing our frontend compone
 │   ├── ComponentName/          # Each component in its own directory
 │   │   ├── index.svelte        # Main component implementation
 │   │   ├── index.ts            # Public API exports (optional)
+│   │   ├── store.ts            # Component state management (if needed)
 │   │   ├── internal/           # Internal sub-components
 │   │   │   ├── SubComponent/   # Each sub-component in its own directory
-│   │   │   │   └── index.svelte
+│   │   │   │   ├── index.svelte  # Sub-component implementation
+│   │   │   │   ├── index.ts      # Sub-component exports (optional)
+│   │   │   │   └── SubComponent.svelte  # Simple sub-components
 │   │   │   └── ...
 │   │   └── __tests__/          # Tests for this component
 │   │       └── ComponentName.spec.ts
 │   └── ...
-├── _contexts/                  # Context providers for state management
-│   └── contextName.ts
 └── _services/                  # Service layer for API calls
     └── serviceName.ts
 ```
 
 ### Key Principles
 
-1. **Directory as Component**: Each component lives in its own directory with all related files.
-2. **Underscore Prefix**: Use `_` prefix for non-route directories to prevent SvelteKit from treating them as routes.
-3. **Separation of Concerns**:
+1. **Directory as Component**: Top-level and major sub-components live in their own directories.
+2. **Simple Sub-components**: Deeply nested or simple sub-components can be single files.
+3. **Underscore Prefix**: Use `_` prefix for non-route directories to prevent SvelteKit from treating them as routes.
+4. **Separation of Concerns**:
    - UI components in `_components/`
-   - State management in `_contexts/`
    - API calls in `_services/`
-4. **Component Isolation**: Components should only import from their own directory or from explicitly exported APIs.
-5. **Internal Components**: Sub-components that are only used by a parent component should be in the `internal/` directory.
-6. **Testing**: Each component should have its own tests in a `__tests__/` directory.
+5. **Component Isolation**: Components should only import from their own directory or from explicitly exported APIs.
+6. **Internal Components**: Sub-components that are only used by a parent component should be in the `internal/` directory.
+7. **Testing**: Each component should have its own tests in a `__tests__/` directory.
 
 ### State Management
 
-We use Svelte's Context API for state management:
+We use Svelte's built-in stores for state management:
 
-1. Create a context in `_contexts/` directory
-2. Set the context in the main page component
-3. Components access the context using `getContext()`
+1. Create stores in the component's directory if the state is specific to that component
+2. Keep stores close to where they are used
+3. Export only the necessary store interface
+
+Example:
+
+```typescript
+// ComponentName/store.ts
+function createStore() {
+  const state = writable<State>({});
+
+  return {
+    subscribe: state.subscribe,
+    action1: () => {
+      /* ... */
+    },
+    action2: () => {
+      /* ... */
+    },
+  };
+}
+
+export const store = createStore();
+```
 
 ### Import Conventions
 
@@ -166,9 +188,9 @@ We use Svelte's Context API for state management:
    import SubComponent from './internal/SubComponent/index.svelte';
    ```
 
-3. **Context Imports**: Import from the context file
+3. **Store Imports**: Import from the component's store file
    ```typescript
-   import { CONTEXT_KEY, type ContextType } from '../../_contexts/contextName';
+   import { componentStore } from './store';
    ```
 
 ### Component API Design

@@ -1,12 +1,50 @@
 <script lang="ts">
-  import { getContext } from 'svelte';
-  import { USER_MANAGEMENT_KEY } from '../../_contexts/userManagement';
-  import type { UserManagementContext } from '../../_contexts/userManagement';
+  import { onMount } from 'svelte';
+  import { userListStore } from './store';
   import UserListItem from './internal/UserListItem/index.svelte';
+  import type { UpdateUserRequest } from '../../_services/userService';
 
-  // 获取上下文
-  const { users, nextCursor, hasMore, loading, loadMore } =
-    getContext<UserManagementContext>(USER_MANAGEMENT_KEY);
+  let loadingItems = $state<Record<string, boolean>>({});
+
+  function setLoading(userId: string, loading: boolean) {
+    loadingItems[userId] = loading;
+  }
+
+  function cleanupLoadingState(userId: string) {
+    delete loadingItems[userId];
+  }
+
+  function handleUpdate(userId: string, updateData: UpdateUserRequest) {
+    setLoading(userId, true);
+    userListStore
+      .updateUser(userId, updateData)
+      .catch((error) => {
+        console.error('Failed to update user:', error);
+      })
+      .finally(() => {
+        setLoading(userId, false);
+      });
+  }
+
+  function handleDelete(userId: string) {
+    setLoading(userId, true);
+    userListStore
+      .deleteUser(userId)
+      .then(() => {
+        cleanupLoadingState(userId);
+      })
+      .catch((error) => {
+        console.error('Failed to delete user:', error);
+        setLoading(userId, false);
+      });
+  }
+
+  onMount(() => {
+    userListStore.loadUsers(10);
+    return () => {
+      loadingItems = {};
+    };
+  });
 </script>
 
 <!-- 用户列表UI -->
@@ -42,35 +80,22 @@
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-200 bg-white">
-      {#if $loading && $users.length === 0}
-        <tr>
-          <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500"
-            >加载中...</td
-          >
-        </tr>
-      {:else if $users.length === 0}
+      {#if $userListStore.users.length === 0}
         <tr>
           <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500"
             >暂无用户数据</td
           >
         </tr>
       {:else}
-        {#each $users as user (user.id)}
-          <UserListItem {user} />
+        {#each $userListStore.users as user (user.id)}
+          <UserListItem
+            {user}
+            isLoading={!!loadingItems[user.id]}
+            onUpdate={handleUpdate}
+            onDelete={handleDelete}
+          />
         {/each}
       {/if}
     </tbody>
   </table>
-
-  {#if $hasMore}
-    <div class="flex justify-center border-t border-gray-200 px-4 py-3 sm:px-6">
-      <button
-        on:click={loadMore}
-        disabled={$loading}
-        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50"
-      >
-        {$loading ? '加载中...' : '加载更多'}
-      </button>
-    </div>
-  {/if}
 </div>

@@ -14,29 +14,26 @@
     delete loadingItems[userId];
   }
 
-  function handleUpdate(userId: string, updateData: UpdateUserRequest) {
+  async function handleUpdate(userId: string, updateData: UpdateUserRequest) {
     setLoading(userId, true);
-    userListStore
-      .updateUser(userId, updateData)
-      .catch((error) => {
-        console.error('Failed to update user:', error);
-      })
-      .finally(() => {
-        setLoading(userId, false);
-      });
+    try {
+      await userListStore.updateUser(userId, updateData);
+    } catch (error) {
+      console.error('Failed to update user:', error);
+    } finally {
+      setLoading(userId, false);
+    }
   }
 
-  function handleDelete(userId: string) {
+  async function handleDelete(userId: string) {
     setLoading(userId, true);
-    userListStore
-      .deleteUser(userId)
-      .then(() => {
-        cleanupLoadingState(userId);
-      })
-      .catch((error) => {
-        console.error('Failed to delete user:', error);
-        setLoading(userId, false);
-      });
+    try {
+      await userListStore.deleteUser(userId);
+      cleanupLoadingState(userId);
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      setLoading(userId, false);
+    }
   }
 
   onMount(() => {

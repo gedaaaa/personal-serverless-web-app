@@ -21,6 +21,13 @@ export default defineConfig({
     fs: {
       allow: ['../../../node_modules'],
     },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
   },
   preview: {
     port: 4300,

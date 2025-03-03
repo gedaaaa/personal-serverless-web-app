@@ -20,6 +20,18 @@ export default defineConfig({
     host: '0.0.0.0',
     fs: {
       allow: ['../../../node_modules'],
+      strict: false, // 放宽文件系统限制
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+    watch: {
+      usePolling: true, // 使用轮询模式监听文件变化
+      interval: 100, // 轮询间隔
     },
   },
   preview: {

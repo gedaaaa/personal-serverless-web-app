@@ -28,7 +28,7 @@ export interface UpdateUserRequest {
 /**
  * Service for handling user operations
  */
-export class UserService {
+class UserServiceImpl {
   private apiClient: ApiClient = getDefaultClient();
 
   /**
@@ -58,7 +58,6 @@ export class UserService {
    * Update user
    * @param id User ID
    * @param data Update data
-   * @returns Updated user data
    */
   async updateUser(id: string, data: UpdateUserRequest): Promise<User> {
     return this.apiClient.put<User>(`${AUTH_API_PREFIX}/users/${id}`, data);
@@ -74,3 +73,6 @@ export class UserService {
     );
   }
 }
+
+// 导出单例实例
+export const userService = new UserServiceImpl();

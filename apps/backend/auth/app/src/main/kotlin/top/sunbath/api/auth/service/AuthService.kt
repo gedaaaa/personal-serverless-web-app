@@ -33,7 +33,7 @@ class AuthService(
         }
 
         // Hash password
-        val hashedPassword = BCrypt.withDefaults().hashToString(BCRYPT_COST, request.password.toCharArray())
+        val hashedPassword = hashPassword(request.password)
 
         // Create user
         return userRepository.save(
@@ -57,12 +57,32 @@ class AuthService(
                 ?: throw HttpStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
 
         // Verify password
-        val result = BCrypt.verifyer().verify(request.password.toCharArray(), user.password?.toCharArray())
-        if (!result.verified) {
+        if (!verifyPassword(request.password, user.password ?: "")) {
             throw HttpStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
         }
 
         // Generate JWT token
         return jwtService.generateToken(user)
+    }
+
+    /**
+     * Hash a password using BCrypt.
+     * @param password The password to hash
+     * @return The hashed password
+     */
+    private fun hashPassword(password: String): String = BCrypt.withDefaults().hashToString(BCRYPT_COST, password.toCharArray())
+
+    /**
+     * Verify a password against a hashed password.
+     * @param password The password to verify
+     * @param hashedPassword The hashed password to verify against
+     * @return True if the password matches the hashed password, false otherwise
+     */
+    private fun verifyPassword(
+        password: String,
+        hashedPassword: String,
+    ): Boolean {
+        val result = BCrypt.verifyer().verify(password.toCharArray(), hashedPassword.toCharArray())
+        return result.verified
     }
 }

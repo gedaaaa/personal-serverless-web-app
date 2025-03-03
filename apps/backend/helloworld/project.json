@@ -48,6 +48,12 @@
         "commands": ["./gradlew :apps:backend:helloworld:app:ktlintFormat"],
         "parallel": false
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["./gradlew :apps:backend:helloworld:app:test --info"]
+      }
     }
   }
 }

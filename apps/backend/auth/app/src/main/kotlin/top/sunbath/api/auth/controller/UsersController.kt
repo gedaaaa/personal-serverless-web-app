@@ -1,5 +1,6 @@
 package top.sunbath.api.auth.controller
 
+import io.micronaut.core.annotation.Nullable
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.annotation.Body
@@ -8,10 +9,16 @@ import io.micronaut.http.annotation.Delete
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.Post
+import io.micronaut.http.annotation.Put
+import io.micronaut.http.annotation.QueryValue
 import io.micronaut.http.uri.UriBuilder
+import io.micronaut.security.annotation.Secured
 import io.micronaut.validation.Validated
 import jakarta.validation.Valid
+import jakarta.validation.constraints.Max
 import top.sunbath.api.auth.controller.request.CreateUserRequest
+import top.sunbath.api.auth.controller.request.UpdateUserRequest
+import top.sunbath.api.auth.controller.response.PagedUsersResponse
 import top.sunbath.api.auth.model.User
 import top.sunbath.api.auth.repository.UserRepository
 import java.net.URI
@@ -21,15 +28,28 @@ import java.net.URI
  */
 @Validated
 @Controller("/users")
+@Secured("ROLE_ADMIN")
 class UsersController(
     private val userRepository: UserRepository,
 ) {
     /**
-     * Get all users.
-     * @return List of all users
+     * Get all users with pagination.
+     * @param limit The maximum number of users to return (default: 10)
+     * @param cursor The cursor for pagination (null for first page)
+     * @return Paginated list of users
      */
     @Get
-    fun index(): List<User> = userRepository.findAll()
+    fun index(
+        @QueryValue(defaultValue = "10") @Max(100) limit: Int,
+        @QueryValue()@Nullable() cursor: String?,
+    ): PagedUsersResponse {
+        val (users, nextCursor) = userRepository.findAllWithCursor(limit, cursor)
+        return PagedUsersResponse(
+            users = users,
+            nextCursor = nextCursor,
+            hasMore = nextCursor != null,
+        )
+    }
 
     /**
      * Get a user by ID.
@@ -84,5 +104,32 @@ class UsersController(
     ): HttpResponse<Void> {
         userRepository.delete(id)
         return HttpResponse.status(HttpStatus.NO_CONTENT)
+    }
+
+    /**
+     * Update a user by ID.
+     * @param id The user ID
+     * @param request The update user request
+     * @return HTTP response
+     */
+    @Put("/{id}")
+    fun update(
+        @PathVariable id: String,
+        @Body @Valid request: UpdateUserRequest,
+    ): HttpResponse<Void> {
+        val updated =
+            userRepository.update(
+                id,
+                request.email,
+                request.password,
+                request.roles,
+                request.fullName,
+            )
+
+        return if (updated) {
+            HttpResponse.noContent()
+        } else {
+            HttpResponse.notFound()
+        }
     }
 }

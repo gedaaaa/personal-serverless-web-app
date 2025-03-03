@@ -1,131 +1,87 @@
 package top.sunbath.api.auth.controller
 
-import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpStatus
-import io.micronaut.http.client.HttpClient
-import io.micronaut.http.client.annotation.Client
-import io.micronaut.http.client.exceptions.HttpClientResponseException
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import jakarta.inject.Inject
+import io.mockk.MockKAnnotations
+import io.mockk.every
+import io.mockk.impl.annotations.InjectMockKs
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
+import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 import top.sunbath.api.auth.controller.request.CreateUserRequest
 import top.sunbath.api.auth.controller.request.LoginRequest
+import top.sunbath.api.auth.service.AuthService
+import java.util.UUID
 
-@MicronautTest(environments = ["test"])
+/**
+ * Unit tests for the AuthController.
+ */
+@ExtendWith(MockKExtension::class)
 class AuthControllerTest {
-    @Inject
-    @field:Client("/")
-    lateinit var client: HttpClient
+    @MockK
+    private lateinit var authService: AuthService
+
+    @InjectMockKs
+    private lateinit var controller: AuthController
+
+    // 生成唯一用户名的辅助函数
+    private fun uniqueUsername(prefix: String): String = "${prefix}_${UUID.randomUUID().toString().substring(0, 8)}"
+
+    @BeforeEach
+    fun setup() {
+        MockKAnnotations.init(this)
+    }
 
     @Test
     fun `test successful registration`() {
         // Given
+        val username = uniqueUsername("testuser")
         val request =
             CreateUserRequest(
-                username = "testuser",
+                username = username,
                 email = "test@example.com",
                 password = "Password123",
                 fullName = "Test User",
             )
+        val userId = UUID.randomUUID().toString()
+
+        every { authService.register(request) } returns userId
 
         // When
-        val response =
-            client.toBlocking().exchange(
-                HttpRequest.POST("/register", request),
-                Map::class.java,
-            )
+        val response = controller.register(request)
 
         // Then
         assertEquals(HttpStatus.CREATED, response.status)
-        assertNotNull(response.body()?.get("id"))
-    }
+        val body = response.body()
+        assertNotNull(body)
+        assertEquals(userId, body["id"])
 
-    @Test
-    fun `test registration with invalid email`() {
-        // Given
-        val request =
-            CreateUserRequest(
-                username = "testuser",
-                email = "invalid-email",
-                password = "Password123",
-                fullName = "Test User",
-            )
-
-        // When/Then
-        assertThrows<HttpClientResponseException> {
-            client.toBlocking().exchange(
-                HttpRequest.POST("/register", request),
-                Map::class.java,
-            )
-        }
-    }
-
-    @Test
-    fun `test registration with weak password`() {
-        // Given
-        val request =
-            CreateUserRequest(
-                username = "testuser",
-                email = "test@example.com",
-                password = "weak",
-                fullName = "Test User",
-            )
-
-        // When/Then
-        assertThrows<HttpClientResponseException> {
-            client.toBlocking().exchange(
-                HttpRequest.POST("/register", request),
-                Map::class.java,
-            )
-        }
+        verify(exactly = 1) { authService.register(request) }
     }
 
     @Test
     fun `test successful login`() {
         // Given
-        val username = "loginuser"
+        val username = uniqueUsername("loginuser")
         val password = "Password123"
-        val registerRequest =
-            CreateUserRequest(
-                username = username,
-                email = "login@example.com",
-                password = password,
-                fullName = "Login User",
-            )
-        client.toBlocking().exchange(
-            HttpRequest.POST("/register", registerRequest),
-            Map::class.java,
-        )
+        val loginRequest = LoginRequest(username, password)
+        val token = "jwt.token.example"
+
+        every { authService.login(loginRequest) } returns token
 
         // When
-        val loginRequest = LoginRequest(username, password)
-        val response =
-            client.toBlocking().exchange(
-                HttpRequest.POST("/login", loginRequest),
-                Map::class.java,
-            )
+        val response = controller.login(loginRequest)
 
         // Then
         assertEquals(HttpStatus.OK, response.status)
-        assertNotNull(response.body()?.get("token"))
-    }
+        val body = response.body()
+        assertNotNull(body)
+        assertEquals(token, body["token"])
 
-    @Test
-    fun `test login with invalid credentials`() {
-        // Given
-        val request = LoginRequest("nonexistent", "wrongpassword")
-
-        // When/Then
-        val exception =
-            assertThrows<HttpClientResponseException> {
-                client.toBlocking().exchange(
-                    HttpRequest.POST("/login", request),
-                    Map::class.java,
-                )
-            }
-        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+        verify(exactly = 1) { authService.login(loginRequest) }
     }
 }

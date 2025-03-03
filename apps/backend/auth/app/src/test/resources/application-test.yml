@@ -12,9 +12,9 @@ micronaut:
 test-resources:
   containers:
     dynamodb:
-      image-name: amazon/dynamodb-local 
+      image-name: amazon/dynamodb-local
       hostnames:
-        - dynamodb-local.host 
+        - dynamodb-local.host
       exposed-ports:
         - dynamodb-local.port: 8000
 

@@ -4,10 +4,6 @@
   "version": "0.0.1",
   "type": "module",
   "devDependencies": {
-    "@testing-library/dom": "^10.4.0",
     "svelte": "../node_modules/svelte"
-  },
-  "dependencies": {
-    "jwt-decode": "^4.0.0"
   }
 }

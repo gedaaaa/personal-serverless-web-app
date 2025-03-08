@@ -1,6 +1,6 @@
-<script lang="ts" generics="T extends DataItem">
+<script lang="ts">
   import type { DataItem } from '../../data/DataSource/DataSource';
-  import type { RingBufferVisibleItemsProvider } from '../../data/VisibleItemsProvider';
+  import type { VisibleItemsProvider } from '../../data/VisibleItemsProvider';
 
   // Props
   let {
@@ -8,7 +8,7 @@
     totalCount = 0,
     isAtStart = true,
     isAtEnd = false,
-    provider = $bindable<RingBufferVisibleItemsProvider<T> | null>(null),
+    provider = $bindable<VisibleItemsProvider<DataItem> | null>(null),
     onJumpToPosition = $bindable<(position: number) => void>(),
   } = $props();
 

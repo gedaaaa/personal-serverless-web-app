@@ -301,12 +301,6 @@ export class SkipListDataSource<T extends DataItem> implements DataSource<T> {
       return Math.round(progress * (this.totalItems - 1));
     }
 
-    // Similar to getProgressForPosition, choose an appropriate sampling level
-    const samplingLevel = Math.min(
-      Math.floor(Math.log10(skipListSize)),
-      2, // Cap at level 2 for now
-    );
-
     // Get all items at the chosen level
     const items = this.getFirstN(skipListSize);
 

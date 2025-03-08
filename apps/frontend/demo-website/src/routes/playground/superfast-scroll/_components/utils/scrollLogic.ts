@@ -1,6 +1,5 @@
 import type { DataItem } from '../data/DataSource/DataSource';
-import type { RingBufferVisibleItemsProvider } from '../data/VisibleItemsProvider';
-import { DEFAULT_ITEM_HEIGHT } from './types';
+import type { VisibleItemsProvider } from '../data/VisibleItemsProvider';
 
 /**
  * Handles wheel event scrolling logic for virtual scroll
@@ -16,7 +15,7 @@ export function handleWheelScroll<T extends DataItem>(
     isAtStart: boolean;
     isAtEnd: boolean;
     itemHeight: number;
-    provider: RingBufferVisibleItemsProvider<T> | null;
+    provider: VisibleItemsProvider<T> | null;
     tempVirtualRingHead: number;
   },
 ) {
@@ -97,7 +96,7 @@ export function handleTouchScroll<T extends DataItem>(
     isAtStart: boolean;
     isAtEnd: boolean;
     itemHeight: number;
-    provider: RingBufferVisibleItemsProvider<T> | null;
+    provider: VisibleItemsProvider<T> | null;
     tempVirtualRingHead: number;
   },
 ) {
@@ -166,7 +165,7 @@ export function handleTouchScroll<T extends DataItem>(
  * Creates a jump to position handler
  * @returns A function to jump to a specific position
  */
-export function createJumpToPositionHandler<T extends DataItem>(
+export function createJumpToPositionHandler(
   setCurrentPosition: (position: number) => void,
   setTranslateY: (translateY: number) => void,
 ) {

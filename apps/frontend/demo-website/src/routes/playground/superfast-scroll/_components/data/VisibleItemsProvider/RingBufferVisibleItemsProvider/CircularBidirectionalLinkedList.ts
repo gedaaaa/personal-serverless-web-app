@@ -77,38 +77,13 @@ export class CircularNode<T> {
   }
 
   /**
-   * Move forward by n steps
-   * @param n Number of steps to move forward
-   * @returns The node after moving
-   */
-  moveForward(n: number): CircularNode<T> {
-    let current: CircularNode<T> = this;
-    for (let i = 0; i < n; i++) {
-      current = current.next;
-    }
-    return current;
-  }
-
-  /**
-   * Move backward by n steps
-   * @param n Number of steps to move backward
-   * @returns The node after moving
-   */
-  moveBackward(n: number): CircularNode<T> {
-    let current: CircularNode<T> = this;
-    for (let i = 0; i < n; i++) {
-      current = current.prev;
-    }
-    return current;
-  }
-
-  /**
    * Get values of consecutive nodes starting from this node
    * @param count Number of nodes to retrieve
    * @returns Array of values
    */
   getValues(count: number): (T | null)[] {
     const values: (T | null)[] = [];
+    // eslint-disable-next-line  @typescript-eslint/no-this-alias
     let current: CircularNode<T> = this;
 
     for (let i = 0; i < count; i++) {
@@ -119,53 +94,6 @@ export class CircularNode<T> {
     }
 
     return values;
-  }
-
-  /**
-   * Set values for consecutive nodes starting from this node
-   * @param values Values to set
-   * @returns Number of nodes updated
-   */
-  setValues(values: (T | null)[]): number {
-    if (values.length === 0) return 0;
-
-    let current: CircularNode<T> = this;
-    let count = 0;
-
-    for (let i = 0; i < values.length; i++) {
-      current.value = values[i];
-      current = current.next;
-      count++;
-
-      // Break if we've circled back
-      if (current === this) break;
-    }
-
-    return count;
-  }
-
-  /**
-   * Find a node with the specified value
-   * @param value Value to find
-   * @param maxNodes Maximum number of nodes to search
-   * @returns Node if found, null otherwise
-   */
-  findNodeWithValue(
-    value: T,
-    maxNodes: number = Number.MAX_SAFE_INTEGER,
-  ): CircularNode<T> | null {
-    let current: CircularNode<T> = this;
-    let nodesChecked = 0;
-
-    do {
-      if (current.value === value) {
-        return current;
-      }
-      current = current.next;
-      nodesChecked++;
-    } while (current !== this && nodesChecked < maxNodes);
-
-    return null;
   }
 }
 
@@ -248,16 +176,6 @@ export class CircularBidirectionalLinkedList<T> {
   }
 
   /**
-   * Set values starting from the node after head
-   * @param values Values to set
-   * @returns Number of values set
-   */
-  public setValues(values: (T | null)[]): number {
-    if (this.size === 0) return 0;
-    return this.head.next.setValues(values);
-  }
-
-  /**
    * Get the total size of the list
    * @returns List size
    */
@@ -280,34 +198,11 @@ export class CircularBidirectionalLinkedList<T> {
   }
 
   /**
-   * Find the first node with the given value
-   * @param value Value to find
-   * @returns Node if found, null otherwise
-   */
-  public findNode(value: T): CircularNode<T> | null {
-    if (this.size === 0) return null;
-    return this.head.next.findNodeWithValue(value, this.size);
-  }
-
-  /**
    * Check if list is empty
    * @returns True if list is empty
    */
   public isEmpty(): boolean {
     return this.size === 0;
-  }
-
-  /**
-   * Get node at specific index
-   * @param index Index of the node (0-based)
-   * @returns Node at index or null if index is out of bounds
-   */
-  public getNodeAt(index: number): CircularNode<T> | null {
-    if (index < 0 || index >= this.size) {
-      return null;
-    }
-
-    return this.head.next.moveForward(index);
   }
 
   /**

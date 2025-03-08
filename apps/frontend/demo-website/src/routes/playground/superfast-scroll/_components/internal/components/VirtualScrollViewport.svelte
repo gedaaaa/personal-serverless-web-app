@@ -1,25 +1,37 @@
-<script lang="ts" generics="T extends DataItem">
+<script lang="ts">
   import type { DataItem } from '../../data/DataSource/DataSource';
   import type { DataSource } from '../../data/DataSource/DataSource';
   import {
     handleWheelScroll,
     handleTouchScroll,
   } from '../../utils/scrollLogic';
-  import type { RingBufferVisibleItemsProvider } from '../../data/VisibleItemsProvider';
-  import { RingBufferVisibleItemsProviderComponent } from '../../data/VisibleItemsProvider';
+  import {
+    RingBufferVisibleItemsProvider,
+    type VisibleItemsProvider,
+  } from '../../data/VisibleItemsProvider';
   import { BUFFER_ITEMS_COUNT } from '../../utils/types';
 
   // Props
   let {
-    items = $bindable<T[]>([]),
+    items = $bindable<DataItem[]>([]),
     itemHeight = 40,
     visibleItemsCount = 10,
     translateY = $bindable<number>(0),
     currentPosition = $bindable<number | null>(null),
-    isAtStart = false,
-    isAtEnd = false,
-    provider = $bindable<RingBufferVisibleItemsProvider<T> | null>(null),
-    dataSource = $bindable<DataSource<T> | null>(null),
+    isAtStart = $bindable(false),
+    isAtEnd = $bindable(false),
+    provider = $bindable<VisibleItemsProvider<DataItem> | null>(null),
+    dataSource = $bindable<DataSource<DataItem> | null>(null),
+  }: {
+    items: DataItem[];
+    itemHeight: number;
+    visibleItemsCount: number;
+    translateY: number;
+    currentPosition: number | null;
+    isAtStart: boolean;
+    isAtEnd: boolean;
+    provider: VisibleItemsProvider<DataItem> | null;
+    dataSource: DataSource<DataItem> | null;
   } = $props();
 
   // Derived values
@@ -41,6 +53,10 @@
   // Initialize provider when dataSource becomes available
   $effect(() => {
     if (dataSource) {
+      provider = new RingBufferVisibleItemsProvider(
+        dataSource,
+        visibleItemsCount,
+      );
       // Initialize provider with current position
       if (currentPosition === null) {
         currentPosition = 0;
@@ -133,16 +149,10 @@
   /**
    * Handle touch end event
    */
-  function handleTouchEnd(event: TouchEvent) {
+  function handleTouchEnd() {
     isTouching = false;
   }
 </script>
-
-<RingBufferVisibleItemsProviderComponent
-  {dataSource}
-  itemsWindowSize={visibleItemsCount + BUFFER_ITEMS_COUNT}
-  bind:provider
-/>
 
 <div
   bind:this={scrollContainer}
@@ -159,6 +169,7 @@
     class="relative will-change-transform"
     style="height: {listContainerHeight}px; transform: translateY({translateY}px);"
   >
+    <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
     {#each { length: listItemsCount } as _, idx}
       <!--
         We use calculated mapped index for each list item DOM element,

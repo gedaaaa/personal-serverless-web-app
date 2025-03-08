@@ -21,7 +21,7 @@ interface SkipNode<T> {
 
 export interface SkipListItem {
   id: number;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 export class SkipList<T extends SkipListItem> {
@@ -246,7 +246,7 @@ export class SkipList<T extends SkipListItem> {
     }
 
     // Get the node at the exact ID or the next one
-    let nextNode = current.forward[0]!;
+    const nextNode = current.forward[0]!;
 
     if (nextNode !== this.tail && nextNode.value.id === startId) {
       // Exact match

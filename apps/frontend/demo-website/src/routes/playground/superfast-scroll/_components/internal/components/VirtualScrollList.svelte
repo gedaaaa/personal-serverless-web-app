@@ -1,6 +1,5 @@
-<script lang="ts" generics="T extends DataItem">
+<script lang="ts">
   import type { DataItem, DataSource } from '../../data/DataSource/DataSource';
-  import { type RingBufferVisibleItemsProvider } from '../../data/VisibleItemsProvider/RingBufferVisibleItemsProvider';
   import VirtualScrollViewport from './VirtualScrollViewport.svelte';
   import VirtualScrollControls from './VirtualScrollControls.svelte';
   import { createJumpToPositionHandler } from '../../utils/scrollLogic';
@@ -8,17 +7,18 @@
     DEFAULT_ITEM_HEIGHT,
     DEFAULT_VISIBLE_ITEMS_COUNT,
   } from '../../utils/types';
+  import type { VisibleItemsProvider } from '../../data';
 
   // Props definition
   let {
-    provider = $bindable<RingBufferVisibleItemsProvider<T>>(),
+    provider = $bindable<VisibleItemsProvider<DataItem>>(),
     dataSource,
     itemHeight = DEFAULT_ITEM_HEIGHT,
     visibleItemsCount = DEFAULT_VISIBLE_ITEMS_COUNT,
     jumpToPosition = $bindable<(position: number) => void>(),
   }: {
-    provider: RingBufferVisibleItemsProvider<T> | null;
-    dataSource: DataSource<T> | null;
+    provider: VisibleItemsProvider<DataItem> | null;
+    dataSource: DataSource<DataItem> | null;
     itemHeight?: number;
     visibleItemsCount?: number;
     jumpToPosition?: (position: number) => void;
@@ -26,7 +26,7 @@
 
   // State
   let currentPosition: number | null = $state(null);
-  let items = $state<T[]>([]);
+  let items = $state<DataItem[]>([]);
   let totalCount = $state(0);
   let isAtStart = $state(true);
   let isAtEnd = $state(false);

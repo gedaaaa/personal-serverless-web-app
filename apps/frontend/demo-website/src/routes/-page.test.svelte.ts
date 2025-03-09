@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
+import { waitFor } from '@testing-library/dom';
 import Page from './+page.svelte';
 import { AuthService } from '$lib/services/auth-service';
 import * as navigation from '$app/navigation';
@@ -61,7 +62,7 @@ describe('Login/Register Page', () => {
 
   describe('Initial Render', () => {
     it('should render login form by default', () => {
-      render(Page);
+      render(Page as any);
 
       // Check for login form elements
       expect(screen.getByText('Welcome Back')).toBeTruthy();
@@ -85,7 +86,7 @@ describe('Login/Register Page', () => {
         return () => {};
       });
 
-      render(Page);
+      render(Page as any);
 
       // Check that goto was called with correct path
       expect(navigation.goto).toHaveBeenCalledWith('/hello-world');
@@ -94,16 +95,20 @@ describe('Login/Register Page', () => {
 
   describe('Form Toggle', () => {
     it('should switch to registration form when toggle button is clicked', async () => {
-      render(Page);
+      const { container } = render(Page as any);
 
       // Click on the toggle button
       const toggleButton = screen.getByText("Don't have an account? Sign up");
       await fireEvent.click(toggleButton);
 
+      // Wait for the form to update
+      await waitFor(() => {
+        expect(container.querySelector('h1')?.textContent).toBe(
+          'Create Account',
+        );
+      });
+
       // Check that registration form is displayed
-      expect(
-        screen.getByRole('heading', { name: 'Create Account' }),
-      ).toBeTruthy();
       expect(screen.getByText('Register to get started')).toBeTruthy();
       expect(screen.getByLabelText('Email')).toBeTruthy();
       expect(screen.getByLabelText('Full Name (optional)')).toBeTruthy();
@@ -113,25 +118,36 @@ describe('Login/Register Page', () => {
     });
 
     it('should switch back to login form when toggle button is clicked again', async () => {
-      render(Page);
+      const { container } = render(Page as any);
 
       // Switch to registration form
       const signUpToggle = screen.getByText("Don't have an account? Sign up");
       await fireEvent.click(signUpToggle);
 
+      // Wait for the form to update to registration form
+      await waitFor(() => {
+        expect(container.querySelector('h1')?.textContent).toBe(
+          'Create Account',
+        );
+      });
+
       // Switch back to login form
       const signInToggle = screen.getByText('Already have an account? Sign in');
       await fireEvent.click(signInToggle);
 
+      // Wait for the form to update back to login form
+      await waitFor(() => {
+        expect(container.querySelector('h1')?.textContent).toBe('Welcome Back');
+      });
+
       // Check that login form is displayed
-      expect(screen.getByText('Welcome Back')).toBeTruthy();
       expect(screen.queryByLabelText('Email')).toBeNull();
     });
   });
 
   describe('Login Functionality', () => {
     it('should call login method with correct credentials', async () => {
-      render(Page);
+      render(Page as any);
 
       // Fill in login form
       const usernameInput = screen.getByLabelText('Username');
@@ -157,7 +173,7 @@ describe('Login/Register Page', () => {
       // Setup successful login
       mockAuthService.login.mockResolvedValue('token-123');
 
-      render(Page);
+      render(Page as any);
 
       // Fill in login form
       const usernameInput = screen.getByLabelText('Username');
@@ -180,15 +196,14 @@ describe('Login/Register Page', () => {
     });
 
     it('should display error message when login fails', async () => {
-      // Setup failed login
+      // Mock failed login
       mockAuthService.login.mockRejectedValue(new Error('Invalid credentials'));
 
-      render(Page);
+      render(Page as any);
 
       // Fill in login form
       const usernameInput = screen.getByLabelText('Username');
       const passwordInput = screen.getByLabelText('Password');
-
       await fireEvent.input(usernameInput, { target: { value: 'testuser' } });
       await fireEvent.input(passwordInput, {
         target: { value: 'password123' },
@@ -202,18 +217,28 @@ describe('Login/Register Page', () => {
       await tick();
 
       // Check that error message is displayed
-      expect(
-        screen.getByText('Login failed. Please check your credentials.'),
-      ).toBeTruthy();
+      await waitFor(() => {
+        expect(screen.getByTestId('error-message')).toBeTruthy();
+      });
+      expect(screen.getByTestId('error-message').textContent).toBe(
+        'Login failed. Please check your credentials.',
+      );
     });
   });
 
   describe('Registration Functionality', () => {
     beforeEach(async () => {
       // Switch to registration form
-      render(Page);
+      const { container } = render(Page as any);
       const toggleButton = screen.getByText("Don't have an account? Sign up");
       await fireEvent.click(toggleButton);
+
+      // Wait for the form to update
+      await waitFor(() => {
+        expect(container.querySelector('h1')?.textContent).toBe(
+          'Create Account',
+        );
+      });
     });
 
     it('should call register method with correct data', async () => {
@@ -303,8 +328,8 @@ describe('Login/Register Page', () => {
     });
 
     it('should switch to login form after successful registration', async () => {
-      // Setup successful registration
-      mockAuthService.register.mockResolvedValue('user-123');
+      // Mock successful registration
+      mockAuthService.register.mockResolvedValue('token-123');
 
       // Fill in registration form
       const usernameInput = screen.getByLabelText('Username');
@@ -325,15 +350,17 @@ describe('Login/Register Page', () => {
       });
       await fireEvent.click(submitButton);
 
-      // Wait for promises to resolve
-      await tick();
+      // Wait for form to switch back to login
+      await waitFor(() => {
+        expect(screen.getByText('Welcome Back')).toBeTruthy();
+      });
 
-      // Check that we switched back to login form
-      expect(screen.getByText('Welcome Back')).toBeTruthy();
+      // Check that login form is displayed
+      expect(screen.queryByLabelText('Email')).toBeNull();
     });
 
     it('should display error message when registration fails', async () => {
-      // Setup failed registration
+      // Mock failed registration
       mockAuthService.register.mockRejectedValue(
         new Error('Registration failed'),
       );
@@ -357,13 +384,13 @@ describe('Login/Register Page', () => {
       });
       await fireEvent.click(submitButton);
 
-      // Wait for promises to resolve
-      await tick();
-
-      // Check that error message is displayed
-      expect(
-        screen.getByText('Registration failed. Please try again.'),
-      ).toBeTruthy();
+      // Wait for error message to appear
+      await waitFor(() => {
+        expect(screen.getByTestId('error-message')).toBeTruthy();
+      });
+      expect(screen.getByTestId('error-message').textContent).toBe(
+        'Registration failed. Please try again.',
+      );
     });
   });
 });

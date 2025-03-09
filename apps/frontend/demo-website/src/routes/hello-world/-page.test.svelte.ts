@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
+import { waitFor } from '@testing-library/dom';
 import HelloWorldPage from './+page.svelte';
 import { getDefaultClient } from '$lib/api/client';
 import * as authModule from '$lib/auth';
@@ -82,7 +83,9 @@ describe('HelloWorldPage Component', () => {
     expect(mockApiClient.get).toHaveBeenCalledWith('/hello-world/greeting');
 
     // Check updated UI
-    expect(screen.getByText(/Server says:/)).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByTestId('server-response')).toBeTruthy();
+    });
     expect(screen.getByText('Hello from server!')).toBeTruthy();
   });
 
@@ -97,7 +100,12 @@ describe('HelloWorldPage Component', () => {
     await fireEvent.click(sayHelloButton);
 
     // Check error message
-    expect(screen.getByText('Server is quite mad now!')).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByTestId('error-message')).toBeTruthy();
+    });
+    expect(screen.getByTestId('error-message').textContent).toBe(
+      'Server is quite mad now!',
+    );
   });
 
   it('should handle logout', async () => {

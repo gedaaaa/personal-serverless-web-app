@@ -5,13 +5,13 @@
   import { AuthService } from '$lib/services/auth-service';
 
   // Form state
-  let isLogin = true;
-  let username = '';
-  let password = '';
-  let email = '';
-  let fullName = '';
-  let error: string | null = null;
-  let loading = false;
+  let isLogin = $state(true);
+  let username = $state('');
+  let password = $state('');
+  let email = $state('');
+  let fullName = $state('');
+  let error = $state<string | null>(null);
+  let loading = $state(false);
 
   const authService = new AuthService();
 
@@ -27,7 +27,8 @@
     error = null;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event: Event) => {
+    event.preventDefault();
     error = null;
     loading = true;
 
@@ -88,10 +89,15 @@
 
   <div class="rounded-lg bg-white p-6 shadow-sm">
     {#if error}
-      <div class="mb-4 rounded-md bg-red-50 p-4 text-red-600">{error}</div>
+      <div
+        class="mb-4 rounded-md bg-red-50 p-4 text-red-600"
+        data-testid="error-message"
+      >
+        {error}
+      </div>
     {/if}
 
-    <form on:submit|preventDefault={handleSubmit} class="space-y-4">
+    <form onsubmit={handleSubmit} class="space-y-4">
       <div>
         <label for="username" class="block text-sm font-medium text-gray-700"
           >Username</label
@@ -168,7 +174,7 @@
 
     <div class="mt-4 text-center text-sm">
       <button
-        on:click={toggleForm}
+        onclick={toggleForm}
         class="text-purple-600 hover:text-purple-800"
       >
         {isLogin

@@ -13,6 +13,15 @@ const config = {
     // See https://svelte.dev/docs/kit/adapters for more information about adapters.
     adapter: adapter(),
   },
+
+  // Enable Svelte 5 features
+  compilerOptions: {
+    runes: true,
+    compatibility: {
+      // Gradually migrate to Svelte 5 by enabling both legacy and runes mode
+      componentApi: 5,
+    },
+  },
 };
 
 export default config;

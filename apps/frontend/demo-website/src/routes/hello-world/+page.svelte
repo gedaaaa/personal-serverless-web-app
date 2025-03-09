@@ -2,8 +2,8 @@
   import { getDefaultClient } from '$lib/api/client';
   import { auth, logout } from '$lib/auth';
 
-  let error: string | null = null;
-  let greeting: string;
+  let error = $state<string | null>(null);
+  let greeting = $state<string | undefined>(undefined);
 
   const sayHello = async () => {
     try {
@@ -41,9 +41,14 @@
   </p>
   <div class="rounded-lg bg-white p-6 shadow-sm">
     {#if error}
-      <div class="mb-4 rounded-md bg-red-50 p-4 text-red-600">{error}</div>
+      <div
+        class="mb-4 rounded-md bg-red-50 p-4 text-red-600"
+        data-testid="error-message"
+      >
+        {error}
+      </div>
     {:else if greeting}
-      <p class="text-gray-700">
+      <p class="text-gray-700" data-testid="server-response">
         Server says: <span class="font-medium text-purple-600">{greeting}</span>
       </p>
     {:else}

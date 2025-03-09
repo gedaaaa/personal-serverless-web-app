@@ -28,7 +28,7 @@
     <h1 class="text-2xl font-medium text-gray-800">Hello World</h1>
     <button
       class="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-300"
-      on:click={handleLogout}
+      onclick={handleLogout}
     >
       Logout
     </button>
@@ -56,7 +56,7 @@
         <p class="text-gray-700">Do you want to say hello?</p>
         <button
           class="mt-4 rounded-md bg-purple-600 px-4 py-2 text-white transition hover:bg-purple-700"
-          on:click={sayHello}>Say Hello</button
+          onclick={sayHello}>Say Hello</button
         >
       </div>
     {/if}

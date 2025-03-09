@@ -6,7 +6,6 @@ import { AuthService } from '$lib/services/auth-service';
 import * as navigation from '$app/navigation';
 import * as authStore from '$lib/auth';
 import { tick } from 'svelte';
-import type { ComponentType, SvelteComponent } from 'svelte';
 
 // Mock dependencies
 vi.mock('$lib/services/auth-service', () => ({

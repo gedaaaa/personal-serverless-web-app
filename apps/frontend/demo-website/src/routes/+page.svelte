@@ -27,7 +27,8 @@
     error = null;
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event: Event) => {
+    event.preventDefault();
     error = null;
     loading = true;
 
@@ -96,7 +97,7 @@
       </div>
     {/if}
 
-    <form on:submit|preventDefault={handleSubmit} class="space-y-4" role="form">
+    <form onsubmit={handleSubmit} class="space-y-4">
       <div>
         <label for="username" class="block text-sm font-medium text-gray-700"
           >Username</label
@@ -173,7 +174,7 @@
 
     <div class="mt-4 text-center text-sm">
       <button
-        on:click={toggleForm}
+        onclick={toggleForm}
         class="text-purple-600 hover:text-purple-800"
       >
         {isLogin

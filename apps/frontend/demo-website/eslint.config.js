@@ -64,6 +64,18 @@ export default ts.config(
       },
     },
   },
+  // 添加测试文件的特殊规则
+  {
+    files: ['**/*.test.ts', '**/*.test.svelte.ts', '**/__tests__/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+    },
+  },
   {
     // lint command running from monorepo root, ignores are relative from it.
     ignores: [

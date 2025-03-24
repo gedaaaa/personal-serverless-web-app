@@ -2,8 +2,8 @@
   import { onMount } from 'svelte';
   import VirtualScrollList from './internal/components/VirtualScrollList.svelte';
   import type { DataItem, DataSource } from './data/DataSource/DataSource';
-  import { SkipListDataSource } from './data/DataSource/SkipListDataSource/SkipListDataSource';
   import type { VisibleItemsProvider } from './data/VisibleItemsProvider/VisibleItemsProvider';
+  import { DelayedDataSource } from './data/DataSource/DelayedDataSource';
 
   // Define a simple data item type
   interface DemoItem extends DataItem {
@@ -17,13 +17,12 @@
   let jumpToPosition: (position: number) => void = $state(() => {});
   let jumpTarget = $state(0);
   let totalItems = $state(0);
-  let provider = $state<VisibleItemsProvider<DemoItem> | null>(null);
 
   const visibleItemsCount = 10;
 
   // Initialize data source
   onMount(() => {
-    const initialDataSource = new SkipListDataSource<DemoItem>();
+    const initialDataSource = new DelayedDataSource<DemoItem>();
     // Generate and insert 1000000 demo items
     for (let i = 0; i < 1000000; i++) {
       const item: DemoItem = {
@@ -37,7 +36,9 @@
     dataSource = initialDataSource;
 
     // Update total items count
-    totalItems = dataSource.getTotalCount();
+    Promise.resolve(dataSource.getTotalCount()).then((count) => {
+      totalItems = count;
+    });
     jumpToPosition(0);
   });
 
@@ -73,10 +74,9 @@
 
   <div class="overflow-hidden rounded-md border border-gray-300">
     <VirtualScrollList
-      bind:provider
       {dataSource}
       {visibleItemsCount}
-      itemHeight={200}
+      itemHeight={100}
       bind:jumpToPosition
     />
   </div>

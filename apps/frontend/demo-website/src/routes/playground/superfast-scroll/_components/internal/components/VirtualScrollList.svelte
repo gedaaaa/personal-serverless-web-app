@@ -11,13 +11,11 @@
 
   // Props definition
   let {
-    provider = $bindable<VisibleItemsProvider<DataItem>>(),
     dataSource,
     itemHeight = DEFAULT_ITEM_HEIGHT,
     visibleItemsCount = DEFAULT_VISIBLE_ITEMS_COUNT,
     jumpToPosition = $bindable<(position: number) => void>(),
   }: {
-    provider: VisibleItemsProvider<DataItem> | null;
     dataSource: DataSource<DataItem> | null;
     itemHeight?: number;
     visibleItemsCount?: number;
@@ -31,13 +29,6 @@
   let isAtStart = $state(true);
   let isAtEnd = $state(false);
   let translateY = $state(0);
-
-  // Track provider version for reactivity
-  $effect(() => {
-    if (provider) {
-      totalCount = provider.getTotalCount();
-    }
-  });
 
   // Create and bind the jump to position handler
   const handleJumpToPosition = createJumpToPositionHandler(
@@ -66,7 +57,6 @@
     bind:currentPosition
     bind:isAtStart
     bind:isAtEnd
-    bind:provider
     {dataSource}
   />
 
@@ -75,7 +65,6 @@
     {totalCount}
     {isAtStart}
     {isAtEnd}
-    bind:provider
     onJumpToPosition={handleJumpToPosition}
   />
 </div>

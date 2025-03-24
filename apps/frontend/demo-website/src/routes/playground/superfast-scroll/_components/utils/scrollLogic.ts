@@ -1,3 +1,4 @@
+import { tick } from 'svelte';
 import type { DataItem } from '../data/DataSource/DataSource';
 import type { VisibleItemsProvider } from '../data/VisibleItemsProvider';
 
@@ -49,10 +50,7 @@ export function handleWheelScroll<T extends DataItem>(
       updatedTranslateY = -itemHeight;
 
       // Move to next item if not at end
-      updatedPosition = Math.min(
-        provider?.getLastValidPosition() || 0,
-        (currentPosition || 0) + 1,
-      );
+      updatedPosition = Math.min(999999, (currentPosition || 0) + 1);
       updatedTempVirtualRingHead = tempVirtualRingHead + 1;
     } else {
       updatedTranslateY = newTranslateY;
@@ -123,16 +121,13 @@ export function handleTouchScroll<T extends DataItem>(
       updatedTranslateY = -2 * itemHeight;
       updatedTempVirtualRingHead = 0;
     } else if (newTranslateY < -2 * itemHeight) {
-      // We've scrolled down 2 items, reset to 1 item offset
-      updatedTranslateY = -itemHeight;
-
       // Move to next item if not at end
-      updatedPosition = Math.min(
-        provider?.getLastValidPosition() || 0,
-        (currentPosition || 0) + 1,
-      );
+      updatedPosition = Math.min(999999, (currentPosition || 0) + 1);
 
       updatedTempVirtualRingHead = tempVirtualRingHead + 1;
+
+      // We've scrolled down 2 items, reset to 1 item offset
+      updatedTranslateY = -itemHeight;
     } else {
       updatedTranslateY = newTranslateY;
     }
@@ -144,11 +139,11 @@ export function handleTouchScroll<T extends DataItem>(
       updatedTempVirtualRingHead = 0;
     } else if (newTranslateY > 0) {
       // We've scrolled up to the top buffer, reset to 1 item offset
-      updatedTranslateY = -itemHeight;
 
       // Move to previous item if not at start
       updatedPosition = Math.max(0, (currentPosition || 0) - 1);
       updatedTempVirtualRingHead = tempVirtualRingHead - 1;
+      updatedTranslateY = -itemHeight;
     } else {
       updatedTranslateY = newTranslateY;
     }

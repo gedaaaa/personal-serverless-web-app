@@ -8,14 +8,15 @@
     totalCount = 0,
     isAtStart = true,
     isAtEnd = false,
-    provider = $bindable<VisibleItemsProvider<DataItem> | null>(null),
+    // provider = $bindable<VisibleItemsProvider<DataItem> | null>(null),
     onJumpToPosition = $bindable<(position: number) => void>(),
   } = $props();
 
   // Jump to first position
   function handleJumpToFirst() {
-    if (!provider) return;
-    onJumpToPosition(provider.getFirstValidPosition());
+    return;
+    // if (!provider) return;
+    // onJumpToPosition(provider.getFirstValidPosition());
   }
 
   // Jump to previous position
@@ -25,16 +26,14 @@
 
   // Jump to next position
   function handleJumpToNext() {
-    if (!provider) return;
-    onJumpToPosition(
-      Math.min(provider.getLastValidPosition(), currentPosition + 1),
-    );
+    // if (!provider) return;
+    onJumpToPosition(Math.min(999999, currentPosition + 1));
   }
 
   // Jump to last position
   function handleJumpToLast() {
-    if (!provider) return;
-    onJumpToPosition(provider.getLastValidPosition());
+    // if (!provider) return;
+    // onJumpToPosition(provider.getLastValidPosition());
   }
 </script>
 

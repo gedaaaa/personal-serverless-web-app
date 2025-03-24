@@ -35,9 +35,8 @@ export interface VisibleItemsProvider<T extends DataItem> {
    * Set the current first visible item position
    * This method normalizes the position to ensure it's valid
    * @param position The new position of the first visible item
-   * @returns The actual position used (which may be different if the requested position was invalid)
    */
-  setFirstVisibleItemPosition(position: number): number;
+  setFirstVisibleItemPosition(position: number): void;
 
   /**
    * Get the list of currently visible items
@@ -59,32 +58,4 @@ export interface VisibleItemsProvider<T extends DataItem> {
    * @returns The total number of items
    */
   getTotalCount(): number;
-
-  /**
-   * Get the first valid position
-   * @returns The first valid position in the data source
-   */
-  getFirstValidPosition(): number;
-
-  /**
-   * Get the last valid position
-   * @returns The last valid position in the data source
-   */
-  getLastValidPosition(): number;
-
-  /**
-   * Convert a position in the data to a progress value (0 to 1)
-   * This method delegates to the data source for accurate mapping
-   * @param position The position in the data
-   * @returns A progress value between 0 and 1
-   */
-  getProgressForPosition(position: number): number;
-
-  /**
-   * Convert a progress value (0 to 1) to a position in the data
-   * This method delegates to the data source for accurate mapping
-   * @param progress Progress value between 0 and 1
-   * @returns The corresponding position in the data
-   */
-  getPositionForProgress(progress: number): number;
 }

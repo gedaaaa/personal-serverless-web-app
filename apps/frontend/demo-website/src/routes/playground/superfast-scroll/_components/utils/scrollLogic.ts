@@ -3,169 +3,134 @@ import type { DataItem } from '../data/DataSource/DataSource';
 import type { VisibleItemsProvider } from '../data/VisibleItemsProvider';
 
 /**
- * Handles wheel event scrolling logic for virtual scroll
- * @param event The wheel event
- * @param params Configuration and state parameters
- * @returns Updated state values
+ * 统一的滚动处理函数参数接口
  */
-export function handleWheelScroll<T extends DataItem>(
-  event: WheelEvent,
-  params: {
-    translateY: number;
-    currentPosition: number | null;
-    isAtStart: boolean;
-    isAtEnd: boolean;
-    itemHeight: number;
-    provider: VisibleItemsProvider<T> | null;
-    tempVirtualRingHead: number;
-  },
-) {
-  const {
-    translateY,
-    currentPosition,
-    isAtStart,
-    isAtEnd,
-    itemHeight,
-    provider,
-    tempVirtualRingHead,
-  } = params;
-
-  // Prevent default scrolling behavior
-  event.preventDefault();
-
-  // Calculate new translateY
-  const newTranslateY = translateY - event.deltaY;
-  let updatedTranslateY = translateY;
-  let updatedPosition = currentPosition;
-  let updatedTempVirtualRingHead = tempVirtualRingHead;
-
-  if (event.deltaY > 0) {
-    // Scrolling down
-    if (isAtEnd) {
-      // If we're at the end of the list, limit translateY
-      updatedTranslateY = -2 * itemHeight;
-      updatedTempVirtualRingHead = 0;
-    } else if (newTranslateY < -2 * itemHeight) {
-      // We've scrolled down 2 items, reset to 1 item offset
-      updatedTranslateY = -itemHeight;
-
-      // Move to next item if not at end
-      updatedPosition = Math.min(999999, (currentPosition || 0) + 1);
-      updatedTempVirtualRingHead = tempVirtualRingHead + 1;
-    } else {
-      updatedTranslateY = newTranslateY;
-    }
-  } else if (event.deltaY < 0) {
-    // Scrolling up
-    if (isAtStart) {
-      // If we're at the start of the list, reset translateY to 0
-      updatedTranslateY = 0;
-      updatedTempVirtualRingHead = 0;
-    } else if (newTranslateY > 0) {
-      // We've scrolled up to the top buffer, reset to 1 item offset
-      updatedTranslateY = -itemHeight;
-
-      // Move to previous item if not at start
-      updatedPosition = Math.max(0, (currentPosition || 0) - 1);
-      updatedTempVirtualRingHead = tempVirtualRingHead - 1;
-    } else {
-      updatedTranslateY = newTranslateY;
-    }
-  }
-
-  return {
-    translateY: updatedTranslateY,
-    currentPosition: updatedPosition,
-    tempVirtualRingHead: updatedTempVirtualRingHead,
-  };
+export interface ScrollParams<T extends DataItem> {
+  translateY: number;
+  itemHeight: number;
+  provider: VisibleItemsProvider<T> | null;
+  visualHead: number;
+  listItemsCount: number;
+  items: T[];
 }
 
 /**
- * Handles touch events for scrolling logic
- * @param deltaY The vertical distance moved
- * @param params Configuration and state parameters
- * @returns Updated state values
+ * 滚动处理结果接口
  */
-export function handleTouchScroll<T extends DataItem>(
-  deltaY: number,
-  params: {
-    translateY: number;
-    currentPosition: number | null;
-    isAtStart: boolean;
-    isAtEnd: boolean;
-    itemHeight: number;
-    provider: VisibleItemsProvider<T> | null;
-    tempVirtualRingHead: number;
-  },
-) {
-  const {
-    translateY,
-    currentPosition,
-    isAtStart,
-    isAtEnd,
-    itemHeight,
-    provider,
-    tempVirtualRingHead,
-  } = params;
-
-  // Calculate new translateY
-  const newTranslateY = translateY - deltaY;
-  let updatedTranslateY = translateY;
-  let updatedPosition = currentPosition;
-  let updatedTempVirtualRingHead = tempVirtualRingHead;
-
-  if (deltaY > 0) {
-    // Scrolling down (finger moving up)
-    if (isAtEnd) {
-      // If we're at the end of the list, limit translateY
-      updatedTranslateY = -2 * itemHeight;
-      updatedTempVirtualRingHead = 0;
-    } else if (newTranslateY < -2 * itemHeight) {
-      // Move to next item if not at end
-      updatedPosition = Math.min(999999, (currentPosition || 0) + 1);
-
-      updatedTempVirtualRingHead = tempVirtualRingHead + 1;
-
-      // We've scrolled down 2 items, reset to 1 item offset
-      updatedTranslateY = -itemHeight;
-    } else {
-      updatedTranslateY = newTranslateY;
-    }
-  } else if (deltaY < 0) {
-    // Scrolling up (finger moving down)
-    if (isAtStart) {
-      // If we're at the start of the list, reset translateY to 0
-      updatedTranslateY = 0;
-      updatedTempVirtualRingHead = 0;
-    } else if (newTranslateY > 0) {
-      // We've scrolled up to the top buffer, reset to 1 item offset
-
-      // Move to previous item if not at start
-      updatedPosition = Math.max(0, (currentPosition || 0) - 1);
-      updatedTempVirtualRingHead = tempVirtualRingHead - 1;
-      updatedTranslateY = -itemHeight;
-    } else {
-      updatedTranslateY = newTranslateY;
-    }
-  }
-
-  return {
-    translateY: updatedTranslateY,
-    currentPosition: updatedPosition,
-    tempVirtualRingHead: updatedTempVirtualRingHead,
-  };
+export interface ScrollResult<T extends DataItem> {
+  translateY: number;
+  visualHead: number;
+  items: T[];
+  success: boolean;
 }
 
 /**
- * Creates a jump to position handler
- * @returns A function to jump to a specific position
+ * 统一处理滚动逻辑
+ * @param delta 滚动增量（正值表示向下滚动，负值表示向上滚动）
+ * @param params 滚动参数
  */
-export function createJumpToPositionHandler(
-  setCurrentPosition: (position: number) => void,
-  setTranslateY: (translateY: number) => void,
-) {
-  return function jumpToPosition(position: number): void {
-    setCurrentPosition(position);
-    setTranslateY(0); // Reset translateY when jumping to position
+export function handleScroll<T extends DataItem>(
+  delta: number,
+  params: ScrollParams<T>,
+): ScrollResult<T> {
+  const {
+    translateY,
+    itemHeight,
+    provider,
+    visualHead,
+    listItemsCount,
+    items,
+  } = params;
+
+  if (!provider) {
+    return {
+      translateY,
+      visualHead,
+      items,
+      success: false,
+    };
+  }
+
+  // 计算新的translateY
+  const newTranslateY = translateY - delta;
+
+  // 处理向下滚动（delta > 0）
+  if (delta > 0) {
+    // 到达下边界（-2*itemHeight），尝试获取下一个项目
+    if (newTranslateY <= -2 * itemHeight) {
+      // 使用provider.moveForward尝试获取下一个项目
+      const nextItem = provider.moveForward();
+
+      // 如果成功获取到下一个项目
+      if (nextItem) {
+        // 更新visualHead
+        const newVisualHead = (visualHead + 1) % listItemsCount;
+
+        // 计算需要更新的元素索引
+        const targetIndex =
+          (newVisualHead + listItemsCount - 1) % listItemsCount;
+
+        // 创建新的items数组
+        const newItems = [...items];
+        newItems[targetIndex] = nextItem;
+
+        return {
+          translateY: -itemHeight, // 重置到-itemHeight
+          visualHead: newVisualHead,
+          items: newItems,
+          success: true,
+        };
+      } else {
+        // 如果没有下一个项目（到达列表末尾）
+        return {
+          translateY: -2 * itemHeight, // 保持在边界位置
+          visualHead,
+          items,
+          success: false,
+        };
+      }
+    }
+  }
+  // 处理向上滚动（delta < 0）
+  else if (delta < 0) {
+    // 到达上边界（0），尝试获取前一个项目
+    if (newTranslateY >= 0) {
+      // 使用provider.moveBackward尝试获取前一个项目
+      const prevItem = provider.moveBackward();
+
+      // 如果成功获取到前一个项目
+      if (prevItem) {
+        // 更新visualHead
+        const newVisualHead =
+          (visualHead - 1 + listItemsCount) % listItemsCount;
+
+        // 创建新的items数组
+        const newItems = [...items];
+        newItems[newVisualHead] = prevItem;
+
+        return {
+          translateY: -itemHeight, // 重置到-itemHeight
+          visualHead: newVisualHead,
+          items: newItems,
+          success: true,
+        };
+      } else {
+        // 如果没有前一个项目（已经是列表开头）
+        return {
+          translateY: 0, // 保持在边界位置
+          visualHead,
+          items,
+          success: false,
+        };
+      }
+    }
+  }
+
+  // 正常滚动范围内
+  return {
+    translateY: newTranslateY,
+    visualHead,
+    items,
+    success: true,
   };
 }

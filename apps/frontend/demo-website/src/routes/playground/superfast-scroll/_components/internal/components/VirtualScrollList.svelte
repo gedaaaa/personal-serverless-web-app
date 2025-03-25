@@ -1,13 +1,10 @@
 <script lang="ts">
   import type { DataItem, DataSource } from '../../data/DataSource/DataSource';
   import VirtualScrollViewport from './VirtualScrollViewport.svelte';
-  import VirtualScrollControls from './VirtualScrollControls.svelte';
-  import { createJumpToPositionHandler } from '../../utils/scrollLogic';
   import {
     DEFAULT_ITEM_HEIGHT,
     DEFAULT_VISIBLE_ITEMS_COUNT,
   } from '../../utils/types';
-  import type { VisibleItemsProvider } from '../../data';
 
   // Props definition
   let {
@@ -23,26 +20,16 @@
   } = $props();
 
   // State
-  let currentPosition: number | null = $state(null);
+  let jumpTargetPosition: number | null = $state(null);
   let items = $state<DataItem[]>([]);
-  let totalCount = $state(0);
-  let isAtStart = $state(true);
-  let isAtEnd = $state(false);
   let translateY = $state(0);
-
-  // Create and bind the jump to position handler
-  const handleJumpToPosition = createJumpToPositionHandler(
-    (position) => {
-      currentPosition = position;
-    },
-    (newTranslateY) => {
-      translateY = newTranslateY;
-    },
-  );
 
   // Bind the jumpToPosition function for external use
   $effect(() => {
-    jumpToPosition = handleJumpToPosition;
+    jumpToPosition = (position: number) => {
+      jumpTargetPosition = position;
+      translateY = 0;
+    };
   });
 </script>
 
@@ -50,21 +37,11 @@
   class="flex h-full touch-none flex-col overflow-hidden rounded-md border border-gray-200"
 >
   <VirtualScrollViewport
-    bind:items
     {itemHeight}
     {visibleItemsCount}
     bind:translateY
-    bind:currentPosition
-    bind:isAtStart
-    bind:isAtEnd
+    bind:items
+    {jumpTargetPosition}
     {dataSource}
-  />
-
-  <VirtualScrollControls
-    currentPosition={currentPosition || 0}
-    {totalCount}
-    {isAtStart}
-    {isAtEnd}
-    onJumpToPosition={handleJumpToPosition}
   />
 </div>

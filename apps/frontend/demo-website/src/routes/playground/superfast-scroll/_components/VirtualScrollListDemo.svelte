@@ -2,7 +2,6 @@
   import { onMount } from 'svelte';
   import VirtualScrollList from './internal/components/VirtualScrollList.svelte';
   import type { DataItem, DataSource } from './data/DataSource/DataSource';
-  import type { VisibleItemsProvider } from './data/VisibleItemsProvider/VisibleItemsProvider';
   import { DelayedDataSource } from './data/DataSource/DelayedDataSource';
 
   // Define a simple data item type
@@ -17,11 +16,13 @@
   let jumpToPosition: (position: number) => void = $state(() => {});
   let jumpTarget = $state(0);
   let totalItems = $state(0);
+  let isInitializing = $state(true);
 
   const visibleItemsCount = 10;
 
   // Initialize data source
   onMount(() => {
+    isInitializing = true;
     const initialDataSource = new DelayedDataSource<DemoItem>();
     // Generate and insert 1000000 demo items
     for (let i = 0; i < 1000000; i++) {
@@ -40,6 +41,7 @@
       totalItems = count;
     });
     jumpToPosition(0);
+    isInitializing = false;
   });
 
   // Function to handle jump button click
@@ -52,17 +54,26 @@
 
 <div class="mx-auto max-w-3xl p-5">
   <h1 class="mb-2 text-center text-2xl font-bold">Virtual Scroll List Demo</h1>
-  <p class="mb-5 text-center text-gray-600">Total: {totalItems} items</p>
+  {#if isInitializing}
+    <p class="mb-5 text-center text-gray-600">Initializing list items...</p>
+  {:else}
+    <p class="mb-5 text-center text-gray-600">Total: {totalItems} items</p>
+  {/if}
 
   <div class="mb-5 flex items-center gap-3">
-    <label for="jump-target" class="text-gray-700">Jump to position:</label>
+    <!-- <label for="jump-target" class="text-gray-700">Jump to position:</label> -->
     <input
       id="jump-target"
       type="number"
       bind:value={jumpTarget}
       min="0"
       max={totalItems > 0 ? totalItems - 1 : 0}
-      class="rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+      onkeydown={(e) => {
+        if (e.key === 'Enter') {
+          handleJump();
+        }
+      }}
+      class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
     />
     <button
       onclick={handleJump}

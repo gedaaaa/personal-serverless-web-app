@@ -29,8 +29,6 @@ export interface VisibleItemsProvider<T extends DataItem> {
    */
   version: number;
 
-  forcePublishNewVersion(): void;
-
   /**
    * Set the current first visible item position
    * This method normalizes the position to ensure it's valid
@@ -46,16 +44,22 @@ export interface VisibleItemsProvider<T extends DataItem> {
   getVisibleItems(count?: number): T[];
 
   /**
-   * Get visible items with boundary information
-   * This enhanced version simplifies boundary handling in virtual scrolling components
-   * @param count Number of items to retrieve (optional)
-   * @returns Object containing visible items and boundary flags
-   */
-  getVisibleItemsWithBoundaryInfo(count?: number): VisibleItemsResult<T>;
-
-  /**
    * Get the total number of items in the data source
    * @returns The total number of items
    */
   getTotalCount(): number;
+
+  /**
+   * Move forward by one position and return the new item
+   * If at the end of the list, returns null
+   * @returns The new item at the end of the visible window, or null if at boundary
+   */
+  moveForward(): T | null;
+
+  /**
+   * Move backward by one position and return the new item
+   * If at the start of the list, returns null
+   * @returns The new item at the start of the visible window, or null if at boundary
+   */
+  moveBackward(): T | null;
 }

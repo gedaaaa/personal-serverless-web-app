@@ -4,14 +4,18 @@
   import type { DataItem, DataSource } from './data/DataSource/DataSource';
   import { DelayedDataSource } from './data/DataSource/DelayedDataSource';
 
-  // Define a simple data item type
+  /**
+   * Defines the structure of items to be displayed in the virtual scroll list.
+   */
   interface DemoItem extends DataItem {
     id: number;
     name: string;
     description: string;
   }
 
-  // Create data source and provider
+  /**
+   * Application state for the virtual scroll demo.
+   */
   let dataSource: DataSource<DemoItem> | null = $state(null);
   let jumpToPosition: (position: number) => void = $state(() => {});
   let jumpTarget = $state(0);
@@ -20,11 +24,15 @@
 
   const visibleItemsCount = 10;
 
-  // Initialize data source
+  /**
+   * Initializes the data source with a large set of demo items.
+   * Creates a million items and makes them available for the virtual scroll list.
+   */
   onMount(() => {
     isInitializing = true;
     const initialDataSource = new DelayedDataSource<DemoItem>();
-    // Generate and insert 1000000 demo items
+
+    // Generate demo items
     for (let i = 0; i < 1000000; i++) {
       const item: DemoItem = {
         id: i,
@@ -44,7 +52,9 @@
     isInitializing = false;
   });
 
-  // Function to handle jump button click
+  /**
+   * Navigates to the specified position in the list when triggered.
+   */
   function handleJump() {
     if (jumpToPosition) {
       jumpToPosition(jumpTarget);

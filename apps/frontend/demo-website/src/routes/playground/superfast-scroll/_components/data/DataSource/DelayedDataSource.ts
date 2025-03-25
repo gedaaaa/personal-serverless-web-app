@@ -29,31 +29,9 @@ export class DelayedDataSource<T extends DataItem> implements DataSource<T> {
     return this.delegate.getRangeFromId(startId, count, direction);
   }
 
-  async getFirstN(count: number): Promise<T[]> {
-    await this.delay();
-    return this.delegate.getFirstN(count);
-  }
-
   async getTotalCount(): Promise<number> {
-    return this.delegate.getTotalCount();
-  }
-
-  async isAtStart(position: number): Promise<boolean> {
-    // await this.delay();
-    return this.delegate.isAtStart(position);
-  }
-
-  async isAtEnd(position: number, visibleCount: number): Promise<boolean> {
     await this.delay();
-    return this.delegate.isAtEnd(position, visibleCount);
-  }
-
-  async getProgressForPosition(position: number): Promise<number> {
-    return this.delegate.getProgressForPosition(position);
-  }
-
-  async getPositionForProgress(progress: number): Promise<number> {
-    return this.delegate.getPositionForProgress(progress);
+    return this.delegate.getTotalCount();
   }
 
   private async delay(): Promise<void> {

@@ -5,10 +5,7 @@ import {
   type CircularNode,
 } from './CircularBidirectionalLinkedList';
 
-import type {
-  VisibleItemsProvider,
-  VisibleItemsResult,
-} from '../VisibleItemsProvider';
+import type { VisibleItemsProvider } from '../VisibleItemsProvider';
 
 /**
  * RingBufferVisibleItemsProvider implements VisibleItemsProvider using a ring buffer
@@ -224,11 +221,11 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
   }
 
   /**
-   * Fill the lower buffer
-   * This method fills the lower buffer with items from the data source
+   * Fill the lower buffer with items from the data source.
+   * Loads items that come before the visible items window.
    */
   private async fillLowerBuffer(): Promise<void> {
-    // 如果已经有一个正在运行的 fillLowerBuffer，标记为有待处理请求并返回
+    // If a fillLowerBuffer operation is already running, mark as pending and return
     if (this.isFillingLowerBuffer) {
       this.pendingLowerBufferFill = true;
       return;
@@ -265,7 +262,7 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
     } finally {
       this.isFillingLowerBuffer = false;
 
-      // 如果有待处理的请求，执行一次
+      // If there's a pending request, process it
       if (this.pendingLowerBufferFill) {
         this.pendingLowerBufferFill = false;
         setTimeout(() => this.fillLowerBuffer(), 0);
@@ -274,11 +271,11 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
   }
 
   /**
-   * Fill the upper buffer
-   * This method fills the upper buffer with items from the data source
+   * Fill the upper buffer with items from the data source.
+   * Loads items that come after the visible items window.
    */
   private async fillUpperBuffer(): Promise<void> {
-    // 如果已经有一个正在运行的 fillUpperBuffer，标记为有待处理请求并返回
+    // If a fillUpperBuffer operation is already running, mark as pending and return
     if (this.isFillingUpperBuffer) {
       this.pendingUpperBufferFill = true;
       return;
@@ -317,7 +314,7 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
     } finally {
       this.isFillingUpperBuffer = false;
 
-      // 如果有待处理的请求，执行一次
+      // If there's a pending request, process it
       if (this.pendingUpperBufferFill) {
         this.pendingUpperBufferFill = false;
         setTimeout(() => this.fillUpperBuffer(), 0);
@@ -326,53 +323,54 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
   }
 
   /**
-   * Move forward by one position and return the new item
-   * If at the end of the list, returns null
+   * Advances the visible window forward by one position.
+   * Returns the new item that becomes visible at the end of the window.
+   *
    * @returns The new item at the end of the visible window, or null if at boundary
    */
   public moveForward(): T | null {
-    // 如果还没有初始化，返回null
+    // Return null if provider is not initialized
     if (!this.visibleWindowStart || !this.visibleWindowEnd) {
       return null;
     }
-    // 检查上缓冲区是否有元素可用
+    // Check if upper buffer has available elements
     if (this.upperBufferCount <= 0) {
-      // 缓冲区不足，触发填充但拒绝移动
+      // Buffer insufficient, trigger fill but reject movement
       setTimeout(() => {
         this.fillUpperBuffer();
       }, 0);
       return null;
     }
 
-    // 获取新元素（确保元素存在）
+    // Get new element (ensure element exists)
     const nextNode = this.visibleWindowEnd.getNext();
 
     if (!nextNode || nextNode.value === null) {
-      // 如果下一个元素不存在或为null，拒绝移动但触发填充
+      // If next element doesn't exist or is null, reject movement but trigger fill
       setTimeout(() => {
         this.fillUpperBuffer();
       }, 0);
       return null;
     }
 
-    // 更新firstVisiblePosition
+    // Update firstVisiblePosition
     this.firstVisiblePosition++;
 
-    // 移动可见窗口指针
+    // Move visible window pointers
     this.visibleWindowStart = this.visibleWindowStart.getNext();
     this.visibleWindowEnd = this.visibleWindowEnd.getNext();
 
-    // 减少上缓冲区计数
+    // Decrease upper buffer count
     this.upperBufferCount = Math.max(0, this.upperBufferCount - 1);
 
-    // 获取新元素
+    // Get new element
     const newItem = this.visibleWindowEnd.value as T;
 
-    // 异步填充上缓冲区，如果缓冲区比率低于阈值
+    // Asynchronously fill upper buffer if buffer ratio is below threshold
     const bufferRatio = this.upperBufferCount / this.maxBufferSize;
 
     if (bufferRatio < 0.5) {
-      // 使用setTimeout避免阻塞UI
+      // Use setTimeout to avoid blocking UI
       setTimeout(() => {
         this.fillUpperBuffer();
       }, 0);
@@ -382,53 +380,54 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
   }
 
   /**
-   * Move backward by one position and return the new item
-   * If at the start of the list, returns null
+   * Moves the visible window backward by one position.
+   * Returns the new item that becomes visible at the start of the window.
+   *
    * @returns The new item at the start of the visible window, or null if at boundary
    */
   public moveBackward(): T | null {
-    // 如果还没有初始化，返回null
+    // Return null if provider is not initialized
     if (!this.visibleWindowStart || !this.visibleWindowEnd) {
       return null;
     }
 
-    // 检查下缓冲区是否有元素可用
+    // Check if lower buffer has available elements
     if (this.lowerBufferCount <= 0) {
-      // 缓冲区不足，触发填充但拒绝移动
+      // Buffer insufficient, trigger fill but reject movement
       setTimeout(() => {
         this.fillLowerBuffer();
       }, 0);
       return null;
     }
 
-    // 获取前一个元素（确保元素存在）
+    // Get previous element (ensure element exists)
     const prevNode = this.visibleWindowStart.getPrev();
 
     if (!prevNode || prevNode.value === null) {
-      // 如果前一个元素不存在或为null，拒绝移动但触发填充
+      // If previous element doesn't exist or is null, reject movement but trigger fill
       setTimeout(() => {
         this.fillLowerBuffer();
       }, 0);
       return null;
     }
 
-    // 更新firstVisiblePosition
+    // Update firstVisiblePosition
     this.firstVisiblePosition--;
 
-    // 移动可见窗口指针
+    // Move visible window pointers
     this.visibleWindowStart = prevNode;
     this.visibleWindowEnd = this.visibleWindowEnd.getPrev();
 
-    // 减少下缓冲区计数
+    // Decrease lower buffer count
     this.lowerBufferCount = Math.max(0, this.lowerBufferCount - 1);
 
-    // 获取新元素
+    // Get new element
     const newItem = this.visibleWindowStart.value as T;
 
-    // 异步填充下缓冲区，如果缓冲区比率低于阈值
+    // Asynchronously fill lower buffer if buffer ratio is below threshold
     const bufferRatio = this.lowerBufferCount / this.maxBufferSize;
     if (bufferRatio < 0.5) {
-      // 使用setTimeout避免阻塞UI
+      // Use setTimeout to avoid blocking UI
       setTimeout(() => {
         this.fillLowerBuffer();
       }, 0);

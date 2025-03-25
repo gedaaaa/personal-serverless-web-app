@@ -48,48 +48,8 @@ export interface DataSource<T extends DataItem> {
   ): T[] | Promise<T[]>;
 
   /**
-   * Get the first N items from the data source
-   * @param count The number of items to retrieve
-   * @returns Array of items
-   */
-  getFirstN(count: number): T[] | Promise<T[]>;
-
-  /**
    * Get the total number of items in the data source
    * @returns The total number of items
    */
   getTotalCount(): number | Promise<number>;
-
-  /**
-   * Check if the position is at the start of the data
-   * For non-continuous data sources, this may not be simply position === 0
-   * @param position Current position
-   * @returns True if at start
-   */
-  isAtStart(position: number): boolean | Promise<boolean>;
-
-  /**
-   * Check if the position is at the end of the data
-   * For non-continuous data sources, this may not be simply position === totalCount - 1
-   * @param position Current position
-   * @param visibleCount Number of visible items
-   * @returns True if at end
-   */
-  isAtEnd(position: number, visibleCount: number): boolean | Promise<boolean>;
-
-  /**
-   * Convert a position in the data to a progress value (0 to 1)
-   * For non-continuous data sources, this provides accurate scrollbar positioning
-   * @param position The position in the data
-   * @returns A progress value between 0 and 1
-   */
-  getProgressForPosition(position: number): number | Promise<number>;
-
-  /**
-   * Convert a progress value (0 to 1) to a position in the data
-   * This is used when the user interacts with the scrollbar
-   * @param progress Progress value between 0 and 1
-   * @returns The corresponding position in the data
-   */
-  getPositionForProgress(progress: number): number | Promise<number>;
 }

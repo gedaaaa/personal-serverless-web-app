@@ -13,7 +13,7 @@
     items = $bindable<DataItem[]>([]),
     itemHeight = 40,
     visibleItemsCount = 10,
-    translateY = $bindable<number>(0), // 初始位置设为 0
+    translateY = $bindable<number>(0),
     jumpTargetPosition = 0,
     dataSource = null,
   }: {
@@ -28,7 +28,7 @@
   let provider = $state<VisibleItemsProvider<DataItem> | null>(null);
 
   // Derived values
-  const listItemsCount = visibleItemsCount + BUFFER_ITEMS_COUNT; // 2 extra items for buffer
+  const listItemsCount = visibleItemsCount + BUFFER_ITEMS_COUNT;
   let viewportHeight = $derived(itemHeight * visibleItemsCount);
   let listContainerHeight = $derived(itemHeight * listItemsCount);
 
@@ -47,10 +47,10 @@
     if (dataSource && !provider) {
       provider = new RingBufferVisibleItemsProvider(dataSource, listItemsCount);
 
-      // 设置初始位置
+      // Set initial position
       provider.setFirstVisibleItemPosition(0);
 
-      // 确保初始 translateY 为 0
+      // Ensure initial translateY is 0
       translateY = 0;
     }
   });
@@ -70,7 +70,8 @@
     if (version && version !== lastVersion) {
       items = provider!.getVisibleItems();
 
-      visualHead = 0; // 重置visualHead
+      // Reset visualHead to initial position
+      visualHead = 0;
 
       translateY = 0;
 
@@ -79,14 +80,14 @@
   });
 
   /**
-   * Handle wheel events for scrolling
+   * Handles mouse wheel events for smooth scrolling.
    */
   function handleWheel(event: WheelEvent) {
     event.preventDefault();
 
-    // 直接使用滚轮事件的增量值，提供更平滑的滚动体验
-    // 将滚轮的增量值转化为适当的滚动距离
-    const scaleFactor = 0.5; // 缩放因子，控制滚动灵敏度
+    // Use wheel event delta for smoother scrolling experience
+    // Scale the wheel delta to an appropriate scrolling distance
+    const scaleFactor = 0.5;
     const delta = event.deltaY * scaleFactor;
 
     const result = handleScroll(
@@ -101,14 +102,14 @@
       },
     );
 
-    // 更新状态
+    // Update state with scroll results
     translateY = result.translateY;
     visualHead = result.visualHead;
     items = result.items;
   }
 
   /**
-   * Handle touch start event
+   * Manages touch start interaction for mobile scrolling.
    */
   function handleTouchStart(event: TouchEvent) {
     if (event.touches.length === 1) {
@@ -119,7 +120,7 @@
   }
 
   /**
-   * Handle touch move event
+   * Processes touch movement to enable smooth scrolling on mobile devices.
    */
   function handleTouchMove(event: TouchEvent) {
     if (!isTouching || event.touches.length !== 1) return;
@@ -128,8 +129,8 @@
     const deltaY = lastTouchY - currentTouchY;
     lastTouchY = currentTouchY;
 
-    // 使用缩放因子控制触摸的灵敏度
-    const scaleFactor = 1; // 触摸滚动灵敏度
+    // Apply sensitivity scaling for touch scrolling
+    const scaleFactor = 1;
     const scaledDelta = deltaY * scaleFactor;
 
     const result = handleScroll(scaledDelta, {
@@ -141,14 +142,14 @@
       items,
     });
 
-    // 更新状态
+    // Update state with scroll results
     translateY = result.translateY;
     visualHead = result.visualHead;
     items = result.items;
   }
 
   /**
-   * Handle touch end event
+   * Handles the end of touch interaction.
    */
   function handleTouchEnd() {
     isTouching = false;

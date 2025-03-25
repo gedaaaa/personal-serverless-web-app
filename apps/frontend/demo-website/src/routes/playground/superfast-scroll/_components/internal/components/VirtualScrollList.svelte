@@ -6,7 +6,9 @@
     DEFAULT_VISIBLE_ITEMS_COUNT,
   } from '../../utils/types';
 
-  // Props definition
+  /**
+   * Component properties for configuring the virtual scroll list.
+   */
   let {
     dataSource,
     itemHeight = DEFAULT_ITEM_HEIGHT,
@@ -19,12 +21,15 @@
     jumpToPosition?: (position: number) => void;
   } = $props();
 
-  // State
+  // Internal state management
   let jumpTargetPosition: number | null = $state(null);
   let items = $state<DataItem[]>([]);
   let translateY = $state(0);
 
-  // Bind the jumpToPosition function for external use
+  /**
+   * Exposes a jumpToPosition function for external components to control scrolling.
+   * When called, this function will reset the translate position and jump to the specified item.
+   */
   $effect(() => {
     jumpToPosition = (position: number) => {
       jumpTargetPosition = position;

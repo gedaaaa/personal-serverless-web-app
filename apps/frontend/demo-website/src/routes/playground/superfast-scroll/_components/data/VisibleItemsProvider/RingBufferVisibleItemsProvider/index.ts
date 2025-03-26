@@ -1,1 +1,1 @@
-export { RingBufferVisibleItemsProvider } from './RingBufferVisibleItemsProviderComponent.svelte';
+export { RingBufferDataWindowProvider } from './RingBufferDataWindowProvider.svelte';

@@ -3,21 +3,37 @@
   import type { DataSource } from '../../data/DataSource/DataSource';
   import { handleScroll } from '../../utils/scrollLogic';
   import {
-    RingBufferVisibleItemsProvider,
-    type VisibleItemsProvider,
+    RingBufferDataWindowProvider,
+    type DataWindowProvider,
   } from '../../data/VisibleItemsProvider';
-  import { BUFFER_ITEMS_COUNT } from '../../utils/types';
+  import { VISUAL_BUFFER_ITEMS_COUNT } from '../../utils/types';
+
+  /**
+   * VirtualScrollViewport Component
+   *
+   * DOM Layer Architecture:
+   * -----------------------
+   * This component implements a DOM recycling mechanism using a fixed number of DOM elements.
+   * It maintains a visual ring buffer of DOM elements with the following characteristics:
+   *
+   * 1. Fixed set of DOM elements - Elements are never created/destroyed during scrolling
+   * 2. Circular indexing - Elements are positioned through modulo arithmetic
+   * 3. Transform-based positioning - Uses CSS transforms for performance
+   *
+   * The DOM layer is completely separate from the data layer. While the data layer manages
+   * which items are loaded, the DOM layer handles how those items are rendered efficiently.
+   */
 
   // Props
   let {
-    items = $bindable<DataItem[]>([]),
+    renderedItems = $bindable<DataItem[]>([]),
     itemHeight = 40,
     visibleItemsCount = 10,
     translateY = $bindable<number>(0),
     jumpTargetPosition = 0,
     dataSource = null,
   }: {
-    items: DataItem[];
+    renderedItems: DataItem[];
     itemHeight: number;
     visibleItemsCount: number;
     translateY: number;
@@ -25,10 +41,10 @@
     dataSource: DataSource<DataItem> | null;
   } = $props();
 
-  let provider = $state<VisibleItemsProvider<DataItem> | null>(null);
+  let provider = $state<DataWindowProvider<DataItem> | null>(null);
 
   // Derived values
-  const listItemsCount = visibleItemsCount + BUFFER_ITEMS_COUNT;
+  const listItemsCount = visibleItemsCount + VISUAL_BUFFER_ITEMS_COUNT;
   let viewportHeight = $derived(itemHeight * visibleItemsCount);
   let listContainerHeight = $derived(itemHeight * listItemsCount);
 
@@ -40,15 +56,18 @@
   let touchStartY = $state(0);
   let lastTouchY = $state(0);
   let isTouching = $state(false);
-  let visualHead = $state(0);
+
+  // DOM ring buffer index pointer
+  // This tracks the current start position in the DOM ring buffer
+  let domRingHead = $state(0);
 
   // Initialize provider when dataSource becomes available
   $effect(() => {
     if (dataSource && !provider) {
-      provider = new RingBufferVisibleItemsProvider(dataSource, listItemsCount);
+      provider = new RingBufferDataWindowProvider(dataSource, listItemsCount);
 
       // Set initial position
-      provider.setFirstVisibleItemPosition(0);
+      provider.setDataWindowPosition(0);
 
       // Ensure initial translateY is 0
       translateY = 0;
@@ -56,22 +75,22 @@
   });
 
   $effect(() => {
-    provider?.setFirstVisibleItemPosition(jumpTargetPosition || 0);
+    provider?.setDataWindowPosition(jumpTargetPosition || 0);
   });
 
   // Track provider version for reactivity
   let version = $derived(
-    (provider as VisibleItemsProvider<DataItem> | null)?.version,
+    (provider as DataWindowProvider<DataItem> | null)?.version,
   );
   let lastVersion = $state<number | null>(null);
 
   // Update UI state when provider version changes
   $effect(() => {
     if (version && version !== lastVersion) {
-      items = provider!.getVisibleItems();
+      renderedItems = provider!.getDataWindowItems();
 
-      // Reset visualHead to initial position
-      visualHead = 0;
+      // Reset domRingHead to initial position
+      domRingHead = 0;
 
       translateY = 0;
 
@@ -81,6 +100,9 @@
 
   /**
    * Handles mouse wheel events for smooth scrolling.
+   *
+   * As the user scrolls, this manages both the visual translation
+   * and the shifting of data through the ring buffer when boundaries are reached.
    */
   function handleWheel(event: WheelEvent) {
     event.preventDefault();
@@ -96,16 +118,16 @@
         translateY,
         itemHeight,
         provider,
-        visualHead,
+        visualHead: domRingHead,
         listItemsCount,
-        items,
+        items: renderedItems,
       },
     );
 
     // Update state with scroll results
     translateY = result.translateY;
-    visualHead = result.visualHead;
-    items = result.items;
+    domRingHead = result.visualHead;
+    renderedItems = result.items;
   }
 
   /**
@@ -137,15 +159,15 @@
       translateY,
       itemHeight,
       provider,
-      visualHead,
+      visualHead: domRingHead,
       listItemsCount,
-      items,
+      items: renderedItems,
     });
 
     // Update state with scroll results
     translateY = result.translateY;
-    visualHead = result.visualHead;
-    items = result.items;
+    domRingHead = result.visualHead;
+    renderedItems = result.items;
   }
 
   /**
@@ -166,14 +188,22 @@
   ontouchend={handleTouchEnd}
   ontouchcancel={handleTouchEnd}
 >
+  <!-- 
+    Container with CSS transform for smooth scrolling
+    This element shifts up/down based on scroll position
+  -->
   <div
     bind:this={listContainer}
     class="relative will-change-transform"
     style="height: {listContainerHeight}px; transform: translateY({translateY}px);"
   >
-    {#each items as item, idx (`${idx}-${item?.id}`)}
+    <!-- 
+      Render each item with absolute positioning
+      The DOM elements are recycled in a circular buffer pattern
+    -->
+    {#each renderedItems as item, idx (`${idx}-${item?.id}`)}
       {@const mappedItemIndex =
-        (idx - visualHead + listItemsCount) % listItemsCount}
+        (idx - domRingHead + listItemsCount) % listItemsCount}
       {@const translateY = mappedItemIndex * itemHeight}
       <div
         class="absolute w-full will-change-transform"

@@ -5,16 +5,25 @@ import {
   type CircularNode,
 } from './CircularBidirectionalLinkedList';
 
-import type { VisibleItemsProvider } from '../VisibleItemsProvider';
+import type { DataWindowProvider } from '../DataWindowProvider';
 
 /**
- * RingBufferVisibleItemsProvider implements VisibleItemsProvider using a ring buffer
- * It provides visible items from a data source and manages data caching using a ring buffer
- * The ring buffer is organized in three sections:
- * [Lower Buffer] [Visible Items] [Upper Buffer]
+ * RingBufferDataWindowProvider implements DataWindowProvider using a ring buffer.
+ *
+ * Data Layer Architecture:
+ * -----------------------
+ * This provider manages a three-segment ring buffer for data:
+ * [Lower Buffer] [Data Window] [Upper Buffer]
+ *
+ * - Data Window: The main section containing items currently in view or potentially about to be in view
+ * - Lower Buffer: Pre-loaded items before the current data window
+ * - Upper Buffer: Pre-loaded items after the current data window
+ *
+ * The buffer segments are dynamically loaded as the user scrolls, creating a
+ * smooth experience even with large datasets.
  */
-export class RingBufferVisibleItemsProvider<T extends DataItem>
-  implements VisibleItemsProvider<T>
+export class RingBufferDataWindowProvider<T extends DataItem>
+  implements DataWindowProvider<T>
 {
   private _versionStore = $state({
     value: 1,
@@ -31,8 +40,8 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
   // Data source
   private dataSource: DataSource<T>;
 
-  // The visible window size - number of items visible at once
-  private visibleWindowSize: number;
+  // The data window size - number of items loaded at once
+  private dataWindowSize: number;
 
   // Maximum buffer size (theoretical)
   private maxBufferSize: number;
@@ -40,15 +49,15 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
   // The ring buffer for storing items
   private ring: CircularBidirectionalLinkedList<T | null>;
 
-  // The total size of the ring (visible items + buffers)
+  // The total size of the ring (data window + buffers)
   private ringSize: number;
 
-  // Current first visible item position in the dataset
-  private firstVisiblePosition: number = -1;
+  // Current first position in the dataset
+  private firstDataPosition: number = -1;
 
-  // Pointers to the start and end of visible window in the ring
-  private visibleWindowStart: CircularNode<T | null> | null = null;
-  private visibleWindowEnd: CircularNode<T | null> | null = null;
+  // Pointers to the start and end of data window in the ring
+  private dataWindowStart: CircularNode<T | null> | null = null;
+  private dataWindowEnd: CircularNode<T | null> | null = null;
 
   // Actual buffer counts (may be less than maxBufferSize near data boundaries)
   private upperBufferCount: number = 0;
@@ -66,20 +75,20 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
   private pendingUpperBufferFill = false;
   private pendingLowerBufferFill = false;
 
-  constructor(dataSource: DataSource<T>, visibleWindowSize: number = 10) {
+  constructor(dataSource: DataSource<T>, dataWindowSize: number = 10) {
     this.dataSource = dataSource;
-    this.visibleWindowSize = Math.max(0, visibleWindowSize);
-    this.maxBufferSize = Math.max(10, Math.min(2 * visibleWindowSize, 100));
-    this.ringSize = this.visibleWindowSize + 2 * this.maxBufferSize + 1;
+    this.dataWindowSize = Math.max(0, dataWindowSize);
+    this.maxBufferSize = Math.max(10, Math.min(2 * dataWindowSize, 100));
+    this.ringSize = this.dataWindowSize + 2 * this.maxBufferSize + 1;
     this.ring = new CircularBidirectionalLinkedList<T | null>(this.ringSize);
-    this.visibleWindowStart = null;
-    this.visibleWindowEnd = null;
+    this.dataWindowStart = null;
+    this.dataWindowEnd = null;
   }
 
   /**
-   * Update the state of the visible items provider
+   * Update the state of the data window provider
    * This method updates the total count of items in the data source
-   * and increments the version of the visible items provider
+   * and increments the version of the data window provider
    */
   private async updateState(): Promise<void> {
     const totalCount = await this.dataSource.getTotalCount();
@@ -90,7 +99,7 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
   }
 
   /**
-   * Validate the position of the first visible item
+   * Validate the position of the first item in the data window
    * This method clamps the position to the valid range
    * @param position The position to validate
    * @returns The clamped position
@@ -106,23 +115,23 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
   }
 
   /**
-   * Set the position of the first visible item
+   * Set the position of the first item in the data window
    * This method sets the pending update position and debounces the update
    * @param position The position to set
    */
-  public setFirstVisibleItemPosition(position: number) {
+  public setDataWindowPosition(position: number) {
     this.pendingUpdatePosition = position;
 
     if (this.debounceTimer !== null) {
       clearTimeout(this.debounceTimer);
     }
 
-    if (this.visibleWindowStart === null || !this.isUpdating) {
+    if (this.dataWindowStart === null || !this.isUpdating) {
       this.executePendingUpdatePosition();
     } else {
       this.debounceTimer = setTimeout(() => {
         this.executePendingUpdatePosition();
-      }, RingBufferVisibleItemsProvider.DEBOUNCE_DELAY) as unknown as number;
+      }, RingBufferDataWindowProvider.DEBOUNCE_DELAY) as unknown as number;
     }
   }
 
@@ -150,15 +159,15 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
   }
 
   /**
-   * Get the visible items from the ring buffer
-   * This method returns the visible items from the ring buffer
+   * Get the items from the data window
+   * This method returns the items currently in the data window
    * @param count The number of items to return
-   * @returns The visible items
+   * @returns The data window items
    */
-  public getVisibleItems(count?: number): T[] {
-    const visibleCount = count || this.visibleWindowSize;
-    if (!this.visibleWindowStart) return [];
-    const items = this.visibleWindowStart.getValues(visibleCount);
+  public getDataWindowItems(count?: number): T[] {
+    const dataCount = count || this.dataWindowSize;
+    if (!this.dataWindowStart) return [];
+    const items = this.dataWindowStart.getValues(dataCount);
     return items.filter((item): item is T => item !== null);
   }
 
@@ -172,7 +181,7 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
   }
 
   private async updateRingBuffer(newPosition: number): Promise<void> {
-    this.firstVisiblePosition = newPosition;
+    this.firstDataPosition = newPosition;
     await this.resetWholeRing();
     return;
   }
@@ -186,38 +195,102 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
     this.lowerBufferCount = 0;
     this.upperBufferCount = 0;
 
-    const visibleItemsStartPos = this.firstVisiblePosition;
+    const dataItemsStartPos = this.firstDataPosition;
 
     let currentNode = this.ring.getHead();
     if (!currentNode) return;
 
-    this.visibleWindowStart = currentNode;
+    this.dataWindowStart = currentNode;
 
-    const visibleItems = await this.dataSource.getRangeFromId(
-      visibleItemsStartPos,
-      this.visibleWindowSize,
+    const dataItems = await this.dataSource.getRangeFromId(
+      dataItemsStartPos,
+      this.dataWindowSize,
       Direction.FORWARD,
     );
 
-    currentNode.value = visibleItems[0];
+    currentNode.value = dataItems[0];
 
-    // fill visible items
-    for (let i = 1; i < visibleItems.length && currentNode; i++) {
+    // fill data window items
+    for (let i = 1; i < dataItems.length && currentNode; i++) {
       currentNode = currentNode.getNext();
-      currentNode.value = visibleItems[i];
+      currentNode.value = dataItems[i];
     }
 
     // set end node
-    currentNode = this.visibleWindowStart;
-    for (let i = 1; i < this.visibleWindowSize && currentNode; i++) {
+    currentNode = this.dataWindowStart;
+    for (let i = 1; i < this.dataWindowSize && currentNode; i++) {
       currentNode = currentNode.getNext();
     }
-    this.visibleWindowEnd = currentNode;
+    this.dataWindowEnd = currentNode;
 
     await this.updateState();
 
     await this.fillLowerBuffer();
     await this.fillUpperBuffer();
+  }
+
+  // Implementation for moveForward and moveBackward methods
+  // These methods provide navigation through the data window
+
+  /**
+   * Move the data window forward by one item
+   * Returns the new item that should enter the window from below
+   */
+  public moveForward(): T | null {
+    if (!this.dataWindowStart || !this.dataWindowEnd) return null;
+
+    // Check if we have an item in the upper buffer
+    if (this.upperBufferCount <= 0) return null;
+
+    // Move data window pointers
+    this.dataWindowStart = this.dataWindowStart.getNext();
+    this.dataWindowEnd = this.dataWindowEnd.getNext();
+
+    // Update buffer counts
+    this.lowerBufferCount++;
+    this.upperBufferCount--;
+
+    // Schedule buffer refill if needed
+    this.scheduleBufferFill();
+
+    return this.dataWindowEnd.value;
+  }
+
+  /**
+   * Move the data window backward by one item
+   * Returns the new item that should enter the window from above
+   */
+  public moveBackward(): T | null {
+    if (!this.dataWindowStart || !this.dataWindowEnd) return null;
+
+    // Check if we have an item in the lower buffer
+    if (this.lowerBufferCount <= 0) return null;
+
+    // Move data window pointers
+    this.dataWindowStart = this.dataWindowStart.getPrev();
+    this.dataWindowEnd = this.dataWindowEnd.getPrev();
+
+    // Update buffer counts
+    this.lowerBufferCount--;
+    this.upperBufferCount++;
+
+    // Schedule buffer refill if needed
+    this.scheduleBufferFill();
+
+    return this.dataWindowStart.value;
+  }
+
+  /**
+   * Schedule buffer fills if buffers are getting low
+   */
+  private scheduleBufferFill(): void {
+    if (this.lowerBufferCount < this.maxBufferSize / 2) {
+      this.fillLowerBuffer();
+    }
+
+    if (this.upperBufferCount < this.maxBufferSize / 2) {
+      this.fillUpperBuffer();
+    }
   }
 
   /**
@@ -234,13 +307,13 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
     this.isFillingLowerBuffer = true;
 
     try {
-      if (this.visibleWindowStart?.value?.id === undefined) return;
+      if (this.dataWindowStart?.value?.id === undefined) return;
 
       const itemsToLoad = this.maxBufferSize - this.lowerBufferCount + 1;
 
       if (itemsToLoad <= 1) return;
 
-      let insertNode = this.visibleWindowStart;
+      let insertNode = this.dataWindowStart;
 
       for (let i = 0; i < this.lowerBufferCount; i++) {
         insertNode = insertNode.getPrev();
@@ -284,13 +357,13 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
     this.isFillingUpperBuffer = true;
 
     try {
-      if (!this.visibleWindowEnd) return;
+      if (!this.dataWindowEnd) return;
 
       const itemsToLoad = this.maxBufferSize - this.upperBufferCount + 1;
 
       if (itemsToLoad <= 1) return;
 
-      let insertNode = this.visibleWindowEnd;
+      let insertNode = this.dataWindowEnd;
 
       for (let i = 1; i < this.upperBufferCount; i++) {
         insertNode = insertNode.getNext();
@@ -320,119 +393,5 @@ export class RingBufferVisibleItemsProvider<T extends DataItem>
         setTimeout(() => this.fillUpperBuffer(), 0);
       }
     }
-  }
-
-  /**
-   * Advances the visible window forward by one position.
-   * Returns the new item that becomes visible at the end of the window.
-   *
-   * @returns The new item at the end of the visible window, or null if at boundary
-   */
-  public moveForward(): T | null {
-    // Return null if provider is not initialized
-    if (!this.visibleWindowStart || !this.visibleWindowEnd) {
-      return null;
-    }
-    // Check if upper buffer has available elements
-    if (this.upperBufferCount <= 0) {
-      // Buffer insufficient, trigger fill but reject movement
-      setTimeout(() => {
-        this.fillUpperBuffer();
-      }, 0);
-      return null;
-    }
-
-    // Get new element (ensure element exists)
-    const nextNode = this.visibleWindowEnd.getNext();
-
-    if (!nextNode || nextNode.value === null) {
-      // If next element doesn't exist or is null, reject movement but trigger fill
-      setTimeout(() => {
-        this.fillUpperBuffer();
-      }, 0);
-      return null;
-    }
-
-    // Update firstVisiblePosition
-    this.firstVisiblePosition++;
-
-    // Move visible window pointers
-    this.visibleWindowStart = this.visibleWindowStart.getNext();
-    this.visibleWindowEnd = this.visibleWindowEnd.getNext();
-
-    // Decrease upper buffer count
-    this.upperBufferCount = Math.max(0, this.upperBufferCount - 1);
-
-    // Get new element
-    const newItem = this.visibleWindowEnd.value as T;
-
-    // Asynchronously fill upper buffer if buffer ratio is below threshold
-    const bufferRatio = this.upperBufferCount / this.maxBufferSize;
-
-    if (bufferRatio < 0.5) {
-      // Use setTimeout to avoid blocking UI
-      setTimeout(() => {
-        this.fillUpperBuffer();
-      }, 0);
-    }
-
-    return newItem;
-  }
-
-  /**
-   * Moves the visible window backward by one position.
-   * Returns the new item that becomes visible at the start of the window.
-   *
-   * @returns The new item at the start of the visible window, or null if at boundary
-   */
-  public moveBackward(): T | null {
-    // Return null if provider is not initialized
-    if (!this.visibleWindowStart || !this.visibleWindowEnd) {
-      return null;
-    }
-
-    // Check if lower buffer has available elements
-    if (this.lowerBufferCount <= 0) {
-      // Buffer insufficient, trigger fill but reject movement
-      setTimeout(() => {
-        this.fillLowerBuffer();
-      }, 0);
-      return null;
-    }
-
-    // Get previous element (ensure element exists)
-    const prevNode = this.visibleWindowStart.getPrev();
-
-    if (!prevNode || prevNode.value === null) {
-      // If previous element doesn't exist or is null, reject movement but trigger fill
-      setTimeout(() => {
-        this.fillLowerBuffer();
-      }, 0);
-      return null;
-    }
-
-    // Update firstVisiblePosition
-    this.firstVisiblePosition--;
-
-    // Move visible window pointers
-    this.visibleWindowStart = prevNode;
-    this.visibleWindowEnd = this.visibleWindowEnd.getPrev();
-
-    // Decrease lower buffer count
-    this.lowerBufferCount = Math.max(0, this.lowerBufferCount - 1);
-
-    // Get new element
-    const newItem = this.visibleWindowStart.value as T;
-
-    // Asynchronously fill lower buffer if buffer ratio is below threshold
-    const bufferRatio = this.lowerBufferCount / this.maxBufferSize;
-    if (bufferRatio < 0.5) {
-      // Use setTimeout to avoid blocking UI
-      setTimeout(() => {
-        this.fillLowerBuffer();
-      }, 0);
-    }
-
-    return newItem;
   }
 }

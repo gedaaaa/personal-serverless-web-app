@@ -1,6 +1,6 @@
 import { tick } from 'svelte';
 import type { DataItem } from '../data/DataSource/DataSource';
-import type { VisibleItemsProvider } from '../data/VisibleItemsProvider';
+import type { DataWindowProvider } from '../data/VisibleItemsProvider';
 
 /**
  * Parameters required for scroll handling operations.
@@ -8,7 +8,7 @@ import type { VisibleItemsProvider } from '../data/VisibleItemsProvider';
 export interface ScrollParams<T extends DataItem> {
   translateY: number;
   itemHeight: number;
-  provider: VisibleItemsProvider<T> | null;
+  provider: DataWindowProvider<T> | null;
   visualHead: number;
   listItemsCount: number;
   items: T[];
@@ -27,6 +27,9 @@ export interface ScrollResult<T extends DataItem> {
 /**
  * Processes scroll events and manages the virtual scroll viewport's state.
  * Handles both upward and downward scrolling with boundary detection.
+ *
+ * The DOM ring buffer is updated when scrolling reaches boundaries,
+ * repositioning elements and loading new data as needed.
  *
  * @param delta The scroll amount (positive for downward, negative for upward)
  * @param params Current scroll state parameters
@@ -65,12 +68,12 @@ export function handleScroll<T extends DataItem>(
 
       // If we successfully retrieved the next item
       if (nextItem) {
-        // Update visualHead position
-        const newVisualHead = (visualHead + 1) % listItemsCount;
+        // Update DOM ring head position
+        const newDomRingHead = (visualHead + 1) % listItemsCount;
 
         // Calculate the index of the element to update
         const targetIndex =
-          (newVisualHead + listItemsCount - 1) % listItemsCount;
+          (newDomRingHead + listItemsCount - 1) % listItemsCount;
 
         // Create a new items array with the updated item
         const newItems = [...items];
@@ -78,7 +81,7 @@ export function handleScroll<T extends DataItem>(
 
         return {
           translateY: -itemHeight, // Reset to -itemHeight
-          visualHead: newVisualHead,
+          visualHead: newDomRingHead,
           items: newItems,
           success: true,
         };
@@ -102,17 +105,17 @@ export function handleScroll<T extends DataItem>(
 
       // If we successfully retrieved the previous item
       if (prevItem) {
-        // Update visualHead position
-        const newVisualHead =
+        // Update DOM ring head position
+        const newDomRingHead =
           (visualHead - 1 + listItemsCount) % listItemsCount;
 
         // Create a new items array with the updated item
         const newItems = [...items];
-        newItems[newVisualHead] = prevItem;
+        newItems[newDomRingHead] = prevItem;
 
         return {
           translateY: -itemHeight, // Reset to -itemHeight
-          visualHead: newVisualHead,
+          visualHead: newDomRingHead,
           items: newItems,
           success: true,
         };

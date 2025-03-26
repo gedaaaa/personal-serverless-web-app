@@ -1,3 +1,2 @@
-export type { VisibleItemsProvider } from './VisibleItemsProvider.js';
-
-export { RingBufferVisibleItemsProvider } from './RingBufferVisibleItemsProvider';
+export * from './DataWindowProvider';
+export * from './RingBufferVisibleItemsProvider';

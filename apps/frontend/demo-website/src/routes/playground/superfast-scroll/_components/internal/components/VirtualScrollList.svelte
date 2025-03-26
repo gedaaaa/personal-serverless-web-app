@@ -23,7 +23,7 @@
 
   // Internal state management
   let jumpTargetPosition: number | null = $state(null);
-  let items = $state<DataItem[]>([]);
+  let renderedItems = $state<DataItem[]>([]);
   let translateY = $state(0);
 
   /**
@@ -45,7 +45,7 @@
     {itemHeight}
     {visibleItemsCount}
     bind:translateY
-    bind:items
+    bind:renderedItems
     {jumpTargetPosition}
     {dataSource}
   />

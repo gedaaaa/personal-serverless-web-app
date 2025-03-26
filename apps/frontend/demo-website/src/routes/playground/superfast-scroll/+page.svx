@@ -1,0 +1,95 @@
+---
+title: Superfast Scroll
+description: High-performance virtual scroll list practice
+---
+
+<script lang="ts">
+  import VirtualScrollListDemo from './_components/';
+</script>
+
+## Demo
+
+<VirtualScrollListDemo />
+
+## Technical Notes
+
+This high-performance virtual scroll implementation leverages several key techniques:
+
+### 1. Data Structure Choice
+
+This demo uses a SkipList as the underlying data structure, primarily for the fun of implementation:
+
+- While SkipList provides O(log n) complexity for search, insert, and delete operations
+- For this specific use case, an array with an index map would likely provide better performance (stable O(1) lookups)
+- To increase the implementation difficulty and simulate real-world conditions, the data source is wrapped delays (200ms), I guess you didn't notice it?
+
+
+### 2. Dual Ring Buffer Architecture
+
+The implementation utilizes two ring buffer structures:
+
+#### DOM-level Ring Buffer
+- Uses `domRingHead` and modulo operations to simulate circular indexing
+- Provides additional buffer elements to ensure smooth visual transitions during scrolling
+- Reuses a limited number of DOM nodes, significantly reducing memory usage and DOM operations
+
+```mermaid
+graph LR
+    A[DOM Element 1] --> B[DOM Element 2]
+    B --> C[DOM Element 3]
+    C --> D[DOM Element ...]
+    D --> E[DOM Element n]
+    E --> A
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+```
+
+#### Data Window Provider Ring Buffer
+- Provides buffering for asynchronous data loading
+- Maintains upper and lower buffer zones for preloading and smooth scrolling
+- Implements efficient data window movement through a doubly-linked list
+
+### 3. Design Evolution and Challenges
+
+#### Initial Version
+- Unified data flow for both incremental scrolling and jumping
+- Flow: User input → Position update → Provider processes data → Provider publishes new version → UI listens for version changes and fetches data
+
+```mermaid
+sequenceDiagram
+    User->>UI: Scroll/Jump action
+    UI->>Provider: Update position
+    Provider->>Provider: Process data updates
+    Provider->>UI: Publish new version
+    UI->>Provider: Detect version change, fetch data
+    Provider->>UI: Return data
+    UI->>User: Update view
+```
+
+#### Challenges with Asynchronous Data Source
+- Converting the provider's data retrieval process to asynchronous operations (preparing for data source with delays)
+- This led to synchronization issues between translateY, `domRingHead`, and data updates
+- Caused visual inconsistencies and data misalignment during rapid scrolling
+
+#### Current Solution
+- Separated the logic for incremental scrolling and jumping
+  - Incremental scrolling: Directly manipulates DOM and data to maintain visual continuity
+  - Jumping: Completely resets the view state and waits for asynchronous data loading to complete
+
+```mermaid
+graph TD
+    A[User Input] --> B{Scroll Type?}
+    B -->|Incremental| C[Direct DOM Update]
+    C --> D[Async Data Loading as Needed]
+    B -->|Jump| E[Reset View State]
+    E --> F[Wait for Async Data Loading]
+    F --> G[Update View at Once]
+```
+
+### 4. Efficient Scroll Handling Logic
+
+The scroll handling logic is optimized for smooth performance:
+- Precise control of DOM element reuse and position calculations
+- Touch event support for native-like scrolling experience on mobile devices
+- Throttling scroll speed and batch processing updates to prevent performance bottlenecks
+
+This implementation maintains excellent performance even when handling large datasets (with delays when retrieving) data while keeping memory usage low.

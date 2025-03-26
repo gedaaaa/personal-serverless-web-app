@@ -229,7 +229,7 @@ describe('RingBufferDataWindowProvider', () => {
 
     // Try to move forward multiple times past the end
     for (let i = 0; i < 10; i++) {
-      const item = provider.moveForward();
+      provider.moveForward();
     }
 
     // Ensure we reach the boundary (might reach it before buffer is exhausted)

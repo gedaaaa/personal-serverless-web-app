@@ -1,6 +1,6 @@
 // Type definitions for the virtual scroll components
 import type { DataItem, DataSource } from '../data/DataSource/DataSource';
-import type { RingBufferVisibleItemsProvider } from '../data/VisibleItemsProvider';
+import type { RingBufferDataWindowProvider } from '../data/DataWindowProvider';
 
 // Scroll state interface
 export interface ScrollState<T extends DataItem> {
@@ -10,12 +10,12 @@ export interface ScrollState<T extends DataItem> {
   isAtStart: boolean;
   isAtEnd: boolean;
   translateY: number;
-  virtualRingHead: number;
+  domRingHead: number;
 }
 
 // Props for the main VirtualScrollList component
 export interface VirtualScrollListProps<T extends DataItem> {
-  provider: RingBufferVisibleItemsProvider<T> | null;
+  provider: RingBufferDataWindowProvider<T> | null;
   dataSource: DataSource<T> | null;
   itemHeight?: number;
   visibleItemsCount?: number;
@@ -23,6 +23,9 @@ export interface VirtualScrollListProps<T extends DataItem> {
 }
 
 // Configuration constants
-export const BUFFER_ITEMS_COUNT = 2;
+// DOM Buffer items count - extra items to render beyond the visible viewport
+// These provide a buffer so items can be ready before scrolling into view
+export const VISUAL_BUFFER_ITEMS_COUNT = 2;
+
 export const DEFAULT_ITEM_HEIGHT = 40;
 export const DEFAULT_VISIBLE_ITEMS_COUNT = 10;

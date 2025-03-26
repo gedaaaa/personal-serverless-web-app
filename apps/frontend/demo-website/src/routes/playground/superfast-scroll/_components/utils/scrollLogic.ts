@@ -1,176 +1,140 @@
 import type { DataItem } from '../data/DataSource/DataSource';
-import type { VisibleItemsProvider } from '../data/VisibleItemsProvider';
+import type { DataWindowProvider } from '../data/DataWindowProvider';
 
 /**
- * Handles wheel event scrolling logic for virtual scroll
- * @param event The wheel event
- * @param params Configuration and state parameters
- * @returns Updated state values
+ * Parameters required for scroll handling operations.
  */
-export function handleWheelScroll<T extends DataItem>(
-  event: WheelEvent,
-  params: {
-    translateY: number;
-    currentPosition: number | null;
-    isAtStart: boolean;
-    isAtEnd: boolean;
-    itemHeight: number;
-    provider: VisibleItemsProvider<T> | null;
-    tempVirtualRingHead: number;
-  },
-) {
-  const {
-    translateY,
-    currentPosition,
-    isAtStart,
-    isAtEnd,
-    itemHeight,
-    provider,
-    tempVirtualRingHead,
-  } = params;
-
-  // Prevent default scrolling behavior
-  event.preventDefault();
-
-  // Calculate new translateY
-  const newTranslateY = translateY - event.deltaY;
-  let updatedTranslateY = translateY;
-  let updatedPosition = currentPosition;
-  let updatedTempVirtualRingHead = tempVirtualRingHead;
-
-  if (event.deltaY > 0) {
-    // Scrolling down
-    if (isAtEnd) {
-      // If we're at the end of the list, limit translateY
-      updatedTranslateY = -2 * itemHeight;
-      updatedTempVirtualRingHead = 0;
-    } else if (newTranslateY < -2 * itemHeight) {
-      // We've scrolled down 2 items, reset to 1 item offset
-      updatedTranslateY = -itemHeight;
-
-      // Move to next item if not at end
-      updatedPosition = Math.min(
-        provider?.getLastValidPosition() || 0,
-        (currentPosition || 0) + 1,
-      );
-      updatedTempVirtualRingHead = tempVirtualRingHead + 1;
-    } else {
-      updatedTranslateY = newTranslateY;
-    }
-  } else if (event.deltaY < 0) {
-    // Scrolling up
-    if (isAtStart) {
-      // If we're at the start of the list, reset translateY to 0
-      updatedTranslateY = 0;
-      updatedTempVirtualRingHead = 0;
-    } else if (newTranslateY > 0) {
-      // We've scrolled up to the top buffer, reset to 1 item offset
-      updatedTranslateY = -itemHeight;
-
-      // Move to previous item if not at start
-      updatedPosition = Math.max(0, (currentPosition || 0) - 1);
-      updatedTempVirtualRingHead = tempVirtualRingHead - 1;
-    } else {
-      updatedTranslateY = newTranslateY;
-    }
-  }
-
-  return {
-    translateY: updatedTranslateY,
-    currentPosition: updatedPosition,
-    tempVirtualRingHead: updatedTempVirtualRingHead,
-  };
+export interface ScrollParams<T extends DataItem> {
+  translateY: number;
+  itemHeight: number;
+  provider: DataWindowProvider<T> | null;
+  visualHead: number;
+  listItemsCount: number;
+  items: T[];
 }
 
 /**
- * Handles touch events for scrolling logic
- * @param deltaY The vertical distance moved
- * @param params Configuration and state parameters
- * @returns Updated state values
+ * The result of a scroll handling operation.
  */
-export function handleTouchScroll<T extends DataItem>(
-  deltaY: number,
-  params: {
-    translateY: number;
-    currentPosition: number | null;
-    isAtStart: boolean;
-    isAtEnd: boolean;
-    itemHeight: number;
-    provider: VisibleItemsProvider<T> | null;
-    tempVirtualRingHead: number;
-  },
-) {
-  const {
-    translateY,
-    currentPosition,
-    isAtStart,
-    isAtEnd,
-    itemHeight,
-    provider,
-    tempVirtualRingHead,
-  } = params;
-
-  // Calculate new translateY
-  const newTranslateY = translateY - deltaY;
-  let updatedTranslateY = translateY;
-  let updatedPosition = currentPosition;
-  let updatedTempVirtualRingHead = tempVirtualRingHead;
-
-  if (deltaY > 0) {
-    // Scrolling down (finger moving up)
-    if (isAtEnd) {
-      // If we're at the end of the list, limit translateY
-      updatedTranslateY = -2 * itemHeight;
-      updatedTempVirtualRingHead = 0;
-    } else if (newTranslateY < -2 * itemHeight) {
-      // We've scrolled down 2 items, reset to 1 item offset
-      updatedTranslateY = -itemHeight;
-
-      // Move to next item if not at end
-      updatedPosition = Math.min(
-        provider?.getLastValidPosition() || 0,
-        (currentPosition || 0) + 1,
-      );
-
-      updatedTempVirtualRingHead = tempVirtualRingHead + 1;
-    } else {
-      updatedTranslateY = newTranslateY;
-    }
-  } else if (deltaY < 0) {
-    // Scrolling up (finger moving down)
-    if (isAtStart) {
-      // If we're at the start of the list, reset translateY to 0
-      updatedTranslateY = 0;
-      updatedTempVirtualRingHead = 0;
-    } else if (newTranslateY > 0) {
-      // We've scrolled up to the top buffer, reset to 1 item offset
-      updatedTranslateY = -itemHeight;
-
-      // Move to previous item if not at start
-      updatedPosition = Math.max(0, (currentPosition || 0) - 1);
-      updatedTempVirtualRingHead = tempVirtualRingHead - 1;
-    } else {
-      updatedTranslateY = newTranslateY;
-    }
-  }
-
-  return {
-    translateY: updatedTranslateY,
-    currentPosition: updatedPosition,
-    tempVirtualRingHead: updatedTempVirtualRingHead,
-  };
+export interface ScrollResult<T extends DataItem> {
+  translateY: number;
+  visualHead: number;
+  items: T[];
+  success: boolean;
 }
 
 /**
- * Creates a jump to position handler
- * @returns A function to jump to a specific position
+ * Processes scroll events and manages the virtual scroll viewport's state.
+ * Handles both upward and downward scrolling with boundary detection.
+ *
+ * The DOM ring buffer is updated when scrolling reaches boundaries,
+ * repositioning elements and loading new data as needed.
+ *
+ * @param delta The scroll amount (positive for downward, negative for upward)
+ * @param params Current scroll state parameters
  */
-export function createJumpToPositionHandler(
-  setCurrentPosition: (position: number) => void,
-  setTranslateY: (translateY: number) => void,
-) {
-  return function jumpToPosition(position: number): void {
-    setCurrentPosition(position);
-    setTranslateY(0); // Reset translateY when jumping to position
+export function handleScroll<T extends DataItem>(
+  delta: number,
+  params: ScrollParams<T>,
+): ScrollResult<T> {
+  const {
+    translateY,
+    itemHeight,
+    provider,
+    visualHead,
+    listItemsCount,
+    items,
+  } = params;
+
+  if (!provider) {
+    return {
+      translateY,
+      visualHead,
+      items,
+      success: false,
+    };
+  }
+
+  // Calculate the new translateY position
+  const newTranslateY = translateY - delta;
+
+  // Handle downward scrolling (delta > 0)
+  if (delta > 0) {
+    // Check if we've reached the lower boundary (-2*itemHeight)
+    if (newTranslateY <= -2 * itemHeight) {
+      // Try to get the next item using provider.moveForward
+      const nextItem = provider.moveForward();
+
+      // If we successfully retrieved the next item
+      if (nextItem) {
+        // Update DOM ring head position
+        const newDomRingHead = (visualHead + 1) % listItemsCount;
+
+        // Calculate the index of the element to update
+        const targetIndex =
+          (newDomRingHead + listItemsCount - 1) % listItemsCount;
+
+        // Create a new items array with the updated item
+        const newItems = [...items];
+        newItems[targetIndex] = nextItem;
+
+        return {
+          translateY: -itemHeight, // Reset to -itemHeight
+          visualHead: newDomRingHead,
+          items: newItems,
+          success: true,
+        };
+      } else {
+        // If there's no next item (end of the list)
+        return {
+          translateY: -2 * itemHeight, // Stay at boundary position
+          visualHead,
+          items,
+          success: false,
+        };
+      }
+    }
+  }
+  // Handle upward scrolling (delta < 0)
+  else if (delta < 0) {
+    // Check if we've reached the upper boundary (0)
+    if (newTranslateY >= 0) {
+      // Try to get the previous item using provider.moveBackward
+      const prevItem = provider.moveBackward();
+
+      // If we successfully retrieved the previous item
+      if (prevItem) {
+        // Update DOM ring head position
+        const newDomRingHead =
+          (visualHead - 1 + listItemsCount) % listItemsCount;
+
+        // Create a new items array with the updated item
+        const newItems = [...items];
+        newItems[newDomRingHead] = prevItem;
+
+        return {
+          translateY: -itemHeight, // Reset to -itemHeight
+          visualHead: newDomRingHead,
+          items: newItems,
+          success: true,
+        };
+      } else {
+        // If there's no previous item (beginning of the list)
+        return {
+          translateY: 0, // Stay at boundary position
+          visualHead,
+          items,
+          success: false,
+        };
+      }
+    }
+  }
+
+  // Normal scrolling (within boundaries)
+  return {
+    translateY: newTranslateY,
+    visualHead,
+    items,
+    success: true,
   };
 }

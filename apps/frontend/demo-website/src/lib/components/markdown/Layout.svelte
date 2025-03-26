@@ -1,11 +1,14 @@
 <script>
   import { writable } from 'svelte/store';
-
+  import { onMount } from 'svelte';
   // You can access frontmatter metadata if available
   let { date, title, description } = $props();
 
-  // Create a store for the TOC if needed
-  const tableOfContents = writable([]);
+  onMount(async () => {
+    const { default: mermaid } = await import('mermaid');
+    mermaid.initialize({ theme: 'dark' });
+    await mermaid.run({ querySelector: '.language-mermaid' });
+  });
 </script>
 
 <article class="mx-auto max-w-3xl px-4 py-8">
@@ -29,7 +32,7 @@
     {/if}
   </header>
 
-  <div class="prose prose-lg max-w-none">
+  <div class="prose-md prose max-w-none">
     <slot />
   </div>
 </article>

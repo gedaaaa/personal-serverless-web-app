@@ -1,7 +1,6 @@
 import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
-import { mdsvex } from 'mdsvex';
-
+import { mdsvex, code_highlighter } from 'mdsvex';
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   // Consult https://svelte.dev/docs/kit/integrations
@@ -9,6 +8,23 @@ const config = {
   preprocess: [
     vitePreprocess(),
     mdsvex({
+      highlight: {
+        // Mermaid can not handle highlightened (which is the default for mdsvex) code blocks,
+        // so we need set mermaid highlighter to a custom one.
+        // And other code block will be handled by mdsvex default highlighter.
+        highlighter: (code, lang) => {
+          if (lang === 'mermaid') {
+            // '{' and '}' are special characters for Svelte, so we need to escape them.
+            const escapedCode = code
+              .replace(/([{}])/g, (match) =>
+                match === '{' ? "{'{'}" : "{'}'}",
+              )
+              .replace(/([<])/g, "{'<'}");
+            return `<pre><code class="language-mermaid">${escapedCode}</code></pre>`;
+          }
+          return code_highlighter(code, lang);
+        },
+      },
       extensions: ['.md', '.svx'],
       smartypants: {
         dashes: 'oldschool',

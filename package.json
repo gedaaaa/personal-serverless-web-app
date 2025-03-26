@@ -57,6 +57,7 @@
     "vitest": "^3.0.0"
   },
   "dependencies": {
+    "mermaid": "^11.6.0",
     "sst": "3.7.1",
     "svelte-kit-sst": "2.43.5"
   }

@@ -1,6 +1,5 @@
-import { tick } from 'svelte';
 import type { DataItem } from '../data/DataSource/DataSource';
-import type { DataWindowProvider } from '../data/VisibleItemsProvider';
+import type { DataWindowProvider } from '../data/DataWindowProvider';
 
 /**
  * Parameters required for scroll handling operations.

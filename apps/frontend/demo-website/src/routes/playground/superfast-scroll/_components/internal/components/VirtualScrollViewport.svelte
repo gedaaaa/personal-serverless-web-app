@@ -5,7 +5,7 @@
   import {
     RingBufferDataWindowProvider,
     type DataWindowProvider,
-  } from '../../data/VisibleItemsProvider';
+  } from '../../data/DataWindowProvider';
   import { VISUAL_BUFFER_ITEMS_COUNT } from '../../utils/types';
 
   /**

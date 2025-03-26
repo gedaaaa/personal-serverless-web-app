@@ -1,6 +1,6 @@
 // Type definitions for the virtual scroll components
 import type { DataItem, DataSource } from '../data/DataSource/DataSource';
-import type { RingBufferDataWindowProvider } from '../data/VisibleItemsProvider';
+import type { RingBufferDataWindowProvider } from '../data/DataWindowProvider';
 
 // Scroll state interface
 export interface ScrollState<T extends DataItem> {

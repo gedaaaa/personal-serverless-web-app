@@ -35,11 +35,21 @@ export interface DataSource<T extends DataItem> {
 
   /**
    * Get a range of items starting from a specific id in the specified direction
-   * @param startId The id to start from
-   * @param count The number of items to retrieve
-   * @param direction The direction to retrieve items in (1 for forward, -1 for backward),
-   *    not affecting the order of the result set.
-   * @returns Array of items
+   *
+   * Behavior details:
+   * - If startId exists in the data source, items will be retrieved starting from that item
+   * - If startId does not exist in the data source:
+   *   - For FORWARD direction: Return items starting from the first item with id > startId
+   *   - For BACKWARD direction: Return items starting from the last item with id < startId
+   * - If no suitable items exist after applying these rules, return an empty array
+   * - The order of returned items remains consistent (ascending/descending by id depending on implementation),
+   *   regardless of the direction parameter (which only indicates the retrieval direction)
+   * - Maximum count items will be returned, or fewer if not enough items are available
+   *
+   * @param startId The id to start retrieving from
+   * @param count The maximum number of items to retrieve
+   * @param direction The direction to retrieve items in
+   * @returns Array of items that match the criteria
    */
   getRangeFromId(
     startId: number,

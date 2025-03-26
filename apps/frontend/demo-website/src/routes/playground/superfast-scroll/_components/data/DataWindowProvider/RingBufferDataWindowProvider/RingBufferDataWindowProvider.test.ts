@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RingBufferDataWindowProvider } from './RingBufferDataWindowProvider.svelte';
 import type { DataItem, DataSource } from '../../DataSource/DataSource';
 import { Direction } from '../../DataSource/DataSource';
@@ -39,17 +39,17 @@ class MockDataSource implements DataSource<TestDataItem> {
     count: number,
     direction: Direction,
   ): TestDataItem[] {
-    // 尝试找到精确匹配的ID
+    // Try to find exact ID match
     let startIndex = this.items.findIndex((item) => item.id === startId);
 
-    // 如果找不到精确匹配的ID，则根据方向找最接近的ID
+    // If no exact match found, find the closest ID based on direction
     if (startIndex === -1) {
       if (direction === Direction.FORWARD) {
-        // 找到第一个大于startId的项
+        // Find the first item with ID greater than startId
         startIndex = this.items.findIndex((item) => item.id > startId);
       } else {
         // Direction.BACKWARD
-        // 找到最后一个小于startId的项
+        // Find the last item with ID less than startId
         for (let i = this.items.length - 1; i >= 0; i--) {
           if (this.items[i].id < startId) {
             startIndex = i;
@@ -59,7 +59,7 @@ class MockDataSource implements DataSource<TestDataItem> {
       }
     }
 
-    // 如果仍然找不到合适的开始索引，返回空数组
+    // If still can't find a suitable start index, return empty array
     if (startIndex === -1) return [];
 
     const result: TestDataItem[] = [];
@@ -211,7 +211,7 @@ describe('RingBufferDataWindowProvider', () => {
     // Check the new item is returned
     expect(newItem).not.toBeNull();
     if (newItem) {
-      // 由于缓冲区实现可能不同，这里我们只验证它移动了，而不是具体移动到哪里
+      // Due to different buffer implementations, we only verify movement occurred, not the specific position
       expect(newItem.id).toBeGreaterThan(0);
     }
 
@@ -228,13 +228,11 @@ describe('RingBufferDataWindowProvider', () => {
     await vi.runAllTimersAsync();
 
     // Try to move forward multiple times past the end
-    let lastItem = null;
     for (let i = 0; i < 10; i++) {
       const item = provider.moveForward();
-      if (item !== null) lastItem = item;
     }
 
-    // 确保我们最终达到边界（有可能在缓冲区用完之前就达到了边界）
+    // Ensure we reach the boundary (might reach it before buffer is exhausted)
     let finalMove = provider.moveForward();
     let attempts = 0;
     while (finalMove !== null && attempts < 20) {
@@ -242,7 +240,7 @@ describe('RingBufferDataWindowProvider', () => {
       attempts++;
     }
 
-    // 数据窗口应该包含最后的项目
+    // Data window should contain the last items
     const items = provider.getDataWindowItems();
     if (items.length > 0) {
       expect(items[items.length - 1]?.id).toBeGreaterThanOrEqual(16);
@@ -263,7 +261,7 @@ describe('RingBufferDataWindowProvider', () => {
     // Check the new item is returned
     expect(newItem).not.toBeNull();
     if (newItem) {
-      // 由于缓冲区实现可能不同，只验证能移动，不验证具体移动到哪
+      // Due to buffer implementation differences, only verify movement is possible, not the specific position
       expect(newItem.id).toBeGreaterThan(0);
     }
 
@@ -284,15 +282,15 @@ describe('RingBufferDataWindowProvider', () => {
     // Try to move backward
     const newItem = provider.moveBackward();
 
-    // 可能会返回null（如果已经在开头），也可能会返回项目（如果有缓冲区）
+    // Might return null (if at the beginning) or return an item (if there's buffer)
     if (newItem === null) {
-      // 如果不能再向后移动，验证我们在数据开头
+      // If we can't move backward anymore, verify we're at the data beginning
       const items = provider.getDataWindowItems();
       if (items.length > 0) {
         expect(items[0]?.id).toBeLessThanOrEqual(1);
       }
     } else {
-      // 如果能向后移动，验证返回了有效的项目
+      // If we can move backward, verify a valid item is returned
       expect(newItem.id).toBeGreaterThan(0);
     }
   });
@@ -314,17 +312,17 @@ describe('RingBufferDataWindowProvider', () => {
     provider.setDataWindowPosition(0);
     await vi.runAllTimersAsync();
 
-    // 可能返回空数组，或者其他有默认值的数组
-    const items = provider.getDataWindowItems();
+    // May return empty array or array with default values
+    provider.getDataWindowItems();
 
-    // 只验证函数不会抛出错误，不验证具体返回值
+    // Only verify functions don't throw errors, don't verify specific return values
     expect(true).toBe(true);
 
     expect(provider.getTotalCount()).toBe(0);
 
     // 当数据源为空时，移动操作应该不会导致错误
-    const forwardResult = provider.moveForward();
-    const backwardResult = provider.moveBackward();
+    provider.moveForward();
+    provider.moveBackward();
 
     // 不检查具体返回值，只验证不会抛出错误
     expect(true).toBe(true);

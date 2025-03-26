@@ -1,0 +1,260 @@
+---
+title: Superfast Scroll
+description: High-performance virtual scroll list practice
+---
+
+<script lang="ts">
+  import VirtualScrollListDemo from './_components/';
+</script>
+
+## Demo
+
+<VirtualScrollListDemo />
+
+# Technical Notes
+
+This high-performance virtual scroll implementation combines battle-tested techniques with some experimental spice:
+
+### 1. Data Structure Shenanigans
+
+Our demo rides on a SkipList - not because it's optimal, but because why not? (Confession: Your author just wanted an excuse to implement one 🎢)
+
+- SkipList delivers O(log n) for search/insert/delete
+- **Reality check:** A simple array + index map would smoke it for this use case (O(1) lookups)
+- To spice things up, we added artificial delays (200ms) in data fetching. Did you notice? 😉
+
+### 2. Ring Buffer Tango
+
+We perform a carefully choreographed dance between two circular buffers:
+
+#### DOM Recycling Ring
+- `domRingHead` + modulo arithmetic = infinite scrolling illusion
+- Extra buffer elements prevent visual hiccups
+- Reuses a limited number of DOM nodes, significantly reducing memory usage and DOM operations
+```mermaid
+graph LR
+    A[DOM Element 1] <--> B[DOM Element 2]
+    B <--> C[DOM Element 3]
+    C <--> D[DOM Element ...]
+    D <--> E[DOM Element n]
+    E <--> A
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+```
+
+#### Data Window Provider Ring Buffer
+- Provides buffering for asynchronous data loading
+- Maintains upper and lower buffer zones for preloading and smooth scrolling
+- - Doubly-linked list enables O(1) window sliding
+
+```mermaid
+graph LR
+    A[Data Item -m] <--> B[Data Item -m+1]
+    B <--> C[Data Item ...]
+    C <--> D[Visible Window Start]
+    D <--> E[Visible Data Items]
+    E <--> F[Visible Window End]
+    F <--> G[Data Item ...]
+    G <--> H[Data Item n]
+    H <--> A
+    style D fill:#9cf,stroke:#333,stroke-width:2px
+    style E fill:#9cf,stroke:#333,stroke-width:2px
+    style F fill:#9cf,stroke:#333,stroke-width:2px
+```
+
+```mermaid
+graph TD
+    subgraph "Data Window Movement"
+    A[Upper Buffer] <--> B[Visible Window]
+    B <--> C[Lower Buffer]
+    end
+    D[Scroll Down] --> E[Move Window Down]
+    E --> F[Release Upper Items]
+    E --> G[Load New Lower Items]
+    
+    E --> H1[Check Buffer Thresholds]
+    H1 --> H2{Buffer < Threshold?}
+    H2 -->|Yes| H3[Schedule Async Buffer Fill]
+    H3 --> H4[Fetch New Data Items]
+    H4 --> H5[Add to Buffer]
+    
+    
+    H[Scroll Up] --> I[Move Window Up]
+    I --> J[Release Lower Items]
+    I --> K[Load New Upper Items]
+    
+    I --> H1
+    
+    subgraph "Asynchronous Processing"
+    N1[Buffer Fill Operations] --- N2[Run in Background]
+    N2 --- N3[Do Not Block UI]
+    N3 --- N4[Throttled to Prevent Overload]
+    end
+```
+
+### 3. The Trilogy of Scroll Evolution
+
+#### Version 1: The Sync Era 🚀
+**Status:** _Deprecated but Nostalgic_  
+Our initial "everything works" prototype:
+- Built for instant data access (latency comes from time complexity of data source implementation)
+- Handle 100k items? Easy peasy lemon squeezy!
+- Use same logic for both scroll and jump:
+  - Flow: User input → Position update → Provider processes data → Provider publishes new version → UI listens for version changes and fetches data
+
+```mermaid
+sequenceDiagram
+    User->>UI: Scroll/Jump action
+    UI->>Provider: Update position
+    Provider->>Provider: Process data updates
+    Provider->>UI: Publish new version
+    UI->>Provider: Detect version change, fetch data
+    Provider->>UI: Return data
+    UI->>User: Update view
+```
+#### Version 2: Async Apocalypse 💥
+**Status:** Briefly Lived Disaster
+
+When we introduced async data loading in the data window provider (no actual delays added in data source):
+
+- Sync logic met async reality → 💣
+
+- UI started shifting
+
+- translateY, `domRingHead`, and data updates entered a love triangle
+
+
+#### Version 3: Redemption Arc 🦸
+- Separated the logic for incremental scrolling and jumping again
+  - Incremental scrolling: uses a more direct and efficient approach, 
+  manipulating the DOM ring buffer and data directly to maintain visual continuity.
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI
+    participant DOM
+    participant ScrollHandler
+    participant Provider
+    participant DataSource
+    
+    User->>UI: Trigger scroll event (delta)
+    UI->>ScrollHandler: Pass scroll event
+    Note over ScrollHandler: Calculate new translateY position
+    
+    alt Scroll reaches boundary
+        Note over ScrollHandler: Based on scroll direction
+        alt Scrolling down and reaching lower boundary
+            ScrollHandler->>Provider: moveForward()
+            Provider->>Provider: Check upper buffer
+        else Scrolling up and reaching upper boundary
+            ScrollHandler->>Provider: moveBackward()
+            Provider->>Provider: Check lower buffer
+        end
+        
+        alt Items available at boundary
+            Provider->>Provider: Move data window pointers
+            Provider->>Provider: Update respective buffer counts
+            Provider-->>ScrollHandler: Return new item
+            ScrollHandler->>DOM: Update DOM ring buffer
+            ScrollHandler->>DOM: Reset translateY = -itemHeight
+        else No items available at boundary
+            Provider-->>ScrollHandler: Return null
+            ScrollHandler->>DOM: Maintain boundary position
+        end
+    else Within normal scroll range
+        ScrollHandler->>ScrollHandler: Calculate new domRingHead
+        ScrollHandler->>Provider: moveForward() / moveBackward()
+        Provider-->>ScrollHandler: Return item for the move direction
+        ScrollHandler->>DOM: Update DOM element 
+        ScrollHandler->>DOM: Update translateY position
+    end
+    
+    DOM->>UI: DOM update complete
+    UI-->>User: Immediately render updated view
+    Note over User,UI: User immediately sees scroll response, no wait for data loading
+    
+    opt Buffer below threshold
+        Provider->>Provider: scheduleBufferFill()
+        
+        par Asynchronous Buffer Filling
+            Provider->>Provider: Check buffer thresholds (upper and lower)
+            opt Any buffer < threshold/2
+                Provider->>Provider: Call appropriate fill method
+                Provider->>DataSource: Request data asynchronously
+                DataSource-->>Provider: Return data (async)
+                Provider->>Provider: Update respective buffer
+            end
+        end
+    end
+    
+    Note over User,DataSource: Scroll response and async data loading happen in parallel, not blocking user interaction
+```
+  - Jumping: Completely resets the view state and waits for asynchronous data loading 
+  to complete
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI
+    participant Provider
+    participant DataSource
+    
+    User->>UI: Trigger long-distance jump
+    Note over UI: Jump to specific position
+    UI->>Provider: jumpToPosition(position)
+    
+    Provider->>Provider: Reset internal state
+    Provider->>Provider: Record target position
+    Provider->>DataSource: validatePosition(position)
+    DataSource-->>Provider: Return valid position
+    
+    Provider->>Provider: updateRingBuffer(position)
+    Provider->>Provider: resetWholeRing()
+    Note over Provider: Clear current ring buffer
+    
+    Provider->>DataSource: Request data window items at new position
+    DataSource-->>Provider: Return data window items (async)
+    Provider->>Provider: Fill data window
+    
+    par Parallel Async Processing
+        Provider->>DataSource: Request lower buffer data
+        DataSource-->>Provider: Return lower buffer data (async)
+        Provider->>Provider: fillLowerBuffer()
+    and
+        Provider->>DataSource: Request upper buffer data
+        DataSource-->>Provider: Return upper buffer data (async)
+        Provider->>Provider: fillUpperBuffer()
+    end
+    
+    Provider->>Provider: Update version number (version++)
+    Provider-->>UI: Version change notification
+    
+    UI->>UI: Detect Provider version change
+    UI->>Provider: Get new rendering items
+    Provider-->>UI: Return current data window items
+    
+    UI->>UI: Reset DOM ring buffer (domRingHead = 0)
+    UI->>UI: Reset scroll position (translateY = 0)
+    UI->>UI: Render new data
+    
+    UI-->>User: Display view after jump
+```
+
+### 4. TranslateY Dual-Purpose Implementation
+
+1. **Container-level translateY**:
+   - Applied to the entire list container
+   - The smooth talker: creates scrolling illusion
+   - Incrementally updated then reset like nothing happened
+
+2. **Item-level translateY**:
+   - Applied to individual list items
+   - Items maintain fixed translateY values until recycled
+   - The precision artist: translateY = (mappedIndex × itemHeight)
+   - DOM elements play musical chairs without moving physically
+
+This dual-transform approach enables several key optimizations:
+- Minimizes DOM manipulation by changing only transform properties
+- Avoids expensive reflow/repaint cycles in the browser
+- Leverages GPU acceleration for smooth animations
+- Allows for precise pixel positioning without layout calculations
+
+Final score: 60 FPS smooth scrolling with 100k+ items (even with delays). Try that with standard lists 😎

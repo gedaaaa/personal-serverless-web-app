@@ -1,0 +1,116 @@
+---
+title: Svelte + Markdown (.svx) 示例
+description: 展示 .svx 文件中 Svelte 和 Markdown 的混合使用
+date: 2023-04-16
+---
+
+<script>
+  import { onMount } from 'svelte';
+  
+  let count = 0;
+  let mounted = false;
+  
+  function increment() {
+    count += 1;
+  }
+  
+  onMount(() => {
+    mounted = true;
+  });
+</script>
+
+# Svelte + Markdown 混合示例
+
+这是一个 `.svx` 文件，它允许在 Markdown 内容中直接使用 Svelte 组件和语法。
+
+## 交互式组件
+
+下面是一个简单的计数器组件，直接在 Markdown 中使用：
+
+<div class="demo-box">
+  <h3>交互式 Svelte 组件</h3>
+  <p>当前计数: <strong>{count}</strong></p>
+  <button on:click={increment}>增加计数</button>
+  <p>组件状态: {mounted ? '已挂载' : '未挂载'}</p>
+</div>
+
+## Svelte 条件渲染
+
+我们可以在 Markdown 中使用 Svelte 的条件渲染：
+
+{#if count > 5}
+  <p class="message success">计数大于 5!</p>
+{:else}
+  <p class="message info">继续点击按钮，直到计数大于 5</p>
+{/if}
+
+## Svelte 循环渲染
+
+我们也可以使用循环渲染：
+
+<ul>
+  {#each Array(count) as _, i}
+    <li>项目 {i + 1}</li>
+  {/each}
+</ul>
+
+## 混合内容
+
+下面是普通的 Markdown 内容：
+
+- 这是列表项 1
+- 这是列表项 2
+
+> 这是一个引用块
+
+但我们可以轻松切换到 Svelte 内容：
+
+<style>
+  .demo-box {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 1rem 0;
+    background-color: #f8f9fa;
+  }
+  
+  button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  button:hover {
+    background-color: #45a049;
+  }
+  
+  .message {
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+  }
+  
+  .success {
+    background-color: #dff0d8;
+    color: #3c763d;
+    border: 1px solid #d6e9c6;
+  }
+  
+  .info {
+    background-color: #d9edf7;
+    color: #31708f;
+    border: 1px solid #bce8f1;
+  }
+</style>
+
+## 总结
+
+`.svx` 文件格式允许你无缝混合 Markdown 和 Svelte，为内容创作提供了强大的灵活性。 

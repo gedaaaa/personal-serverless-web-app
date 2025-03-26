@@ -41,6 +41,7 @@
     "husky": "^9.1.7",
     "jsdom": "^26.0.0",
     "jwt-decode": "^4.0.0",
+    "mdsvex": "^0.12.3",
     "nx": "20.4.0",
     "prettier": "^3.4.2",
     "prettier-plugin-svelte": "^3.3.3",
@@ -56,6 +57,7 @@
     "vitest": "^3.0.0"
   },
   "dependencies": {
+    "mermaid": "^11.6.0",
     "sst": "3.7.1",
     "svelte-kit-sst": "2.43.5"
   }

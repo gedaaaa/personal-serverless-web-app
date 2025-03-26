@@ -1,5 +1,4 @@
 <script>
-  import { writable } from 'svelte/store';
   import { onMount } from 'svelte';
   // You can access frontmatter metadata if available
   let { date, title, description } = $props();

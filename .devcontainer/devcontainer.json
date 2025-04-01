@@ -1,5 +1,5 @@
 {
-  "name": "Personal Todo List Webapp",
+  "name": "Personal Serverless Web App",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",

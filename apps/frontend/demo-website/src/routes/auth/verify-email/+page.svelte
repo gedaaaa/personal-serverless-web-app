@@ -1,11 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import { goto } from '$app/navigation';
   import { AuthService } from '$lib/services/auth-service';
+  import { goto } from '$app/navigation';
+
+  type Status = 'idle' | 'verifying' | 'success' | 'error';
 
   // 状态定义
-  let status = $state('idle'); // idle, verifying, success, error
+  let status = $state<Status>('idle');
   let message = $state<string | null>(null);
   let email = $state<string | null>(null);
   let lastResendTime = $state<number | null>(null);
@@ -78,7 +80,7 @@
       lastResendTime = Date.now();
     } catch (error) {
       status = 'error';
-      message = error.message || '发送失败，请稍后重试';
+      message = error instanceof Error ? error.message : '发送失败，请稍后重试';
     }
   }
 </script>
@@ -146,9 +148,9 @@
               class="flex-1 rounded-l-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-purple-500"
             />
             <button
-              on:click={handleResend}
+              onclick={handleResend}
               class="rounded-r-md bg-purple-600 px-4 py-2 text-white hover:bg-purple-700 disabled:bg-gray-400"
-              disabled={!canResend || status === 'verifying'}
+              disabled={!canResend}
             >
               {canResend ? '重新发送' : `重新发送 (${remainingTime}s)`}
             </button>

@@ -106,7 +106,7 @@
       {/if}
 
       <button
-        on:click={handleResend}
+        onclick={handleResend}
         disabled={!canResend || status === 'sending' || !email}
         class="mb-4 rounded-md bg-purple-600 px-6 py-2 text-white hover:bg-purple-700 disabled:bg-gray-400"
       >

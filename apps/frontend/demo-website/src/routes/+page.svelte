@@ -62,9 +62,11 @@
           fullName: fullName || undefined,
         });
 
-        // After registration, switch to login form
-        isLogin = true;
-        error = null;
+        // 将邮箱存储到 localStorage
+        localStorage.setItem('pending_verification_email', email);
+
+        // 注册成功后，重定向到注册成功页面
+        goto('/auth/register-success');
       }
     } catch (err) {
       console.error('Auth error:', err);

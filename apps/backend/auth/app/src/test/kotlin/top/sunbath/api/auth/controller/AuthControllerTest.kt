@@ -14,11 +14,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import top.sunbath.api.auth.controller.request.CreateUserRequest
 import top.sunbath.api.auth.controller.request.LoginRequest
+import top.sunbath.api.auth.controller.response.RegisterResponse
 import top.sunbath.api.auth.service.AuthService
 import java.util.UUID
 
 /**
- * Unit tests for the AuthController.
+ * Tests for AuthController.
  */
 @ExtendWith(MockKExtension::class)
 class AuthControllerTest {
@@ -39,7 +40,7 @@ class AuthControllerTest {
     @Test
     fun `test successful registration`() {
         // Given
-        val username = uniqueUsername("testuser")
+        val username = uniqueUsername("registeruser")
         val request =
             CreateUserRequest(
                 username = username,
@@ -48,8 +49,9 @@ class AuthControllerTest {
                 fullName = "Test User",
             )
         val userId = UUID.randomUUID().toString()
+        val expectedResponse = RegisterResponse(userId, "User registered successfully")
 
-        every { authService.register(request) } returns userId
+        every { authService.register(request) } returns expectedResponse
 
         // When
         val response = controller.register(request)
@@ -58,7 +60,8 @@ class AuthControllerTest {
         assertEquals(HttpStatus.CREATED, response.status)
         val body = response.body()
         assertNotNull(body)
-        assertEquals(userId, body["id"])
+        assertEquals(expectedResponse.userId, body.userId)
+        assertEquals(expectedResponse.message, body.message)
 
         verify(exactly = 1) { authService.register(request) }
     }

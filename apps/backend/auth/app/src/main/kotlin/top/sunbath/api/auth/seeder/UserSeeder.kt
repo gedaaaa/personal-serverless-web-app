@@ -38,6 +38,10 @@ class UserSeeder(
                     password = adminPassword,
                     roles = setOf("ROLE_USER", "ROLE_ADMIN"),
                     fullName = "系统管理员",
+                    emailVerified = true,
+                    emailVerificationToken = null,
+                    emailVerificationTokenExpiresAt = null,
+                    lastVerificationEmailSentAt = null,
                 )
             logger.info("创建管理员用户成功，ID: $adminId")
         } else {
@@ -58,6 +62,10 @@ class UserSeeder(
                         password = password,
                         roles = setOf("ROLE_USER"),
                         fullName = "测试用户 ${index + 1}",
+                        emailVerified = true,
+                        emailVerificationToken = null,
+                        emailVerificationTokenExpiresAt = null,
+                        lastVerificationEmailSentAt = null,
                     )
                 logger.info("创建普通用户 $username 成功，ID: $userId")
             } else {

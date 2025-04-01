@@ -23,3 +23,8 @@ aws:
   region: us-east-1
   access-key-id: fakeMyKeyId
   secret-access-key: fakeSecretAccessKey
+
+# Resend configuration for development
+resend:
+  enabled: true
+  api-key: ${RESEND_DEV_API_KEY}

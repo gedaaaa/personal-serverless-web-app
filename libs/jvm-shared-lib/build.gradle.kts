@@ -30,4 +30,7 @@ group = "top.sunbath.shared"
 repositories {
     mavenCentral()
 }
-dependencies {}
+dependencies {
+    // Add Micronaut Serde dependency
+    implementation("io.micronaut.serde:micronaut-serde-api:2.7.1")
+}

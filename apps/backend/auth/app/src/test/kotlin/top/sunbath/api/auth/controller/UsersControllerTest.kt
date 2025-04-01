@@ -66,7 +66,19 @@ class UsersControllerTest {
     fun `test get user by ID when user exists`() {
         // Given
         val userId = "user123"
-        val user = User(userId, "testuser", "test@example.com", "hashedPassword")
+        val user =
+            User(
+                id = userId,
+                username = "testuser",
+                email = "test@example.com",
+                password = "hashedpassword",
+                roles = setOf("ROLE_USER"),
+                fullName = "Test User",
+                emailVerified = false,
+                emailVerificationToken = null,
+                emailVerificationTokenExpiresAt = null,
+                lastVerificationEmailSentAt = null,
+            )
 
         every { userRepository.findById(userId) } returns user
 
@@ -110,11 +122,15 @@ class UsersControllerTest {
 
         every {
             userRepository.save(
-                request.username,
-                request.email,
-                request.password,
-                setOf("ROLE_USER"),
-                request.fullName,
+                username = request.username,
+                email = request.email,
+                password = request.password,
+                roles = setOf("ROLE_USER"),
+                fullName = request.fullName,
+                emailVerified = false,
+                emailVerificationToken = null,
+                emailVerificationTokenExpiresAt = null,
+                lastVerificationEmailSentAt = null,
             )
         } returns userId
 
@@ -129,11 +145,15 @@ class UsersControllerTest {
 
         verify(exactly = 1) {
             userRepository.save(
-                request.username,
-                request.email,
-                request.password,
-                setOf("ROLE_USER"),
-                request.fullName,
+                username = request.username,
+                email = request.email,
+                password = request.password,
+                roles = setOf("ROLE_USER"),
+                fullName = request.fullName,
+                emailVerified = false,
+                emailVerificationToken = null,
+                emailVerificationTokenExpiresAt = null,
+                lastVerificationEmailSentAt = null,
             )
         }
     }
@@ -147,17 +167,38 @@ class UsersControllerTest {
                 email = "updated@example.com",
                 password = null,
                 fullName = "Updated User",
-                roles = setOf("ROLE_USER", "ROLE_MANAGER"),
+                roles = setOf("ROLE_USER"),
             )
+
+        val existingUser =
+            User(
+                id = userId,
+                username = "testuser",
+                email = "test@example.com",
+                password = "hashedpassword",
+                roles = setOf("ROLE_USER"),
+                fullName = "Test User",
+                emailVerified = false,
+                emailVerificationToken = null,
+                emailVerificationTokenExpiresAt = null,
+                lastVerificationEmailSentAt = null,
+            )
+
         val updatedUser =
             User(
                 id = userId,
-                username = "existinguser",
+                username = "testuser",
                 email = request.email!!,
                 password = "hashedpassword",
                 roles = request.roles!!,
                 fullName = request.fullName,
+                emailVerified = false,
+                emailVerificationToken = null,
+                emailVerificationTokenExpiresAt = null,
+                lastVerificationEmailSentAt = null,
             )
+
+        every { userRepository.findById(userId) } returns existingUser andThen updatedUser
 
         every {
             userRepository.update(
@@ -166,10 +207,12 @@ class UsersControllerTest {
                 request.password,
                 request.roles,
                 request.fullName,
+                existingUser.emailVerified,
+                existingUser.emailVerificationToken,
+                existingUser.emailVerificationTokenExpiresAt,
+                existingUser.lastVerificationEmailSentAt,
             )
         } returns true
-
-        every { userRepository.findById(userId) } returns updatedUser
 
         // When
         val response = controller.update(userId, request)
@@ -178,6 +221,7 @@ class UsersControllerTest {
         assertEquals(HttpStatus.OK, response.status)
         assertEquals(updatedUser, response.body())
 
+        verify(exactly = 2) { userRepository.findById(userId) }
         verify(exactly = 1) {
             userRepository.update(
                 userId,
@@ -185,9 +229,12 @@ class UsersControllerTest {
                 request.password,
                 request.roles,
                 request.fullName,
+                existingUser.emailVerified,
+                existingUser.emailVerificationToken,
+                existingUser.emailVerificationTokenExpiresAt,
+                existingUser.lastVerificationEmailSentAt,
             )
         }
-        verify(exactly = 1) { userRepository.findById(userId) }
     }
 
     @Test
@@ -202,15 +249,7 @@ class UsersControllerTest {
                 roles = setOf("ROLE_USER"),
             )
 
-        every {
-            userRepository.update(
-                userId,
-                request.email,
-                request.password,
-                request.roles,
-                request.fullName,
-            )
-        } returns false
+        every { userRepository.findById(userId) } returns null
 
         // When
         val response = controller.update(userId, request)
@@ -218,16 +257,20 @@ class UsersControllerTest {
         // Then
         assertEquals(HttpStatus.NOT_FOUND, response.status)
 
-        verify(exactly = 1) {
+        verify(exactly = 1) { userRepository.findById(userId) }
+        verify(exactly = 0) {
             userRepository.update(
-                userId,
-                request.email,
-                request.password,
-                request.roles,
-                request.fullName,
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
             )
         }
-        verify(exactly = 0) { userRepository.findById(userId) }
     }
 
     @Test
@@ -242,6 +285,22 @@ class UsersControllerTest {
                 roles = setOf("ROLE_USER"),
             )
 
+        val existingUser =
+            User(
+                id = userId,
+                username = "testuser",
+                email = "test@example.com",
+                password = "hashedpassword",
+                roles = setOf("ROLE_USER"),
+                fullName = "Test User",
+                emailVerified = false,
+                emailVerificationToken = null,
+                emailVerificationTokenExpiresAt = null,
+                lastVerificationEmailSentAt = null,
+            )
+
+        every { userRepository.findById(userId) } returns existingUser andThen null
+
         every {
             userRepository.update(
                 userId,
@@ -249,10 +308,12 @@ class UsersControllerTest {
                 request.password,
                 request.roles,
                 request.fullName,
+                existingUser.emailVerified,
+                existingUser.emailVerificationToken,
+                existingUser.emailVerificationTokenExpiresAt,
+                existingUser.lastVerificationEmailSentAt,
             )
         } returns true
-
-        every { userRepository.findById(userId) } returns null
 
         // When
         val response = controller.update(userId, request)
@@ -260,6 +321,7 @@ class UsersControllerTest {
         // Then
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.status)
 
+        verify(exactly = 2) { userRepository.findById(userId) }
         verify(exactly = 1) {
             userRepository.update(
                 userId,
@@ -267,9 +329,12 @@ class UsersControllerTest {
                 request.password,
                 request.roles,
                 request.fullName,
+                existingUser.emailVerified,
+                existingUser.emailVerificationToken,
+                existingUser.emailVerificationTokenExpiresAt,
+                existingUser.lastVerificationEmailSentAt,
             )
         }
-        verify(exactly = 1) { userRepository.findById(userId) }
     }
 
     @Test

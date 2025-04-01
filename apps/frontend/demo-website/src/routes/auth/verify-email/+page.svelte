@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { AuthService } from '$lib/services/auth-service';
-  import { goto } from '$app/navigation';
 
   type Status = 'idle' | 'verifying' | 'success' | 'error';
 

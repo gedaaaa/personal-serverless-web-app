@@ -16,7 +16,7 @@ export default defineConfig({
       $lib: resolve(__dirname, './src/lib'),
       '$app/navigation': resolve(__dirname, './src/mocks/app/navigation.ts'),
       '$app/environment': resolve(__dirname, './src/mocks/app/environment.ts'),
-      '$app/stores': resolve(__dirname, './src/mocks/app/stores.ts'),
+      '$app/state': resolve(__dirname, './src/mocks/app/state.ts'),
     },
   },
 });

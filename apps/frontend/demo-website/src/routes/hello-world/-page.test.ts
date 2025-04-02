@@ -47,7 +47,7 @@ describe('Hello World Page', () => {
   });
 
   it('should render welcome message with username', () => {
-    render(Page);
+    render(Page as any);
 
     // Check for welcome message with username - using more specific selectors
     const welcomeParagraph = screen.getByText(/Welcome,/);
@@ -56,7 +56,7 @@ describe('Hello World Page', () => {
   });
 
   it('should show initial state with prompt to say hello', () => {
-    render(Page);
+    render(Page as any);
 
     // Check for initial prompt
     expect(screen.getByText('Do you want to say hello?')).toBeTruthy();
@@ -67,7 +67,7 @@ describe('Hello World Page', () => {
     // Setup successful API response
     mockApiClient.get.mockResolvedValue({ message: 'Hello from server!' });
 
-    render(Page);
+    render(Page as any);
 
     // Click the Say Hello button
     const sayHelloButton = screen.getByRole('button', { name: 'Say Hello' });
@@ -90,7 +90,7 @@ describe('Hello World Page', () => {
     // Setup failed API response
     mockApiClient.get.mockRejectedValue(new Error('API error'));
 
-    render(Page);
+    render(Page as any);
 
     // Click the Say Hello button
     const sayHelloButton = screen.getByRole('button', { name: 'Say Hello' });
@@ -109,7 +109,7 @@ describe('Hello World Page', () => {
   });
 
   it('should call logout function when logout button is clicked', async () => {
-    render(Page);
+    render(Page as any);
 
     // Click the logout button
     const logoutButton = screen.getByRole('button', { name: 'Logout' });

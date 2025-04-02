@@ -50,4 +50,4 @@ resend:
 # Cache configuration
 cache:
   ssm-parameters:
-    expire-after-write: '5m'
+    expire-after-write: '60m'

@@ -19,7 +19,7 @@ class ResendConfiguration {
     var apiKeyParameter: String? = null
 
     @NonNull
-    var fromEmail: String = "noreply@sunbath.top"
+    var fromEmail: String = "noreply@email.sunbath.top"
 
     @NonNull
     var fromName: String = "Sunbath Auth"

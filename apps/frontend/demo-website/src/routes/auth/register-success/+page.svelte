@@ -3,7 +3,7 @@
   import { goto } from '$app/navigation';
   import { AuthService } from '$lib/services/auth-service';
 
-  // 状态定义
+  // State definitions
   let email = $state<string | null>(null);
   let status = $state('idle'); // idle, sending, success, error
   let message = $state<string | null>(null);
@@ -12,12 +12,12 @@
 
   const authService = new AuthService();
 
-  // 计算是否可以重发
+  // Calculate if can resend
   let canResend = $derived(
     !lastResendTime || Date.now() - lastResendTime > resendCooldown * 1000,
   );
 
-  // 剩余时间
+  // Remaining time
   let remainingTime = $derived(
     lastResendTime
       ? Math.max(
@@ -28,17 +28,17 @@
   );
 
   onMount(() => {
-    // 从 localStorage 获取邮箱（通常在注册时保存）
+    // Get email from localStorage (usually saved during registration)
     const storedEmail = localStorage.getItem('pending_verification_email');
 
     if (storedEmail) {
       email = storedEmail;
     } else {
-      // 如果没有找到邮箱，重定向到首页
+      // If no email found, redirect to homepage
       goto('/');
     }
 
-    // 启动计时器更新剩余时间
+    // Start timer to update remaining time
     const timer = setInterval(() => {
       if (
         lastResendTime &&
@@ -62,14 +62,17 @@
       lastResendTime = Date.now();
     } catch (error) {
       status = 'error';
-      message = error instanceof Error ? error.message : '发送失败，请稍后重试';
+      message =
+        error instanceof Error
+          ? error.message
+          : 'Send failed, please try again later';
     }
   }
 </script>
 
 <div class="container mx-auto max-w-md px-4 py-12">
   <div class="rounded-lg bg-white p-6 shadow-md">
-    <h1 class="mb-6 text-center text-2xl font-bold">注册成功</h1>
+    <h1 class="mb-6 text-center text-2xl font-bold">Registration Successful</h1>
 
     <div class="py-4 text-center">
       <svg
@@ -86,15 +89,20 @@
         ></path>
       </svg>
 
-      <h2 class="mb-4 text-xl font-semibold">账号已创建</h2>
+      <h2 class="mb-4 text-xl font-semibold">Account Created</h2>
 
       {#if email}
         <p class="mb-2">
-          我们已向 <strong>{email}</strong> 发送了一封验证邮件。
+          We have sent a verification email to <strong>{email}</strong>.
         </p>
-        <p class="mb-6">请检查您的邮箱并点击验证链接完成注册。</p>
+        <p class="mb-6">
+          Please check your email and click the verification link to complete
+          registration.
+        </p>
       {:else}
-        <p class="mb-6">我们已向您的邮箱发送了一封验证邮件。</p>
+        <p class="mb-6">
+          We have sent a verification email to your email address.
+        </p>
       {/if}
 
       {#if message}
@@ -111,16 +119,18 @@
         class="mb-4 rounded-md bg-purple-600 px-6 py-2 text-white hover:bg-purple-700 disabled:bg-gray-400"
       >
         {#if status === 'sending'}
-          发送中...
+          Sending...
         {:else if !canResend}
-          重新发送 ({remainingTime}s)
+          Resend ({remainingTime}s)
         {:else}
-          重新发送验证邮件
+          Resend Verification Email
         {/if}
       </button>
 
       <div class="mt-6 border-t border-gray-200 pt-6">
-        <a href="/" class="text-purple-600 hover:text-purple-800"> 返回登录 </a>
+        <a href="/" class="text-purple-600 hover:text-purple-800">
+          Back to Login
+        </a>
       </div>
     </div>
   </div>

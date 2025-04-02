@@ -4,14 +4,14 @@ micronaut:
     name: auth
   server:
     port: 8080
-    # 设置开发环境的上下文路径
-    # 因为 sam 只模拟 API Gateway v1，并将映射的基本路径传递给 Lambda
-    # 生产环境使用 API Gateway v2，HTTP API ($default) Lambda 集成，API 映射
-    # 这不会将映射的路径键传递给 Lambda
+    # Set development environment context path
+    # Because sam only simulates API Gateway v1 and passes the mapped base path to Lambda
+    # Production environment uses API Gateway v2, HTTP API ($default) Lambda integration, API mapping
+    # This does not pass the mapped path key to Lambda
     context-path: auth
 
-# 为了在本地开发环境中使用 DynamoDB，我们需要配置 DynamoDB 的端点
-# 以及 AWS 认证信息
+# To use DynamoDB in local development environment, we need to configure DynamoDB endpoint
+# and AWS authentication information
 dynamodb-local:
   host: localhost
   port: 8000
@@ -24,7 +24,6 @@ aws:
   access-key-id: fakeMyKeyId
   secret-access-key: fakeSecretAccessKey
 
-# Resend configuration for development
+# Resend configuration for development, use DoNothingEmailService
 resend:
-  enabled: true
-  api-key: ${RESEND_DEV_API_KEY}
+  enabled: false

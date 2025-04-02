@@ -6,7 +6,7 @@
   import EditModal from './internal/EditModal.svelte';
   import DeleteModal from './internal/DeleteModal.svelte';
 
-  // 组件属性
+  // Component props
   const { user, isLoading, onUpdate, onDelete } = $props<{
     user: User;
     isLoading: boolean;

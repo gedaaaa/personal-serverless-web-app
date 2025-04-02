@@ -12,15 +12,15 @@ This is a backend authentication service built with Kotlin and Micronaut.
 To run the service locally in development environment:
 
 ```bash
-# 使用NX在开发环境中运行
+# Run in development environment using NX
 pnpm nx run auth-service:dev
 
-# 或者使用SAM本地API网关
+# Or use SAM local API gateway
 cd /workspace
 ./local-env/scripts/start-local.sh
 ```
 
-在使用SAM本地API网关时，服务将在 `http://localhost:3000/auth/health` 上可用。
+When using SAM local API gateway, the service will be available at `http://localhost:3000/auth/health`.
 
 ## Environment Configuration
 
@@ -30,19 +30,20 @@ The service supports different environment configurations:
 - **Development**: Development-specific settings in `application-development.yml`
 - **Production**: Production-specific settings in `application-production.yml`
 
-环境配置通过以下方式设置：
-- 本地开发：通过SAM模板中的环境变量设置为 `development`
-- 生产环境：通过CDK配置中的环境变量设置为 `production`
+Environment configuration is set through:
+
+- Local development: Set to `development` via environment variables in SAM template
+- Production: Set to `production` via environment variables in CDK configuration
 
 ## Testing
 
 To run tests:
 
 ```bash
-# 使用Gradle
+# Using Gradle
 ./gradlew :apps:backend:auth:app:test
 
-# 或使用NX
+# Or using NX
 pnpm nx run auth-service:test
 ```
 
@@ -58,7 +59,7 @@ pnpm nx run auth-service:deploy
 
 ### Health Check
 
-- **URL**: `/health` (生产环境) 或 `/auth/health` (开发环境)
+- **URL**: `/health`, But we will have `/auth` prefix for this microservice when in production or in SAM API gateway.
 - **Method**: `GET`
 - **Response Example**:
   ```json
@@ -69,37 +70,32 @@ pnpm nx run auth-service:deploy
   }
   ```
 
-## 部署
+## Deployment
 
-### 使用 CDK 部署到 AWS
+### Deploy to AWS using CDK
 
-Auth 服务使用 AWS CDK 进行部署。CDK 配置文件位于 `infra` 目录中。
+The Auth service uses AWS CDK for deployment. CDK configuration files are located in the `infra` directory.
 
-部署步骤：
+Deployment steps:
 
-1. 构建应用程序 JAR 文件：
+1. Build application JAR file:
 
 ```bash
 nx run backend-auth:build
 ```
 
-2. 编译 CDK 代码：
+2. Compile CDK code:
 
 ```bash
 cd apps/backend/auth/infra
 ./gradlew compileKotlin
 ```
 
-3. 部署到 AWS：
+3. Deploy to AWS:
 
 ```bash
 cd apps/backend/auth/infra
 cdk deploy
 ```
 
-部署完成后，CDK 将输出 API 网关的 URL。
-
-### 环境配置
-
-- **开发环境**：本地开发时，通过 SAM 模板设置 `MICRONAUT_ENVIRONMENTS=development`
-- **生产环境**：部署到 AWS 时，通过 CDK 设置 `MICRONAUT_ENVIRONMENTS=production` 
+After deployment, CDK will output the API Gateway URL.

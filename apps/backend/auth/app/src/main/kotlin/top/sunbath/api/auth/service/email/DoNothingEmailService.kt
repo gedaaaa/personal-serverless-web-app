@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory
  */
 @Singleton
 @Requires(env = ["dev"])
-class DevEmailService : EmailService {
-    private val logger = LoggerFactory.getLogger(DevEmailService::class.java)
+class DoNothhingEmailService : EmailService {
+    private val logger = LoggerFactory.getLogger(DoNothhingEmailService::class.java)
 
     override fun sendVerificationEmail(
         to: String,

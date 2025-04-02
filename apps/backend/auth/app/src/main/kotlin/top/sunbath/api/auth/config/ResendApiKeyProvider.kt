@@ -2,8 +2,7 @@ package top.sunbath.api.auth.config
 
 import io.micronaut.context.env.Environment
 import jakarta.inject.Singleton
-import software.amazon.awssdk.services.ssm.SsmClient
-import software.amazon.awssdk.services.ssm.model.GetParameterRequest
+import top.sunbath.api.auth.config.aws.SsmParameterProvider
 
 /**
  * Provider for Resend API key, handling different environments.
@@ -12,7 +11,7 @@ import software.amazon.awssdk.services.ssm.model.GetParameterRequest
 class ResendApiKeyProvider(
     private val resendConfiguration: ResendConfiguration,
     private val environment: Environment,
-    private val ssmClient: SsmClient,
+    private val ssmParameterProvider: SsmParameterProvider,
 ) {
     /**
      * Get the Resend API key based on the current environment.
@@ -22,23 +21,11 @@ class ResendApiKeyProvider(
      * @return The Resend API key
      * @throws IllegalStateException if the API key is not properly configured
      */
-    fun getApiKey(): String =
-        if (environment.activeNames.contains("dev")) {
-            resendConfiguration.apiKey
-                ?: throw IllegalStateException("Resend API key not configured for development environment")
-        } else {
-            val parameterName =
-                resendConfiguration.apiKeyParameter
-                    ?: throw IllegalStateException("Resend API key parameter not configured for production environment")
+    fun getApiKey(): String {
+        val parameterName =
+            resendConfiguration.apiKeyParameter
+                ?: throw IllegalStateException("Resend API key parameter not configured for production environment")
 
-            ssmClient
-                .getParameter(
-                    GetParameterRequest
-                        .builder()
-                        .name(parameterName)
-                        .withDecryption(true)
-                        .build(),
-                ).parameter()
-                .value()
-        }
+        return ssmParameterProvider.getParameter(parameterName)
+    }
 }

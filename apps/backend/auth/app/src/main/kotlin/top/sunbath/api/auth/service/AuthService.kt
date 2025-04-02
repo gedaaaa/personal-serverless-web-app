@@ -4,6 +4,7 @@ import at.favre.lib.crypto.bcrypt.BCrypt
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.exceptions.HttpStatusException
 import jakarta.inject.Singleton
+import org.slf4j.LoggerFactory
 import top.sunbath.api.auth.controller.request.CreateUserRequest
 import top.sunbath.api.auth.controller.request.LoginRequest
 import top.sunbath.api.auth.controller.response.RegisterResponse
@@ -22,6 +23,8 @@ class AuthService(
     private val jwtService: JwtService,
     private val emailService: EmailService,
 ) {
+    private val logger = LoggerFactory.getLogger(AuthService::class.java)
+
     companion object {
         private val BCRYPT_VERSION = BCrypt.Version.VERSION_2A
         private const val BCRYPT_COST = 12
@@ -78,8 +81,7 @@ class AuthService(
             )
         } catch (e: Exception) {
             // Log error but don't fail registration
-            // TODO: Add proper logging
-            e.printStackTrace()
+            logger.error("Failed to send verification email", e)
         }
 
         return RegisterResponse(
@@ -235,8 +237,7 @@ class AuthService(
             )
         } catch (e: Exception) {
             // Log error but don't fail the operation
-            // TODO: Add proper logging
-            e.printStackTrace()
+            logger.error("Failed to send verification email", e)
             throw HttpStatusException(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Failed to send verification email. Please try again later.",

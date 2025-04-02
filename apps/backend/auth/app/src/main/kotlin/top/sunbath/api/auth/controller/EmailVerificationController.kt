@@ -4,6 +4,8 @@ import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Body
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Post
+import io.micronaut.security.annotation.Secured
+import io.micronaut.security.rules.SecurityRule
 import io.micronaut.validation.Validated
 import jakarta.validation.Valid
 import top.sunbath.api.auth.controller.request.ResendVerificationEmailRequest
@@ -16,6 +18,7 @@ import top.sunbath.api.auth.service.AuthService
  */
 @Validated
 @Controller("/email-verification")
+@Secured(SecurityRule.IS_ANONYMOUS)
 class EmailVerificationController(
     private val authService: AuthService,
 ) {

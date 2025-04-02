@@ -1,5 +1,6 @@
 package top.sunbath.api.auth.service.email
 
+import java.net.URLEncoder
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -28,7 +29,8 @@ object EmailTemplate {
         expiresAt: Instant,
     ): Pair<String, String> {
         val subject = "Verify your email address"
-        val verificationLink = "https://sunbath.top/verify-email/$verificationToken"
+        val escapedToken = URLEncoder.encode(verificationToken, "UTF-8")
+        val verificationLink = "https://sunbath.top/auth/verify-email?token=$escapedToken"
         val expiresAtFormatted = dateFormatter.format(expiresAt)
 
         val html =

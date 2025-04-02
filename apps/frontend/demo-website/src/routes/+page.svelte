@@ -62,10 +62,10 @@
           fullName: fullName || undefined,
         });
 
-        // 将邮箱存储到 localStorage
+        // Store email in localStorage
         localStorage.setItem('pending_verification_email', email);
 
-        // 注册成功后，重定向到注册成功页面
+        // After successful registration, redirect to registration success page
         goto('/auth/register-success');
       }
     } catch (err) {

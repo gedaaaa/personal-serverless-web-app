@@ -48,11 +48,13 @@ dependencies {
     implementation("io.micronaut.security:micronaut-security-jwt")
     implementation("io.micronaut.security:micronaut-security")
     implementation("at.favre.lib:bcrypt:0.10.2")
+    implementation("com.resend:resend-java:3.1.0")
 
     implementation("io.micronaut.aws:micronaut-aws-apigateway")
     implementation("io.micronaut.aws:micronaut-aws-lambda-events-serde")
     implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
     implementation("software.amazon.awssdk:dynamodb")
+    implementation("software.amazon.awssdk:ssm")
 
     implementation("io.micronaut.crac:micronaut-crac")
 
@@ -81,6 +83,8 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.10")
 
     testImplementation("io.micronaut.testresources:micronaut-test-resources-testcontainers:2.7.3")
+
+    implementation("io.micronaut.cache:micronaut-cache-caffeine")
 }
 
 application {

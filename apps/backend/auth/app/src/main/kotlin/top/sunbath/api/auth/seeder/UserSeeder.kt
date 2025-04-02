@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import top.sunbath.api.auth.repository.UserRepository
 
 /**
- * 用户数据初始化器，仅在开发环境中运行
+ * User data initializer, only runs in development environment
  */
 @Singleton
 @Requires(env = [Environment.DEVELOPMENT])
@@ -24,54 +24,62 @@ class UserSeeder(
     }
 
     override fun onApplicationEvent(event: StartupEvent) {
-        logger.info("开始初始化用户数据...")
+        logger.info("Starting user data initialization...")
 
-        // 检查是否已存在管理员用户
+        // Check if admin user exists
         val adminUser = userRepository.findByUsername("admin")
         if (adminUser == null) {
-            // 创建管理员用户
-            val adminPassword = hashPassword("Admin123") // 实际环境中应使用更强的密码
+            // Create admin user
+            val adminPassword = hashPassword("Admin123") // Should use stronger password in production
             val adminId =
                 userRepository.save(
                     username = "admin",
                     email = "admin@example.com",
                     password = adminPassword,
                     roles = setOf("ROLE_USER", "ROLE_ADMIN"),
-                    fullName = "系统管理员",
+                    fullName = "System Administrator",
+                    emailVerified = true,
+                    emailVerificationToken = null,
+                    emailVerificationTokenExpiresAt = null,
+                    lastVerificationEmailSentAt = null,
                 )
-            logger.info("创建管理员用户成功，ID: $adminId")
+            logger.info("Admin user created successfully, ID: $adminId")
         } else {
-            logger.info("管理员用户已存在，跳过创建")
+            logger.info("Admin user already exists, skipping creation")
         }
 
-        // 创建普通用户
+        // Create regular users
         val regularUsernames = listOf("user1", "user2", "user3", "user4", "user5")
 
         regularUsernames.forEachIndexed { index, username ->
             val user = userRepository.findByUsername(username)
             if (user == null) {
-                val password = hashPassword("User123${index + 1}") // 实际环境中应使用更强的密码
+                val password = hashPassword("User123${index + 1}") // Should use stronger password in production
                 val userId =
                     userRepository.save(
                         username = username,
                         email = "$username@example.com",
                         password = password,
                         roles = setOf("ROLE_USER"),
-                        fullName = "测试用户 ${index + 1}",
+                        fullName = "Test User ${index + 1}",
+                        emailVerified = true,
+                        emailVerificationToken = null,
+                        emailVerificationTokenExpiresAt = null,
+                        lastVerificationEmailSentAt = null,
                     )
-                logger.info("创建普通用户 $username 成功，ID: $userId")
+                logger.info("Regular user $username created successfully, ID: $userId")
             } else {
-                logger.info("用户 $username 已存在，跳过创建")
+                logger.info("User $username already exists, skipping creation")
             }
         }
 
-        logger.info("用户数据初始化完成")
+        logger.info("User data initialization completed")
     }
 
     /**
-     * 使用 BCrypt 对密码进行加密
-     * @param password 明文密码
-     * @return 加密后的密码
+     * Hash password using BCrypt
+     * @param password Plain text password
+     * @return Hashed password
      */
     private fun hashPassword(password: String): String = BCrypt.withDefaults().hashToString(BCRYPT_COST, password.toCharArray())
 }

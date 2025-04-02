@@ -79,11 +79,15 @@ class UsersController(
     ): HttpResponse<Void> {
         val id =
             userRepository.save(
-                request.username,
-                request.email,
-                request.password,
-                setOf("ROLE_USER"),
-                request.fullName,
+                username = request.username,
+                email = request.email,
+                password = request.password,
+                roles = setOf("ROLE_USER"),
+                fullName = request.fullName,
+                emailVerified = false,
+                emailVerificationToken = null,
+                emailVerificationTokenExpiresAt = null,
+                lastVerificationEmailSentAt = null,
             )
         val uri: URI =
             UriBuilder
@@ -117,6 +121,8 @@ class UsersController(
         @PathVariable id: String,
         @Body @Valid request: UpdateUserRequest,
     ): HttpResponse<User> {
+        val user = userRepository.findById(id) ?: return HttpResponse.notFound()
+
         val updated =
             userRepository.update(
                 id,
@@ -124,12 +130,16 @@ class UsersController(
                 request.password,
                 request.roles,
                 request.fullName,
+                user.emailVerified,
+                user.emailVerificationToken,
+                user.emailVerificationTokenExpiresAt,
+                user.lastVerificationEmailSentAt,
             )
 
         return if (updated) {
-            val user = userRepository.findById(id)
-            if (user != null) {
-                HttpResponse.ok(user)
+            val updatedUser = userRepository.findById(id)
+            if (updatedUser != null) {
+                HttpResponse.ok(updatedUser)
             } else {
                 // This should never happen as we just updated the user
                 HttpResponse.serverError()

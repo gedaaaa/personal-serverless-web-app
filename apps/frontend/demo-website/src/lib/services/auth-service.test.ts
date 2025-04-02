@@ -149,4 +149,86 @@ describe('AuthService', () => {
       await expect(authService.register(registerRequest)).rejects.toBe(error);
     });
   });
+
+  describe('verifyEmail', () => {
+    const verificationToken = 'test-verification-token';
+    const successMessage = 'Email verified successfully';
+
+    it('should call API client with correct endpoint and token', async () => {
+      // Setup mock response
+      mockApiClient.post.mockResolvedValue({ message: successMessage });
+
+      // Call verifyEmail method
+      await authService.verifyEmail(verificationToken);
+
+      // Verify API client was called correctly
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        `${AUTH_API_PREFIX}/email-verification/token`,
+        { token: verificationToken },
+      );
+    });
+
+    it('should return success message from response', async () => {
+      // Setup mock response
+      mockApiClient.post.mockResolvedValue({ message: successMessage });
+
+      // Call verifyEmail method
+      const result = await authService.verifyEmail(verificationToken);
+
+      // Verify result
+      expect(result).toBe(successMessage);
+    });
+
+    it('should throw error if API request fails', async () => {
+      // Setup mock to throw error
+      const error = new Error('Invalid verification token');
+      mockApiClient.post.mockRejectedValue(error);
+
+      // Call verifyEmail method and expect it to throw
+      await expect(authService.verifyEmail(verificationToken)).rejects.toBe(
+        error,
+      );
+    });
+  });
+
+  describe('resendVerificationEmail', () => {
+    const email = 'user@example.com';
+    const successMessage = 'Verification email sent successfully';
+
+    it('should call API client with correct endpoint and email', async () => {
+      // Setup mock response
+      mockApiClient.post.mockResolvedValue({ message: successMessage });
+
+      // Call resendVerificationEmail method
+      await authService.resendVerificationEmail(email);
+
+      // Verify API client was called correctly
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        `${AUTH_API_PREFIX}/email-verification/resend-email`,
+        { email },
+      );
+    });
+
+    it('should return success message from response', async () => {
+      // Setup mock response
+      mockApiClient.post.mockResolvedValue({ message: successMessage });
+
+      // Call resendVerificationEmail method
+      const result = await authService.resendVerificationEmail(email);
+
+      // Verify result
+      expect(result).toBe(successMessage);
+    });
+
+    it('should throw error if API request fails', async () => {
+      // Setup mock to throw error
+      const error = new Error('Email not found');
+      mockApiClient.post.mockRejectedValue(error);
+
+      // Call resendVerificationEmail method and expect it to throw
+      await expect(authService.resendVerificationEmail(email)).rejects.toBe(
+        error,
+      );
+    });
+  });
 });

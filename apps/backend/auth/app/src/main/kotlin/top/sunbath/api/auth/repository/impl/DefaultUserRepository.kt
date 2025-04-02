@@ -20,6 +20,7 @@ import top.sunbath.api.auth.dynamodbUtil.IdGenerator
 import top.sunbath.api.auth.dynamodbUtil.IndexDefinition
 import top.sunbath.api.auth.model.User
 import top.sunbath.api.auth.repository.UserRepository
+import java.time.Instant
 
 @Singleton
 open class DefaultUserRepository(
@@ -36,15 +37,27 @@ open class DefaultUserRepository(
         private const val ATTRIBUTE_PASSWORD = "password"
         private const val ATTRIBUTE_ROLES = "roles"
         private const val ATTRIBUTE_FULLNAME = "fullName"
+        private const val ATTRIBUTE_EMAIL_VERIFIED = "emailVerified"
+        private const val ATTRIBUTE_EMAIL_VERIFICATION_TOKEN = "emailVerificationToken"
+        private const val ATTRIBUTE_EMAIL_VERIFICATION_TOKEN_EXPIRES_AT = "emailVerificationTokenExpiresAt"
+        private const val ATTRIBUTE_LAST_VERIFICATION_EMAIL_SENT_AT = "lastVerificationEmailSentAt"
 
         // Define index constants
         private const val USERNAME_INDEX = "USERNAME_INDEX"
         private const val USERNAME_PK = "USERNAME_PK"
         private const val USERNAME_SK = "USERNAME_SK"
+        private const val EMAIL_INDEX = "EMAIL_INDEX"
+        private const val EMAIL_PK = "EMAIL_PK"
+        private const val EMAIL_SK = "EMAIL_SK"
+        private const val VERIFICATION_TOKEN_INDEX = "VERIFICATION_TOKEN_INDEX"
+        private const val VERIFICATION_TOKEN_PK = "VERIFICATION_TOKEN_PK"
+        private const val VERIFICATION_TOKEN_SK = "VERIFICATION_TOKEN_SK"
 
-        // Register the username index
+        // Register indexes
         init {
             DynamoRepository.registerIndex(IndexDefinition(USERNAME_INDEX, USERNAME_PK, USERNAME_SK))
+            DynamoRepository.registerIndex(IndexDefinition(EMAIL_INDEX, EMAIL_PK, EMAIL_SK))
+            DynamoRepository.registerIndex(IndexDefinition(VERIFICATION_TOKEN_INDEX, VERIFICATION_TOKEN_PK, VERIFICATION_TOKEN_SK))
         }
     }
 
@@ -62,9 +75,26 @@ open class DefaultUserRepository(
         @NonNull @NotBlank password: String,
         @NonNull roles: Set<String>,
         fullName: String?,
+        emailVerified: Boolean,
+        emailVerificationToken: String?,
+        emailVerificationTokenExpiresAt: Instant?,
+        lastVerificationEmailSentAt: Instant?,
     ): String {
         val id = idGenerator.generate()
-        save(User(id, username, email, password, roles, fullName))
+        save(
+            User(
+                id = id,
+                username = username,
+                email = email,
+                password = password,
+                roles = roles,
+                fullName = fullName,
+                emailVerified = emailVerified,
+                emailVerificationToken = emailVerificationToken,
+                emailVerificationTokenExpiresAt = emailVerificationTokenExpiresAt,
+                lastVerificationEmailSentAt = lastVerificationEmailSentAt,
+            ),
+        )
         return id
     }
 
@@ -107,6 +137,38 @@ open class DefaultUserRepository(
         return if (response.items().isEmpty()) null else userOf(response.items()[0])
     }
 
+    @NonNull
+    override fun findByEmail(
+        @NonNull @NotBlank email: String,
+    ): User? {
+        // Use the generic index query method
+        val queryRequest =
+            createIndexQuery<User>(
+                indexName = EMAIL_INDEX,
+                partitionKeyName = EMAIL_PK,
+                partitionKeyValue = email,
+            )
+
+        val response = dynamoDbClient.query(queryRequest)
+        return if (response.items().isEmpty()) null else userOf(response.items()[0])
+    }
+
+    @NonNull
+    override fun findByVerificationToken(
+        @NonNull @NotBlank token: String,
+    ): User? {
+        // Use the generic index query method
+        val queryRequest =
+            createIndexQuery<User>(
+                indexName = VERIFICATION_TOKEN_INDEX,
+                partitionKeyName = VERIFICATION_TOKEN_PK,
+                partitionKeyValue = token,
+            )
+
+        val response = dynamoDbClient.query(queryRequest)
+        return if (response.items().isEmpty()) null else userOf(response.items()[0])
+    }
+
     override fun delete(
         @NonNull @NotBlank id: String,
     ) {
@@ -119,6 +181,10 @@ open class DefaultUserRepository(
         password: String?,
         roles: Set<String>?,
         fullName: String?,
+        emailVerified: Boolean?,
+        emailVerificationToken: String?,
+        emailVerificationTokenExpiresAt: Instant?,
+        lastVerificationEmailSentAt: Instant?,
     ): Boolean {
         val existingUser = findById(id) ?: return false
 
@@ -128,6 +194,10 @@ open class DefaultUserRepository(
         roles?.let { existingUser.roles = it }
         // fullName can be set to null explicitly
         existingUser.fullName = fullName
+        emailVerified?.let { existingUser.emailVerified = it }
+        existingUser.emailVerificationToken = emailVerificationToken
+        existingUser.emailVerificationTokenExpiresAt = emailVerificationTokenExpiresAt
+        existingUser.lastVerificationEmailSentAt = lastVerificationEmailSentAt
 
         // Save the updated user
         save(existingUser)
@@ -188,12 +258,16 @@ open class DefaultUserRepository(
         @NonNull item: Map<String, AttributeValue>,
     ): User =
         User(
-            item[ATTRIBUTE_ID]!!.s(),
-            item[ATTRIBUTE_USERNAME]!!.s(),
-            item[ATTRIBUTE_EMAIL]!!.s(),
-            item[ATTRIBUTE_PASSWORD]!!.s(),
-            item[ATTRIBUTE_ROLES]?.ss()?.toSet() ?: setOf("ROLE_USER"),
-            item[ATTRIBUTE_FULLNAME]?.s(),
+            id = item[ATTRIBUTE_ID]!!.s(),
+            username = item[ATTRIBUTE_USERNAME]!!.s(),
+            email = item[ATTRIBUTE_EMAIL]!!.s(),
+            password = item[ATTRIBUTE_PASSWORD]!!.s(),
+            roles = item[ATTRIBUTE_ROLES]?.ss()?.toSet() ?: setOf("ROLE_USER"),
+            fullName = item[ATTRIBUTE_FULLNAME]?.s(),
+            emailVerified = item[ATTRIBUTE_EMAIL_VERIFIED]?.bool() ?: false,
+            emailVerificationToken = item[ATTRIBUTE_EMAIL_VERIFICATION_TOKEN]?.s(),
+            emailVerificationTokenExpiresAt = item[ATTRIBUTE_EMAIL_VERIFICATION_TOKEN_EXPIRES_AT]?.s()?.let { Instant.parse(it) },
+            lastVerificationEmailSentAt = item[ATTRIBUTE_LAST_VERIFICATION_EMAIL_SENT_AT]?.s()?.let { Instant.parse(it) },
         )
 
     @NonNull
@@ -208,6 +282,16 @@ open class DefaultUserRepository(
         result[ATTRIBUTE_ROLES] = AttributeValue.builder().ss(entity.roles).build()
         entity.fullName?.let {
             result[ATTRIBUTE_FULLNAME] = AttributeValue.builder().s(it).build()
+        }
+        result[ATTRIBUTE_EMAIL_VERIFIED] = AttributeValue.builder().bool(entity.emailVerified).build()
+        entity.emailVerificationToken?.let {
+            result[ATTRIBUTE_EMAIL_VERIFICATION_TOKEN] = AttributeValue.builder().s(it).build()
+        }
+        entity.emailVerificationTokenExpiresAt?.let {
+            result[ATTRIBUTE_EMAIL_VERIFICATION_TOKEN_EXPIRES_AT] = AttributeValue.builder().s(it.toString()).build()
+        }
+        entity.lastVerificationEmailSentAt?.let {
+            result[ATTRIBUTE_LAST_VERIFICATION_EMAIL_SENT_AT] = AttributeValue.builder().s(it.toString()).build()
         }
 
         return result

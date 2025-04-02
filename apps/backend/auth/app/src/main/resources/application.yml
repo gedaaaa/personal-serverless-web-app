@@ -40,3 +40,14 @@ netty:
 # DynamoDB configuration
 dynamodb:
   table-name: 'users'
+
+# Resend configuration
+resend:
+  enabled: false
+  from-email: 'noreply@sunbath.top'
+  from-name: 'Sunbath Auth'
+
+# Cache configuration
+cache:
+  ssm-parameters:
+    expire-after-write: '60m'

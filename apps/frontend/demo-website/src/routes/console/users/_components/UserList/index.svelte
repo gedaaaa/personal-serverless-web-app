@@ -44,7 +44,7 @@
   });
 </script>
 
-<!-- 用户列表UI -->
+<!-- User List UI -->
 <div class="overflow-x-auto rounded-lg bg-white shadow">
   <table class="min-w-full divide-y divide-gray-200">
     <thead class="bg-gray-50">
@@ -52,27 +52,27 @@
         <th
           scope="col"
           class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-          >用户名</th
+          >Username</th
         >
         <th
           scope="col"
           class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-          >邮箱</th
+          >Email</th
         >
         <th
           scope="col"
           class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-          >姓名</th
+          >Name</th
         >
         <th
           scope="col"
           class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500"
-          >角色</th
+          >Role</th
         >
         <th
           scope="col"
           class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500"
-          >操作</th
+          >Actions</th
         >
       </tr>
     </thead>
@@ -80,7 +80,7 @@
       {#if $userListStore.users.length === 0}
         <tr>
           <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500"
-            >暂无用户数据</td
+            >No user data available</td
           >
         </tr>
       {:else}

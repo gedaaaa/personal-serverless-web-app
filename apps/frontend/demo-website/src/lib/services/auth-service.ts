@@ -17,6 +17,23 @@ export interface RegisterRequest {
   fullName?: string;
 }
 
+// 新增邮箱验证相关接口
+export interface VerifyEmailRequest {
+  token: string;
+}
+
+export interface VerifyEmailResponse {
+  message: string;
+}
+
+export interface ResendVerificationEmailRequest {
+  email: string;
+}
+
+export interface ResendVerificationEmailResponse {
+  message: string;
+}
+
 /**
  * Service for handling authentication operations
  */
@@ -54,5 +71,31 @@ export class AuthService {
       request,
     );
     return response.id;
+  }
+
+  /**
+   * Verify email with token
+   * @param token Verification token
+   * @returns Response message
+   */
+  async verifyEmail(token: string): Promise<string> {
+    const response = await this.apiClient.post<VerifyEmailResponse>(
+      `${AUTH_API_PREFIX}/email-verification/token`,
+      { token },
+    );
+    return response.message;
+  }
+
+  /**
+   * Resend verification email
+   * @param email Email address
+   * @returns Response message
+   */
+  async resendVerificationEmail(email: string): Promise<string> {
+    const response = await this.apiClient.post<ResendVerificationEmailResponse>(
+      `${AUTH_API_PREFIX}/email-verification/resend-email`,
+      { email },
+    );
+    return response.message;
   }
 }

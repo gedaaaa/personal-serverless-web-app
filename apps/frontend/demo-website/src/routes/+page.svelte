@@ -62,9 +62,11 @@
           fullName: fullName || undefined,
         });
 
-        // After registration, switch to login form
-        isLogin = true;
-        error = null;
+        // Store email in localStorage
+        localStorage.setItem('pending_verification_email', email);
+
+        // After successful registration, redirect to registration success page
+        goto('/auth/register-success');
       }
     } catch (err) {
       console.error('Auth error:', err);

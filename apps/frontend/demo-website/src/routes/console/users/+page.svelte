@@ -5,7 +5,7 @@
 
 <div>
   <div class="mb-6 flex items-center justify-between">
-    <h1 class="text-2xl font-medium text-gray-800">用户管理</h1>
+    <h1 class="text-2xl font-medium text-gray-800">User Management</h1>
   </div>
 
   {#if $userListStore.error}

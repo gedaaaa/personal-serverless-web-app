@@ -58,11 +58,11 @@ describe('UserList Component', () => {
       render(UserList as unknown as ComponentType<SvelteComponent>);
 
       // Check for table headers
-      expect(screen.getByText('用户名')).toBeTruthy();
-      expect(screen.getByText('邮箱')).toBeTruthy();
-      expect(screen.getByText('姓名')).toBeTruthy();
-      expect(screen.getByText('角色')).toBeTruthy();
-      expect(screen.getByText('操作')).toBeTruthy();
+      expect(screen.getByText('Username')).toBeTruthy();
+      expect(screen.getByText('Email')).toBeTruthy();
+      expect(screen.getByText('Name')).toBeTruthy();
+      expect(screen.getByText('Role')).toBeTruthy();
+      expect(screen.getByText('Actions')).toBeTruthy();
     });
 
     it('should render user list items', () => {
@@ -102,7 +102,7 @@ describe('UserList Component', () => {
       render(UserList as unknown as ComponentType<SvelteComponent>);
 
       // Check for empty state message
-      expect(screen.getByText('暂无用户数据')).toBeTruthy();
+      expect(screen.getByText('No user data available')).toBeTruthy();
     });
   });
 

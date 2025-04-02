@@ -327,9 +327,18 @@ describe('Login/Register Page', () => {
       expect(mockAuthService.register).not.toHaveBeenCalled();
     });
 
-    it('should switch to login form after successful registration', async () => {
+    it('should redirect to register-success page after successful registration', async () => {
       // Mock successful registration
       mockAuthService.register.mockResolvedValue('token-123');
+
+      // Mock localStorage
+      const localStorageMock = {
+        setItem: vi.fn(),
+        getItem: vi.fn(),
+      };
+      Object.defineProperty(window, 'localStorage', {
+        value: localStorageMock,
+      });
 
       // Fill in registration form
       const usernameInput = screen.getByLabelText('Username');
@@ -350,13 +359,17 @@ describe('Login/Register Page', () => {
       });
       await fireEvent.click(submitButton);
 
-      // Wait for form to switch back to login
-      await waitFor(() => {
-        expect(screen.getByText('Welcome Back')).toBeTruthy();
-      });
+      // Wait for promises to resolve
+      await tick();
 
-      // Check that login form is displayed
-      expect(screen.queryByLabelText('Email')).toBeNull();
+      // Check that localStorage was called with the email
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        'pending_verification_email',
+        'newuser@example.com',
+      );
+
+      // Check that we're redirected to register success page
+      expect(navigation.goto).toHaveBeenCalledWith('/auth/register-success');
     });
 
     it('should display error message when registration fails', async () => {

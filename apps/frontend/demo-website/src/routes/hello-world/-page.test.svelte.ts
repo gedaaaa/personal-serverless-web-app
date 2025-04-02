@@ -46,7 +46,7 @@ describe('HelloWorldPage Component', () => {
   });
 
   it('should render the component with correct structure', () => {
-    const { container } = render(HelloWorldPage);
+    const { container } = render(HelloWorldPage as any);
 
     // Check for main elements
     expect(screen.getByText('Hello World')).toBeTruthy();
@@ -70,7 +70,7 @@ describe('HelloWorldPage Component', () => {
     // Setup successful API response
     mockApiClient.get.mockResolvedValue({ message: 'Hello from server!' });
 
-    render(HelloWorldPage);
+    render(HelloWorldPage as any);
 
     // Initial state check
     expect(screen.getByText('Do you want to say hello?')).toBeTruthy();
@@ -93,7 +93,7 @@ describe('HelloWorldPage Component', () => {
     // Setup failed API response
     mockApiClient.get.mockRejectedValue(new Error('API error'));
 
-    render(HelloWorldPage);
+    render(HelloWorldPage as any);
 
     // Click the Say Hello button
     const sayHelloButton = screen.getByRole('button', { name: 'Say Hello' });
@@ -109,7 +109,7 @@ describe('HelloWorldPage Component', () => {
   });
 
   it('should handle logout', async () => {
-    render(HelloWorldPage);
+    render(HelloWorldPage as any);
 
     // Click logout button
     const logoutButton = screen.getByRole('button', { name: 'Logout' });

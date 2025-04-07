@@ -16,6 +16,7 @@ class ResendApiKeyProvider(
     /**
      * Get the Resend API key based on the current environment.
      * For development, uses the configured API key.
+     *     This probably won't be triggered, because we should use a no-op email service in development.
      * For production, fetches the API key from AWS SSM Parameter Store.
      *
      * @return The Resend API key

@@ -33,4 +33,11 @@ repositories {
 dependencies {
     // Add Micronaut Serde dependency
     implementation("io.micronaut.serde:micronaut-serde-api:2.7.1")
+
+    // AWS SSM for SsmParameterProvider
+    implementation("software.amazon.awssdk:ssm:2.22.9")
+
+    // Micronaut Cache for @Cacheable annotation
+    implementation("io.micronaut.cache:micronaut-cache-core:5.2.0")
+    implementation("io.micronaut:micronaut-inject:${project.properties["micronautVersion"]}")
 }

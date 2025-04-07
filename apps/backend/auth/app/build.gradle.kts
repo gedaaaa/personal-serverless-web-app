@@ -63,7 +63,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
     implementation("jakarta.validation:jakarta.validation-api:3.0.2")
-    implementation("com.github.ksuid:ksuid:1.1.3")
     implementation("io.projectreactor:reactor-core")
 
     implementation("io.micronaut:micronaut-http-client-jdk")

@@ -1,4 +1,4 @@
-package top.sunbath.api.auth.dynamodbUtil
+package top.sunbath.shared.dynamodb
 
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient

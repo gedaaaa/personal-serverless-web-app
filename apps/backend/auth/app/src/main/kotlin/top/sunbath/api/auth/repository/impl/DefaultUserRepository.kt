@@ -14,12 +14,12 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse
-import top.sunbath.api.auth.config.DynamoConfiguration
-import top.sunbath.api.auth.dynamodbUtil.DynamoRepository
-import top.sunbath.api.auth.dynamodbUtil.IdGenerator
-import top.sunbath.api.auth.dynamodbUtil.IndexDefinition
 import top.sunbath.api.auth.model.User
 import top.sunbath.api.auth.repository.UserRepository
+import top.sunbath.shared.dynamodb.DynamoConfiguration
+import top.sunbath.shared.dynamodb.DynamoRepository
+import top.sunbath.shared.dynamodb.IdGenerator
+import top.sunbath.shared.dynamodb.IndexDefinition
 import java.time.Instant
 
 @Singleton

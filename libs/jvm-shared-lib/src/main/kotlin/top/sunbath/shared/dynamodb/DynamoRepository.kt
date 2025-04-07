@@ -1,4 +1,4 @@
-package top.sunbath.api.auth.dynamodbUtil
+package top.sunbath.shared.dynamodb
 
 import io.micronaut.context.annotation.Primary
 import io.micronaut.context.annotation.Requires
@@ -26,7 +26,6 @@ import software.amazon.awssdk.services.dynamodb.model.QueryRequest
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
-import top.sunbath.api.auth.config.DynamoConfiguration
 import java.util.Arrays
 import java.util.Collections
 import java.util.Optional

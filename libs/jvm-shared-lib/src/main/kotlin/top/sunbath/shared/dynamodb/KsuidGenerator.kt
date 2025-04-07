@@ -1,4 +1,4 @@
-package top.sunbath.api.auth.dynamodbUtil
+package top.sunbath.shared.dynamodb
 
 import com.github.ksuid.Ksuid
 import io.micronaut.context.annotation.Requires

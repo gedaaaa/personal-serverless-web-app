@@ -5,8 +5,8 @@ import io.micronaut.core.annotation.Introspected
 import io.micronaut.core.annotation.NonNull
 import io.micronaut.core.annotation.Nullable
 import io.micronaut.serde.annotation.Serdeable
-import top.sunbath.api.auth.dynamodbUtil.Identified
-import top.sunbath.api.auth.dynamodbUtil.Indexable
+import top.sunbath.shared.dynamodb.Identified
+import top.sunbath.shared.dynamodb.Indexable
 import java.time.Instant
 
 /**

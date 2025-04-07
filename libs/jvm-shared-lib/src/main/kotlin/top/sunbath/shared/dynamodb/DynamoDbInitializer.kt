@@ -1,6 +1,7 @@
-package top.sunbath.api.auth.dynamodbUtil
+package top.sunbath.shared.dynamodb
 
 import io.micronaut.context.annotation.Context
+import io.micronaut.context.annotation.Requires
 import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.context.event.StartupEvent
 import jakarta.inject.Inject
@@ -14,6 +15,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient
  */
 @Context
 @Singleton
+@Requires(property = "dynamodb.custom-initialization.enabled", value = "true")
 class DynamoDbInitializer(
     private val dynamoDbClient: DynamoDbClient,
 ) : ApplicationEventListener<StartupEvent> {

@@ -40,6 +40,8 @@ netty:
 # DynamoDB configuration
 dynamodb:
   table-name: 'users'
+  custom-initialization:
+    enabled: true
 
 # Resend configuration
 resend:

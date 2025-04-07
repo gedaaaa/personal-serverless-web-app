@@ -191,9 +191,10 @@ open class DynamoRepository<T : Identified>(
             if (indexesToAdd.isNotEmpty()) {
                 LOG.info("Adding ${indexesToAdd.size} new indexes to table ${dynamoConfiguration.tableName}")
 
-                // Create attribute definitions for new indexes
-                val attributeDefinitions = mutableListOf<AttributeDefinition>()
-                indexesToAdd.forEach { index ->
+                for (index in indexesToAdd) {
+                    LOG.info("Adding index ${index.indexName} to table ${dynamoConfiguration.tableName}")
+                    val attributeDefinitions = mutableListOf<AttributeDefinition>()
+                    // build attribute definitions for current index
                     attributeDefinitions.add(
                         AttributeDefinition
                             .builder()
@@ -208,22 +209,17 @@ open class DynamoRepository<T : Identified>(
                             .attributeType(ScalarAttributeType.S)
                             .build(),
                     )
-                }
 
-                // Create GSIs for new indexes
-                val gsisToAdd =
-                    indexesToAdd.map {
-                        if (it.indexName == INDEX_GSI_1) gsi1() else buildGlobalSecondaryIndex(it)
-                    }
+                    // build global secondary index for current index
+                    val gsi = if (index.indexName == INDEX_GSI_1) gsi1() else buildGlobalSecondaryIndex(index)
 
-                // Update the table with new indexes
-                dynamoDbClient.updateTable(
-                    software.amazon.awssdk.services.dynamodb.model.UpdateTableRequest
-                        .builder()
-                        .tableName(dynamoConfiguration.tableName)
-                        .attributeDefinitions(attributeDefinitions)
-                        .globalSecondaryIndexUpdates(
-                            gsisToAdd.map { gsi ->
+                    // update table with new index
+                    dynamoDbClient.updateTable(
+                        software.amazon.awssdk.services.dynamodb.model.UpdateTableRequest
+                            .builder()
+                            .tableName(dynamoConfiguration.tableName)
+                            .attributeDefinitions(attributeDefinitions)
+                            .globalSecondaryIndexUpdates(
                                 software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndexUpdate
                                     .builder()
                                     .create(
@@ -233,15 +229,13 @@ open class DynamoRepository<T : Identified>(
                                             .keySchema(gsi.keySchema())
                                             .projection(gsi.projection())
                                             .build(),
-                                    ).build()
-                            },
-                        ).build(),
-                )
+                                    ).build(),
+                            ).build(),
+                    )
 
-                LOG.info("Started adding new indexes to table ${dynamoConfiguration.tableName}")
-
-                // Wait for indexes to become active (optional, can be removed if not needed)
-                waitForIndexesToBecomeActive(indexesToAdd.map { it.indexName })
+                    waitForIndexesToBecomeActive(listOf(index.indexName))
+                    LOG.info("Index ${index.indexName} added to table ${dynamoConfiguration.tableName}")
+                }
             } else {
                 LOG.info("No new indexes to add to table ${dynamoConfiguration.tableName}")
             }
@@ -254,6 +248,7 @@ open class DynamoRepository<T : Identified>(
     /**
      * Waits for the specified indexes to become active.
      * This is an optional step but helps ensure indexes are ready before use.
+     * UPDATE: THIS IS PROBABLY ALWAYS NEEDED. Because DyndamoDB only allow 1 index to be created at a time.
      */
     private fun waitForIndexesToBecomeActive(indexNames: List<String>) {
         if (indexNames.isEmpty()) return
@@ -262,11 +257,11 @@ open class DynamoRepository<T : Identified>(
 
         var allActive = false
         var attempts = 0
-        val maxAttempts = 60 // Maximum wait time: 10 minutes (60 * 10 seconds)
+        val maxAttempts = 600 // Maximum wait time: 10 minutes (600 seconds)
 
         while (!allActive && attempts < maxAttempts) {
             try {
-                Thread.sleep(10000) // Wait 10 seconds between checks
+                Thread.sleep(1000) // Wait 1 second between checks
 
                 val tableDescription =
                     dynamoDbClient

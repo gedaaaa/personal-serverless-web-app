@@ -5,6 +5,7 @@
   "sourceRoot": "apps/backend/auth/app/src",
   "tags": [],
   "root": "apps/backend/auth",
+  "dependencies": [{ "source": "libs/jvm-shared-lib", "target": "dependencies" }],
   "targets": {
     "build": {
       "executor": "nx:run-commands",

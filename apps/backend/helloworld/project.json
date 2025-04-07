@@ -5,6 +5,9 @@
   "sourceRoot": "apps/backend/helloworld/app/src",
   "tags": [],
   "root": "apps/backend/helloworld",
+  "dependencies": [
+    { "source": "libs/jvm-shared-lib", "target": "dependencies" }
+  ],
   "targets": {
     "build": {
       "executor": "nx:run-commands",

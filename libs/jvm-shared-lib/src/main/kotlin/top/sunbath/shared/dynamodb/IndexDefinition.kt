@@ -1,4 +1,4 @@
-package top.sunbath.api.auth.dynamodbUtil
+package top.sunbath.shared.dynamodb
 
 /**
  * Defines a DynamoDB index with its name and attribute names.

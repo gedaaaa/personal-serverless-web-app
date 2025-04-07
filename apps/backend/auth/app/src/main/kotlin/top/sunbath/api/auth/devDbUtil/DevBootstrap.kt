@@ -1,4 +1,4 @@
-package top.sunbath.api.auth.dynamodbUtil
+package top.sunbath.api.auth.devDbUtil
 
 import io.micronaut.context.annotation.Requires
 import io.micronaut.context.env.Environment
@@ -11,7 +11,7 @@ import top.sunbath.api.auth.repository.impl.DefaultUserRepository
 @Requires(property = "dynamodb-local.port")
 @Requires(env = [Environment.DEVELOPMENT])
 @Singleton
-class DevBootstrap(
+open class DevBootstrap(
     private val dynamoUserRepository: DefaultUserRepository,
 ) : ApplicationEventListener<StartupEvent> {
     override fun onApplicationEvent(event: StartupEvent) {

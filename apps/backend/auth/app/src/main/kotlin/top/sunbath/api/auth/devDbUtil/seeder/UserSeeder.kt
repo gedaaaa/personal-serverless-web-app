@@ -1,4 +1,4 @@
-package top.sunbath.api.auth.seeder
+package top.sunbath.api.auth.devDbUtil.seeder
 
 import at.favre.lib.crypto.bcrypt.BCrypt
 import io.micronaut.context.annotation.Requires
@@ -7,6 +7,7 @@ import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.context.event.StartupEvent
 import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
+import top.sunbath.api.auth.devDbUtil.DevBootstrap
 import top.sunbath.api.auth.repository.UserRepository
 
 /**
@@ -14,6 +15,7 @@ import top.sunbath.api.auth.repository.UserRepository
  */
 @Singleton
 @Requires(env = [Environment.DEVELOPMENT])
+@Requires(beans = [DevBootstrap::class])
 class UserSeeder(
     private val userRepository: UserRepository,
 ) : ApplicationEventListener<StartupEvent> {

@@ -1,4 +1,4 @@
-package top.sunbath.api.auth.config
+package top.sunbath.shared.dynamodb
 
 import io.micronaut.context.annotation.ConfigurationProperties
 import io.micronaut.context.annotation.Requires

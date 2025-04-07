@@ -2,7 +2,7 @@ package top.sunbath.api.auth.config.email
 
 import io.micronaut.context.env.Environment
 import jakarta.inject.Singleton
-import top.sunbath.api.auth.config.aws.SsmParameterProvider
+import top.sunbath.shared.aws.SsmParameterProvider
 
 /**
  * Provider for Resend API key, handling different environments.
@@ -16,6 +16,7 @@ class ResendApiKeyProvider(
     /**
      * Get the Resend API key based on the current environment.
      * For development, uses the configured API key.
+     *     This probably won't be triggered, because we should use a no-op email service in development.
      * For production, fetches the API key from AWS SSM Parameter Store.
      *
      * @return The Resend API key

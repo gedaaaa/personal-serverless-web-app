@@ -1,4 +1,4 @@
-package top.sunbath.api.auth.config.aws
+package top.sunbath.shared.aws
 
 import io.micronaut.cache.annotation.Cacheable
 import io.micronaut.context.annotation.Value

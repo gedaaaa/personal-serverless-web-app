@@ -10,6 +10,6 @@ fun main(args: Array<String>) {
     Micronaut
         .build()
         .args(*args)
-        .packages("top.sunbath.api.auth")
+        .packages("top.sunbath.api.auth", "top.sunbath.shared")
         .start()
 }

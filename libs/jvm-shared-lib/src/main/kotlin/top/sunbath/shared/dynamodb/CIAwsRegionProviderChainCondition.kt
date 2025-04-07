@@ -1,4 +1,4 @@
-package top.sunbath.api.auth.dynamodbUtil
+package top.sunbath.shared.dynamodb
 
 import io.micronaut.context.condition.Condition
 import io.micronaut.context.condition.ConditionContext

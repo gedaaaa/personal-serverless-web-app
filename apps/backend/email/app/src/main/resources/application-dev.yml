@@ -1,0 +1,30 @@
+#Fri Feb 28 04:15:00 CST 2025
+micronaut:
+  application:
+    name: auth
+  server:
+    port: 8080
+    # Set development environment context path
+    # Because sam only simulates API Gateway v1 and passes the mapped base path to Lambda
+    # Production environment uses API Gateway v2, HTTP API ($default) Lambda integration, API mapping
+    # This does not pass the mapped path key to Lambda
+    context-path: auth
+
+# To use DynamoDB in local development environment, we need to configure DynamoDB endpoint
+# and AWS authentication information
+dynamodb-local:
+  host: localhost
+  port: 8000
+
+dynamodb:
+  custom-initialization:
+    enabled: true
+
+aws:
+  region: us-east-1
+  access-key-id: fakeMyKeyId
+  secret-access-key: fakeSecretAccessKey
+
+# Resend configuration for development, use DoNothingEmailService
+resend:
+  enabled: false

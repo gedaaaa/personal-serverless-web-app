@@ -1,0 +1,8 @@
+# DynamoDB configuration
+dynamodb:
+  table-name: ${DYNAMODB_TABLE_NAME}
+
+# Resend configuration for production
+resend:
+  enabled: true
+  api-key-parameter: '/auth/resend/api-key'

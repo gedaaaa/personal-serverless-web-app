@@ -1,0 +1,51 @@
+#Fri Feb 28 04:15:00 CST 2025
+micronaut:
+  application:
+    name: email
+  router:
+    static-resources:
+      swagger:
+        paths: classpath:META-INF/swagger
+        mapping: /swagger/**
+      swagger-ui:
+        paths: classpath:META-INF/swagger/views/swagger-ui
+        mapping: /swagger-ui/**
+  security:
+    enabled: true
+    authentication: bearer
+    endpoints:
+      login:
+        enabled: false
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: ${JWT_SECRET:pleaseChangeThisSecretForANewOne}
+        generator:
+          access-token:
+            expiration: 86400 # 24 hours in seconds
+
+endpoints:
+  health:
+    enabled: true
+    sensitive: false
+    details-visible: ANONYMOUS
+
+netty:
+  default:
+    allocator:
+      max-order: 3
+
+# DynamoDB configuration
+dynamodb:
+  table-name: 'email'
+
+# Resend configuration
+resend:
+  enabled: false
+
+# Cache configuration
+cache:
+  ssm-parameters:
+    expire-after-write: '60m'

@@ -5,6 +5,15 @@
     "production": ["default"],
     "sharedGlobals": []
   },
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx/tasks-runners/default",
+      "options": {
+        "cacheableOperations": ["build", "test"],
+        "parallel": 1
+      }
+    }
+  },
   "targetDefaults": {
     "test": {
       "inputs": ["default", "^default"],

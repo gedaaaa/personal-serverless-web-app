@@ -1,4 +1,4 @@
-package top.sunbath.shared.aws
+package top.sunbath.shared.ssm
 
 import io.micronaut.cache.annotation.Cacheable
 import io.micronaut.context.annotation.Value

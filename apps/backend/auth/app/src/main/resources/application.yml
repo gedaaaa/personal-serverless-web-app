@@ -32,6 +32,11 @@ endpoints:
     sensitive: false
     details-visible: ANONYMOUS
 
+aws:
+  sqs:
+    queues:
+      email: 'email-queue'
+
 netty:
   default:
     allocator:

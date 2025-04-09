@@ -16,6 +16,8 @@ import software.amazon.awscdk.services.iam.Effect;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.amazon.awscdk.services.lambda.*;
 import software.amazon.awscdk.services.logs.RetentionDays;
+import software.amazon.awscdk.services.sqs.Queue;
+import software.amazon.awscdk.services.sqs.QueueAttributes;
 import software.constructs.Construct;
 
 import java.util.Arrays;
@@ -123,6 +125,19 @@ public class AppStack extends Stack {
 
                 ApiMapping.Builder.create(this, serviceName + "-api-mapping").api(httpApi).domainName(domainNameV2)
                                 .apiMappingKey(basePath).stage(httpApi.getDefaultStage()).build();
+
+                // 配置 SQS 队列权限
+                var queueNames = Arrays.asList("email-queue");
+                for (var queueName : queueNames) {
+                        var queueArn = String.format("arn:aws:sqs:%s:%s:%s", region, accountId, queueName);
+                        System.out.println("Queue ARN: " + queueArn);
+                        var sqsQueue = Queue.fromQueueAttributes(this, queueArn + "Queue",
+                                        QueueAttributes.builder().queueArn(queueArn).build());
+                        // Grant permission to get the queue URL
+                        function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
+                                        .actions(Arrays.asList("sqs:GetQueueUrl", "sqs:SendMessage"))
+                                        .resources(Arrays.asList(sqsQueue.getQueueArn())).build());
+                }
 
                 // 输出 DynamoDB 表名
                 CfnOutput.Builder.create(this, "SingleTableName").exportName(serviceName + "-SingleTableName")

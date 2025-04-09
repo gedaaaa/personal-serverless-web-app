@@ -3,7 +3,7 @@ package top.sunbath.api.email.config
 import io.micronaut.context.env.Environment
 import jakarta.inject.Singleton
 import top.sunbath.api.email.config.ResendConfiguration
-import top.sunbath.shared.aws.SsmParameterProvider
+import top.sunbath.shared.ssm.SsmParameterProvider
 
 /**
  * Provider for Resend API key, handling different environments.

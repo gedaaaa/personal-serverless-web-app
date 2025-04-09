@@ -55,6 +55,7 @@ dependencies {
     implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
     implementation("software.amazon.awssdk:dynamodb")
     implementation("software.amazon.awssdk:ssm")
+    implementation("software.amazon.awssdk:sqs")
 
     implementation("io.micronaut.crac:micronaut-crac")
 
@@ -83,6 +84,7 @@ dependencies {
 
     testImplementation("io.micronaut.testresources:micronaut-test-resources-testcontainers:2.7.3")
 
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.16.2")
     implementation("io.micronaut.cache:micronaut-cache-caffeine")
 }
 

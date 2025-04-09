@@ -36,7 +36,7 @@ public class AppStack extends Stack {
                 super(parent, id, props);
 
                 var serviceName = "email";
-                var dynamodbSingleTableName = "email-service-single-table";
+                var dynamodbSingleTableName = serviceName + "-service-single-table";
                 var dynamodbDistributedLocksTableName = "distributed_locks";
 
                 // Create Dead Letter Queue
@@ -71,12 +71,6 @@ public class AppStack extends Stack {
                 CfnFunction cfnFunction = (CfnFunction) function.getNode().getDefaultChild();
                 cfnFunction.setReservedConcurrentExecutions(1);
 
-                // Create SQS event source mapping
-                SqsEventSource sqsEventSource = SqsEventSource.Builder.create(queue)
-                                // Process one message at a time due to rate limit
-                                .batchSize(1).build();
-                function.addEventSource(sqsEventSource);
-
                 // Grant SQS permissions to Lambda
                 queue.grantConsumeMessages(function);
                 // Grant DLQ send permissions to queue
@@ -104,26 +98,26 @@ public class AppStack extends Stack {
 
                 String dynamodbSingleTableArn = String.format("arn:aws:dynamodb:%s:%s:table/%s", region, accountId,
                                 dynamodbSingleTableName);
-                var authSingleTable = Table.fromTableArn(this, "SingleTable", dynamodbSingleTableArn);
+                var singleTable = Table.fromTableArn(this, "SingleTable", dynamodbSingleTableArn);
 
                 // 授予 Lambda 函数对 DynamoDB 表的读写权限
-                authSingleTable.grantReadWriteData(function);
+                singleTable.grantReadWriteData(function);
                 distributedLocksTable.grantReadWriteData(function);
 
                 // 额外授予 Lambda 函数创建和管理索引的权限
                 function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
                                 .actions(Arrays.asList("dynamodb:UpdateTable", "dynamodb:DescribeTable",
                                                 "dynamodb:CreateTable"))
-                                .resources(Arrays.asList(authSingleTable.getTableArn(),
+                                .resources(Arrays.asList(singleTable.getTableArn(),
                                                 // index
-                                                authSingleTable.getTableArn() + "/*", distributedLocksArn))
+                                                singleTable.getTableArn() + "/*", distributedLocksArn))
                                 .build());
                 function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
                                 .actions(Arrays.asList("dynamodb:Query", "dynamodb:Scan", "dynamodb:GetItem",
                                                 "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"))
-                                .resources(Arrays.asList(authSingleTable.getTableArn(),
+                                .resources(Arrays.asList(singleTable.getTableArn(),
                                                 // index
-                                                authSingleTable.getTableArn() + "/*", distributedLocksArn))
+                                                singleTable.getTableArn() + "/*", distributedLocksArn))
                                 .build());
 
                 String ssmParameterArn = String.format("arn:aws:ssm:%s:%s:parameter/auth/resend/api-key", region,
@@ -138,9 +132,15 @@ public class AppStack extends Stack {
                 var prodAlias = Alias.Builder.create(this, "ProdAlias").aliasName("Prod").version(currentVersion)
                                 .build();
 
+                // Create SQS event source mapping
+                SqsEventSource sqsEventSource = SqsEventSource.Builder.create(queue)
+                                // Process one message at a time due to rate limit
+                                .batchSize(1).build();
+                prodAlias.addEventSource(sqsEventSource);
+
                 // 输出 DynamoDB 表名
-                CfnOutput.Builder.create(this, "SingleTableName").exportName("SingleTableName")
-                                .value(authSingleTable.getTableName()).build();
+                CfnOutput.Builder.create(this, "SingleTableName").exportName(serviceName + "-SingleTableName")
+                                .value(singleTable.getTableName()).build();
         }
 
         public static String functionPath() {

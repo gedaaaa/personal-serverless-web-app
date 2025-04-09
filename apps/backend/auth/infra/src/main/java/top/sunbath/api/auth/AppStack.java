@@ -60,26 +60,26 @@ public class AppStack extends Stack {
 
                 String dynamodbSingleTableArn = String.format("arn:aws:dynamodb:%s:%s:table/%s", region, accountId,
                                 dynamodbSingleTableName);
-                var authSingleTable = Table.fromTableArn(this, "SingleTable", dynamodbSingleTableArn);
+                var singleTable = Table.fromTableArn(this, "SingleTable", dynamodbSingleTableArn);
 
                 // 授予 Lambda 函数对 DynamoDB 表的读写权限
-                authSingleTable.grantReadWriteData(function);
+                singleTable.grantReadWriteData(function);
                 distributedLocksTable.grantReadWriteData(function);
 
                 // 额外授予 Lambda 函数创建和管理索引的权限
                 function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
                                 .actions(Arrays.asList("dynamodb:UpdateTable", "dynamodb:DescribeTable",
                                                 "dynamodb:CreateTable"))
-                                .resources(Arrays.asList(authSingleTable.getTableArn(),
+                                .resources(Arrays.asList(singleTable.getTableArn(),
                                                 // index
-                                                authSingleTable.getTableArn() + "/*", distributedLocksArn))
+                                                singleTable.getTableArn() + "/*", distributedLocksArn))
                                 .build());
                 function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
                                 .actions(Arrays.asList("dynamodb:Query", "dynamodb:Scan", "dynamodb:GetItem",
                                                 "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"))
-                                .resources(Arrays.asList(authSingleTable.getTableArn(),
+                                .resources(Arrays.asList(singleTable.getTableArn(),
                                                 // index
-                                                authSingleTable.getTableArn() + "/*", distributedLocksArn))
+                                                singleTable.getTableArn() + "/*", distributedLocksArn))
                                 .build());
 
                 String ssmParameterArn = String.format("arn:aws:ssm:%s:%s:parameter/auth/resend/api-key", region,
@@ -125,8 +125,8 @@ public class AppStack extends Stack {
                                 .apiMappingKey(basePath).stage(httpApi.getDefaultStage()).build();
 
                 // 输出 DynamoDB 表名
-                CfnOutput.Builder.create(this, "SingleTableName").exportName("SingleTableName")
-                                .value(authSingleTable.getTableName()).build();
+                CfnOutput.Builder.create(this, "SingleTableName").exportName(serviceName + "-SingleTableName")
+                                .value(singleTable.getTableName()).build();
 
                 CfnOutput.Builder.create(this, "AuthApiUrl").exportName("AuthApiUrl").value(url).build();
         }

@@ -2,23 +2,27 @@ package top.sunbath.api.email.handler
 
 import com.amazonaws.services.lambda.runtime.events.SQSEvent
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.micronaut.context.ApplicationContext
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.function.aws.MicronautRequestHandler
-import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
 import top.sunbath.api.email.service.EmailService
 import top.sunbath.shared.types.EmailData
 
 @Introspected
-@Singleton
-class FunctionHandler(
-    private val emailService: EmailService,
-) : MicronautRequestHandler<SQSEvent, Unit>() {
+class FunctionHandler : MicronautRequestHandler<SQSEvent, String>() {
     private val log = LoggerFactory.getLogger(this::class.java)
-
     private val objectMapper = ObjectMapper()
 
-    override fun execute(input: SQSEvent) {
+    private lateinit var emailService: EmailService
+
+    override fun getApplicationContext(): ApplicationContext {
+        val ctx = super.getApplicationContext()
+        emailService = ctx.getBean(EmailService::class.java)
+        return ctx
+    }
+
+    override fun execute(input: SQSEvent): String {
         input.records.forEach { record ->
             try {
                 val emailData = objectMapper.readValue(record.body, EmailData::class.java)
@@ -31,6 +35,7 @@ class FunctionHandler(
                 throw e // 触发SQS重试
             }
         }
+        return "Executed"
     }
 
     private fun sendEmail(emailData: EmailData) {

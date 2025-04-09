@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse
 import top.sunbath.api.email.model.EmailRecord
@@ -87,5 +88,20 @@ open class DefaultEmailRecordRepository(
         if (LOG.isDebugEnabled) {
             LOG.debug(itemResponse.toString())
         }
+    }
+
+    @NonNull
+    override fun item(
+        @NonNull entity: EmailRecord,
+    ): Map<String, AttributeValue> {
+        val result = super.item(entity).toMutableMap()
+        result[ATTRIBUTE_ID] = AttributeValue.builder().s(entity.id).build()
+        result[ATTRIBUTE_TO] = AttributeValue.builder().s(entity.to).build()
+        result[ATTRIBUTE_FROM] = AttributeValue.builder().s(entity.from).build()
+        result[ATTRIBUTE_SUBJECT] = AttributeValue.builder().s(entity.subject).build()
+        result[ATTRIBUTE_HTML] = AttributeValue.builder().s(entity.html).build()
+        result[ATTRIBUTE_VENDOR_RESPONSE] = AttributeValue.builder().s(entity.vendorResponse).build()
+
+        return result
     }
 }

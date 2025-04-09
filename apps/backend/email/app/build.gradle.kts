@@ -64,6 +64,7 @@ dependencies {
     // Add Validation dependencies
     implementation("io.micronaut.validation:micronaut-validation")
     implementation("jakarta.validation:jakarta.validation-api:3.0.2")
+    implementation("io.micronaut.cache:micronaut-cache-caffeine")
 }
 
 application {

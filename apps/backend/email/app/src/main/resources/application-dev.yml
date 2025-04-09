@@ -16,10 +16,6 @@ dynamodb-local:
   host: localhost
   port: 8000
 
-dynamodb:
-  custom-initialization:
-    enabled: true
-
 aws:
   region: us-east-1
   access-key-id: fakeMyKeyId

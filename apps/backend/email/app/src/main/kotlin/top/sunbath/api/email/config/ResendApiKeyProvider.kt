@@ -1,7 +1,8 @@
-package top.sunbath.api.auth.config.email
+package top.sunbath.api.email.config
 
 import io.micronaut.context.env.Environment
 import jakarta.inject.Singleton
+import top.sunbath.api.email.config.ResendConfiguration
 import top.sunbath.shared.ssm.SsmParameterProvider
 
 /**

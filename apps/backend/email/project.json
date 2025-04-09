@@ -1,0 +1,59 @@
+{
+  "name": "email-service",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/backend/email/app/src",
+  "tags": [],
+  "root": "apps/backend/email",
+  "dependencies": [{ "source": "libs/jvm-shared-lib", "target": "dependencies" }],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "./gradlew :apps:backend:email:app:build",
+          "./gradlew :apps:backend:email:infra:build"
+        ],
+        "parallel": false
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "export MICRONAUT_ENVIRONMENTS=dev && ./gradlew :apps:backend:email:app:run --continuous"
+        ]
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "./gradlew :apps:backend:email:app:optimizedJitJarAll",
+          "cd apps/backend/email/infra && cdk deploy --require-approval never"
+        ],
+        "parallel": false
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["./gradlew :apps:backend:email:app:ktlintCheck"],
+        "parallel": false
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["./gradlew :apps:backend:email:app:ktlintFormat"],
+        "parallel": false
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["./gradlew :apps:backend:email:app:test"]
+      }
+    }
+  }
+}

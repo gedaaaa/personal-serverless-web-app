@@ -8,21 +8,21 @@ import software.amazon.awscdk.CfnOutput;
 import software.amazon.awscdk.Duration;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
-import software.amazon.awscdk.aws_apigatewayv2_integrations.HttpLambdaIntegration;
-import software.amazon.awscdk.services.apigatewayv2.*;
 import software.amazon.awscdk.services.dynamodb.*;
 import software.amazon.awscdk.services.iam.PolicyStatement;
 import software.amazon.awscdk.services.iam.Effect;
 import software.amazon.awscdk.services.lambda.Runtime;
 import software.amazon.awscdk.services.lambda.*;
 import software.amazon.awscdk.services.logs.RetentionDays;
-import software.amazon.awscdk.services.sqs.Queue;
-import software.amazon.awscdk.services.sqs.QueueAttributes;
 import software.constructs.Construct;
-
+import software.amazon.awscdk.services.sqs.Queue;
+import software.amazon.awscdk.services.sqs.DeadLetterQueue;
+import software.amazon.awscdk.services.lambda.eventsources.SqsEventSource;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import software.amazon.awscdk.services.lambda.CfnFunction;
+import software.amazon.awscdk.services.iam.ServicePrincipal;
 
 public class AppStack extends Stack {
 
@@ -33,23 +33,57 @@ public class AppStack extends Stack {
         public AppStack(final Construct parent, final String id, final StackProps props) {
                 super(parent, id, props);
 
-                var serviceName = "auth";
-                var dynamodbSingleTableName = "auth-service-single-table";
+                var serviceName = "email";
+                var dynamodbSingleTableName = serviceName + "-service-single-table";
                 var dynamodbDistributedLocksTableName = "distributed_locks";
+
+                // Create Dead Letter Queue
+                var dlq = Queue.Builder.create(this, serviceName + "-dlq").queueName(serviceName + "-dlq")
+                                .retentionPeriod(Duration.days(14)).build();
+
+                // Create main queue with DLQ
+                var queue = Queue.Builder.create(this, serviceName + "-queue").queueName(serviceName + "-queue")
+                                .retentionPeriod(Duration.days(14))
+                                // according to SQS docs, the visibility timeout should be at least 6 times
+                                // the maximum timeout of the lambda function
+                                .visibilityTimeout(Duration.seconds(30 * 6))
+                                .deadLetterQueue(DeadLetterQueue.builder().maxReceiveCount(3).queue(dlq).build())
+                                .build();
 
                 Map<String, String> environmentVariables = new HashMap<>();
                 // 设置生产环境
                 environmentVariables.put("MICRONAUT_ENVIRONMENTS", "production");
                 // 设置 DynamoDB 表名
                 environmentVariables.put("DYNAMODB_TABLE_NAME", dynamodbSingleTableName);
+                // 设置 SQS 队列 URL
+                environmentVariables.put("SQS_QUEUE_URL", queue.getQueueUrl());
 
                 var function = MicronautFunction.create(ApplicationType.DEFAULT, false, this, serviceName + "-function")
-                                .runtime(Runtime.JAVA_21)
-                                .handler("io.micronaut.function.aws.proxy.payload2.APIGatewayV2HTTPEventFunction")
+                                .runtime(Runtime.JAVA_21).handler("top.sunbath.api.email.handler.FunctionHandler")
                                 .environment(environmentVariables).code(Code.fromAsset(functionPath()))
-                                .timeout(Duration.seconds(10)).memorySize(512).logRetention(RetentionDays.ONE_WEEK)
+                                .timeout(Duration.seconds(30)).memorySize(512).logRetention(RetentionDays.ONE_WEEK)
                                 .tracing(Tracing.ACTIVE).architecture(Architecture.X86_64)
                                 .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS).build();
+
+                // Set reserved concurrent executions to 1
+                CfnFunction cfnFunction = (CfnFunction) function.getNode().getDefaultChild();
+                cfnFunction.setReservedConcurrentExecutions(1);
+
+                // Grant SQS permissions to Lambda
+                queue.grantConsumeMessages(function);
+                // Grant DLQ send permissions to queue
+                PolicyStatement dlqAccessPolicy = PolicyStatement.Builder.create()
+                                .actions(Arrays.asList("sqs:SendMessage")).resources(Arrays.asList(dlq.getQueueArn()))
+                                .principals(Arrays.asList(new ServicePrincipal("lambda.amazonaws.com")))
+                                .conditions(Map.of("ArnEquals", Map.of("aws:SourceArn", queue.getQueueArn()))).build();
+                dlq.addToResourcePolicy(dlqAccessPolicy);
+
+                // Output queue information
+                CfnOutput.Builder.create(this, "QueueUrl").exportName(serviceName + "-queue-url")
+                                .value(queue.getQueueUrl()).build();
+
+                CfnOutput.Builder.create(this, "DlqUrl").exportName(serviceName + "-dlq-url").value(dlq.getQueueUrl())
+                                .build();
 
                 // 获取当前区域和账户 ID
                 String region = this.getRegion();
@@ -96,54 +130,15 @@ public class AppStack extends Stack {
                 var prodAlias = Alias.Builder.create(this, "ProdAlias").aliasName("Prod").version(currentVersion)
                                 .build();
 
-                HttpLambdaIntegration lambdaIntegration = HttpLambdaIntegration.Builder
-                                .create("LambdaIntegration", prodAlias).build();
-
-                HttpApi httpApi = HttpApi.Builder.create(this, serviceName + "-http-api")
-                                .defaultIntegration(lambdaIntegration)
-                                .corsPreflight(CorsPreflightOptions.builder()
-                                                .allowOrigins(Arrays.asList("https://sunbath.top",
-                                                                "http://localhost:4200"))
-                                                .allowMethods(Arrays.asList(CorsHttpMethod.GET, CorsHttpMethod.POST,
-                                                                CorsHttpMethod.PUT, CorsHttpMethod.DELETE,
-                                                                CorsHttpMethod.OPTIONS))
-                                                .allowHeaders(Arrays.asList("Content-Type", "Authorization",
-                                                                "X-Amz-Date", "X-Api-Key"))
-                                                .allowCredentials(true).maxAge(Duration.days(1)).build())
-                                .build();
-
-                // 配置自定义域名
-                var domainName = "api.sunbath.top";
-                var basePath = "auth";
-                var domainHostedZoneId = "ZL327KTPIQFUL";
-                var domainAlias = "d-she55i1zs4.execute-api.ap-southeast-1.amazonaws.com";
-                var url = "https://" + domainName + "/" + basePath;
-
-                var domainNameV2 = DomainName.fromDomainNameAttributes(this, "ApiDomainNameV2",
-                                DomainNameAttributes.builder().name(domainName).regionalHostedZoneId(domainHostedZoneId)
-                                                .regionalDomainName(domainAlias).build());
-
-                ApiMapping.Builder.create(this, serviceName + "-api-mapping").api(httpApi).domainName(domainNameV2)
-                                .apiMappingKey(basePath).stage(httpApi.getDefaultStage()).build();
-
-                // 配置 SQS 队列权限
-                var queueNames = Arrays.asList("email-queue");
-                for (var queueName : queueNames) {
-                        var queueArn = String.format("arn:aws:sqs:%s:%s:%s", region, accountId, queueName);
-                        System.out.println("Queue ARN: " + queueArn);
-                        var sqsQueue = Queue.fromQueueAttributes(this, queueArn + "Queue",
-                                        QueueAttributes.builder().queueArn(queueArn).build());
-                        // Grant permission to get the queue URL
-                        function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
-                                        .actions(Arrays.asList("sqs:GetQueueUrl", "sqs:SendMessage"))
-                                        .resources(Arrays.asList(sqsQueue.getQueueArn())).build());
-                }
+                // Create SQS event source mapping
+                SqsEventSource sqsEventSource = SqsEventSource.Builder.create(queue)
+                                // Process one message at a time due to rate limit
+                                .batchSize(1).build();
+                prodAlias.addEventSource(sqsEventSource);
 
                 // 输出 DynamoDB 表名
                 CfnOutput.Builder.create(this, "SingleTableName").exportName(serviceName + "-SingleTableName")
                                 .value(singleTable.getTableName()).build();
-
-                CfnOutput.Builder.create(this, "AuthApiUrl").exportName("AuthApiUrl").value(url).build();
         }
 
         public static String functionPath() {

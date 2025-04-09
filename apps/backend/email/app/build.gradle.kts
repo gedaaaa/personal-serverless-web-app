@@ -30,7 +30,7 @@ tasks.withType<org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask>().configure
 }
 
 version = "0.1"
-group = "top.sunbath.api.auth"
+group = "top.sunbath.api.email"
 
 val kotlinVersion = project.properties.get("kotlinVersion")
 repositories {
@@ -38,58 +38,37 @@ repositories {
 }
 
 dependencies {
-    ksp("io.micronaut:micronaut-http-validation")
-    ksp("io.micronaut.serde:micronaut-serde-processor")
-    ksp("io.micronaut.validation:micronaut-validation-processor")
-    ksp("io.micronaut.security:micronaut-security-annotations")
+    annotationProcessor("io.micronaut:micronaut-http-validation")
+    annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
 
-    implementation(project(":libs:jvm-shared-lib"))
-    implementation("io.micronaut.validation:micronaut-validation")
-    implementation("io.micronaut.security:micronaut-security-jwt")
-    implementation("io.micronaut.security:micronaut-security")
-    implementation("at.favre.lib:bcrypt:0.10.2")
-    implementation("com.resend:resend-java:3.1.0")
+    runtimeOnly("org.yaml:snakeyaml")
 
-    implementation("io.micronaut.aws:micronaut-aws-apigateway")
+    implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
     implementation("io.micronaut.aws:micronaut-aws-lambda-events-serde")
     implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
     implementation("software.amazon.awssdk:dynamodb")
-    implementation("software.amazon.awssdk:ssm")
-    implementation("software.amazon.awssdk:sqs")
-
-    implementation("io.micronaut.crac:micronaut-crac")
-
-    implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
-    implementation("jakarta.validation:jakarta.validation-api:3.0.2")
-    implementation("io.projectreactor:reactor-core")
+    implementation("com.amazonaws:aws-lambda-java-events:3.11.3")
+    implementation("org.slf4j:slf4j-simple:2.0.9")
 
-    implementation("io.micronaut:micronaut-http-client-jdk")
+    // Add shared library dependency
+    implementation(project(":libs:jvm-shared-lib"))
 
-    runtimeOnly("ch.qos.logback:logback-classic")
-    runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
-    runtimeOnly("org.yaml:snakeyaml")
+    // Add Resend API dependency
+    implementation("com.resend:resend-java:3.2.0")
 
-    testImplementation("io.micronaut:micronaut-http-client-jdk")
-    testImplementation("io.micronaut.test:micronaut-test-junit5")
-    testImplementation("org.junit.jupiter:junit-jupiter-api")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine")
-    testImplementation("io.projectreactor:reactor-test")
-    testImplementation("org.testcontainers:junit-jupiter:1.19.7")
-    testImplementation("org.mockito:mockito-core:5.11.0")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
-    testImplementation("io.mockk:mockk:1.13.10")
-
-    testImplementation("io.micronaut.testresources:micronaut-test-resources-testcontainers:2.7.3")
-
+    // Add Jackson databind dependency
     implementation("com.fasterxml.jackson.core:jackson-databind:2.16.2")
+
+    // Add Validation dependencies
+    implementation("io.micronaut.validation:micronaut-validation")
+    implementation("jakarta.validation:jakarta.validation-api:3.0.2")
     implementation("io.micronaut.cache:micronaut-cache-caffeine")
 }
 
 application {
-    mainClass = "top.sunbath.api.auth.ApplicationKt"
+    mainClass = "top.sunbath.api.email.ApplicationKt"
 }
 java {
     sourceCompatibility = JavaVersion.toVersion("21")
@@ -105,7 +84,7 @@ micronaut {
     }
     processing {
         incremental(true)
-        annotations("top.sunbath.api.auth.*")
+        annotations("top.sunbath.api.email.*")
     }
     aot {
         // Please review carefully the optimizations enabled below

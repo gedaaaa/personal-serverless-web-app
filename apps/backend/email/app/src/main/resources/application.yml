@@ -1,7 +1,7 @@
 #Fri Feb 28 04:15:00 CST 2025
 micronaut:
   application:
-    name: auth
+    name: email
   router:
     static-resources:
       swagger:
@@ -32,11 +32,6 @@ endpoints:
     sensitive: false
     details-visible: ANONYMOUS
 
-aws:
-  sqs:
-    queues:
-      email: 'email-queue'
-
 netty:
   default:
     allocator:
@@ -44,15 +39,13 @@ netty:
 
 # DynamoDB configuration
 dynamodb:
-  table-name: 'users'
+  table-name: 'email'
   custom-initialization:
     enabled: true
 
 # Resend configuration
 resend:
   enabled: false
-  from-email: 'noreply@sunbath.top'
-  from-name: 'Sunbath Auth'
 
 # Cache configuration
 cache:

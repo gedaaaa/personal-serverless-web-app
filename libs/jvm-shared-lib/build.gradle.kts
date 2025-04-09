@@ -41,6 +41,7 @@ dependencies {
     implementation("software.amazon.awssdk:ssm:2.22.9")
     implementation("software.amazon.awssdk:dynamodb:2.22.9")
     implementation("io.micronaut.aws:micronaut-aws-sdk-v2:4.10.0")
+    implementation("io.micronaut.serde:micronaut-serde-jackson")
 
     // Micronaut Cache for @Cacheable annotation
     implementation("io.micronaut.cache:micronaut-cache-core:5.2.0")
@@ -48,4 +49,6 @@ dependencies {
 
     implementation("com.github.ksuid:ksuid:1.1.3")
     implementation("jakarta.validation:jakarta.validation-api:3.0.2")
+
+    runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
 }

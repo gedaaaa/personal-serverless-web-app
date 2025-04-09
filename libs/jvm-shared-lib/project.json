@@ -9,7 +9,7 @@
     "build": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["./gradlew clean", "./gradlew :libs:jvm-shared-lib:build --stacktrace"]
+        "commands": ["./gradlew :libs:jvm-shared-lib:build"]
       }
     },
 

@@ -39,7 +39,7 @@ jobs:
 
       - name: Build
         run: |
-          pnpm nx affected:build --prod
+          ./gradlew clean && pnpm nx affected:build --prod
 
       - name: Lint
         run: |

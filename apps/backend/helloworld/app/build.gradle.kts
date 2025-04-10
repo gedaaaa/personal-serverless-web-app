@@ -3,15 +3,15 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.allopen")
-    id("com.google.devtools.ksp") version "1.9.25-1.0.20"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("io.micronaut.application") version "4.4.4"
-    id("io.micronaut.aot") version "4.4.4"
+    id("com.google.devtools.ksp")
+    id("com.github.johnrengelman.shadow")
+    id("io.micronaut.application")
+    id("io.micronaut.aot")
     id("org.jlleitschuh.gradle.ktlint")
 }
 
 ktlint {
-    version.set("1.5.0")
+    version.set(project.properties["ktlint.version"] as String)
     android.set(false)
     outputToConsole.set(true)
     outputColorName.set("RED")
@@ -31,30 +31,39 @@ tasks.withType<org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask>().configure
 version = "0.1"
 group = "top.sunbath.api"
 
-val kotlinVersion = project.properties.get("kotlinVersion")
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    ksp("io.micronaut:micronaut-http-validation")
-    ksp("io.micronaut.serde:micronaut-serde-processor")
+    // Platform BOMs
+    implementation(platform(libs.aws.sdk.bom))
+    implementation(platform(libs.micronaut.bom))
 
+    // KSP Annotation Processors
+    ksp(libs.micronaut.http.validation)
+    ksp(libs.micronaut.serde.processor)
+
+    // Project Dependencies
     implementation(project(":libs:jvm-shared-lib"))
 
-    implementation("io.micronaut.aws:micronaut-aws-apigateway")
-    implementation("io.micronaut.aws:micronaut-aws-lambda-events-serde")
-    implementation("io.micronaut.crac:micronaut-crac")
-    implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
-    implementation("io.micronaut.serde:micronaut-serde-jackson")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
-    compileOnly("io.micronaut:micronaut-http-client-jdk")
-    runtimeOnly("ch.qos.logback:logback-classic")
-    runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
-//    support for application.yml
-    runtimeOnly("org.yaml:snakeyaml")
-    testImplementation("io.micronaut:micronaut-http-client-jdk")
+    // Micronaut Dependencies
+    implementation(libs.micronaut.aws.apigateway)
+    implementation(libs.micronaut.aws.lambda.events.serde)
+    implementation(libs.micronaut.crac)
+    implementation(libs.micronaut.kotlin.runtime)
+    implementation(libs.micronaut.serde.jackson)
+
+    // Other Third-Party Dependencies
+    implementation(libs.kotlin.reflect)
+    implementation(libs.kotlin.stdlib)
+
+    // CompileOnly Dependencies
+    compileOnly(libs.micronaut.http.client.jdk)
+
+    // RuntimeOnly Dependencies
+    runtimeOnly(libs.jackson.module.kotlin)
+    runtimeOnly(libs.logback)
+    runtimeOnly(libs.snakeyaml)
+
+    // TestImplementation Dependencies
+    testImplementation(libs.micronaut.http.client.jdk)
 }
 
 application {

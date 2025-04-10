@@ -4,8 +4,8 @@ plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.allopen")
     id("org.jlleitschuh.gradle.ktlint")
-    id("com.google.devtools.ksp") version "1.9.25-1.0.20"
-    id("io.micronaut.application") version "4.4.4"
+    id("com.google.devtools.ksp")
+    id("io.micronaut.application")
 }
 
 ktlint {
@@ -29,26 +29,27 @@ tasks.withType<org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask>().configure
 version = "0.1"
 group = "top.sunbath.shared"
 
-repositories {
-    mavenCentral()
-}
 dependencies {
-    ksp("io.micronaut.validation:micronaut-validation-processor")
+    // platform BOMs
+    implementation(platform(libs.micronaut.bom))
+    implementation(platform(libs.aws.sdk.bom))
 
-    // Add Micronaut Serde dependency
-    implementation("io.micronaut.serde:micronaut-serde-api:2.7.1")
+    // KSP Annotation Processors
+    ksp(libs.micronaut.validation.processor)
 
-    implementation("software.amazon.awssdk:ssm:2.22.9")
-    implementation("software.amazon.awssdk:dynamodb:2.22.9")
-    implementation("io.micronaut.aws:micronaut-aws-sdk-v2:4.10.0")
-    implementation("io.micronaut.serde:micronaut-serde-jackson")
+    // Micronaut Dependencies
+    implementation(libs.micronaut.serde.api)
+    implementation(libs.micronaut.serde.jackson)
+    implementation(libs.micronaut.cache.core)
+    implementation(libs.micronaut.inject)
+    implementation(libs.micronaut.aws.sdk.v2)
 
-    // Micronaut Cache for @Cacheable annotation
-    implementation("io.micronaut.cache:micronaut-cache-core:5.2.0")
-    implementation("io.micronaut:micronaut-inject:${project.properties["micronautVersion"]}")
+    // AWS SDK Dependencies
+    implementation(libs.aws.ssm)
+    implementation(libs.aws.dynamodb)
 
-    implementation("com.github.ksuid:ksuid:1.1.3")
-    implementation("jakarta.validation:jakarta.validation-api:3.0.2")
-
-    runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
+    // Other Dependencies
+    implementation(libs.ksuid)
+    implementation(libs.jakarta.validation)
+    runtimeOnly(libs.jackson.module.kotlin)
 }

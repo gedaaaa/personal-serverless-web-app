@@ -3,16 +3,16 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.allopen")
-    id("com.google.devtools.ksp") version "1.9.25-1.0.20"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("io.micronaut.application") version "4.4.4"
-    id("io.micronaut.aot") version "4.4.4"
-    id("io.micronaut.test-resources") version "4.4.4"
+    id("com.google.devtools.ksp")
+    id("com.github.johnrengelman.shadow")
+    id("io.micronaut.application")
+    id("io.micronaut.aot")
+    id("io.micronaut.test-resources")
     id("org.jlleitschuh.gradle.ktlint")
 }
 
 ktlint {
-    version.set("1.5.0")
+    version.set(project.properties["ktlint.version"] as String)
     android.set(false)
     outputToConsole.set(true)
     outputColorName.set("RED")
@@ -32,39 +32,42 @@ tasks.withType<org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask>().configure
 version = "0.1"
 group = "top.sunbath.api.email"
 
-val kotlinVersion = project.properties.get("kotlinVersion")
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    annotationProcessor("io.micronaut:micronaut-http-validation")
-    annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
+    // Platform BOMs
+    implementation(platform(libs.micronaut.bom))
+    implementation(platform(libs.aws.sdk.bom))
 
-    runtimeOnly("org.yaml:snakeyaml")
+    // KSP/Annotation Processors
+    ksp(libs.micronaut.http.validation)
+    ksp(libs.micronaut.serde.processor)
 
-    implementation("io.micronaut:micronaut-http-client")
-    implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
-    implementation("io.micronaut.aws:micronaut-aws-lambda-events-serde")
-    implementation("io.micronaut.aws:micronaut-aws-sdk-v2")
-    implementation("software.amazon.awssdk:dynamodb")
-    implementation("io.micronaut.serde:micronaut-serde-jackson")
-    implementation("com.amazonaws:aws-lambda-java-events:3.11.3")
-    implementation("org.slf4j:slf4j-simple:2.0.9")
-
-    // Add shared library dependency
+    // Project Dependencies
     implementation(project(":libs:jvm-shared-lib"))
 
-    // Add Resend API dependency
-    implementation("com.resend:resend-java:3.2.0")
+    // Micronaut Dependencies
+    implementation(libs.micronaut.http.client.jdk)
+    implementation(libs.micronaut.aws.sdk.v2)
+    implementation(libs.micronaut.aws.lambda.events.serde)
+    implementation(libs.micronaut.serde.jackson)
+    implementation(libs.micronaut.validation)
+    implementation(libs.micronaut.cache.caffeine)
 
-    // Add Jackson databind dependency
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.16.2")
+    // AWS SDK Dependencies
+    implementation(libs.aws.dynamodb)
 
-    // Add Validation dependencies
-    implementation("io.micronaut.validation:micronaut-validation")
-    implementation("jakarta.validation:jakarta.validation-api:3.0.2")
-    implementation("io.micronaut.cache:micronaut-cache-caffeine")
+    // Other Third-Party Dependencies
+    implementation(libs.aws.lambda.java.events)
+    implementation(libs.resend)
+    implementation(libs.jackson.databind)
+    implementation(libs.jakarta.validation)
+
+    // RuntimeOnly Dependencies
+    runtimeOnly(libs.snakeyaml)
+    runtimeOnly(libs.slf4j.simple)
+    runtimeOnly(libs.jackson.module.kotlin)
+    runtimeOnly(libs.logback)
+
+    // TestImplementation Dependencies (Add if needed, none present currently)
 }
 
 application {

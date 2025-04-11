@@ -1,6 +1,7 @@
 package top.sunbath.shared.ssm
 
 import io.micronaut.cache.annotation.Cacheable
+import io.micronaut.context.annotation.Requires
 import io.micronaut.context.annotation.Value
 import jakarta.inject.Singleton
 import software.amazon.awssdk.services.ssm.SsmClient
@@ -11,6 +12,7 @@ import software.amazon.awssdk.services.ssm.model.ParameterNotFoundException
  * Provider for AWS SSM parameters with caching support.
  */
 @Singleton
+@Requires(property = "my-property.ssm-provider.enabled", value = "true")
 open class SsmParameterProvider(
     private val ssmClient: SsmClient,
 ) {

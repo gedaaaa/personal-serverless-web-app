@@ -1,7 +1,6 @@
 package top.sunbath.api.auth.service.email
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.micronaut.context.annotation.Replaces
 import io.micronaut.context.annotation.Requires
 import jakarta.annotation.PostConstruct
 import jakarta.inject.Singleton
@@ -17,7 +16,6 @@ import top.sunbath.shared.types.EmailData
  */
 @Singleton
 @Requires(env = ["production"])
-@Replaces(ResendEmailService::class)
 class SqsEmailService(
     private val sqsConfiguration: SqsConfiguration,
     private val sqsClient: SqsClient,

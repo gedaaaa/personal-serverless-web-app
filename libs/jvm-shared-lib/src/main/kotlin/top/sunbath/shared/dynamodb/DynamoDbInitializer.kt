@@ -15,7 +15,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient
  */
 @Context
 @Singleton
-@Requires(property = "dynamodb.custom-initialization.enabled", value = "true")
+@Requires(property = "my-property.custom-dynamodb-initialization.enabled", value = "true")
 class DynamoDbInitializer(
     private val dynamoDbClient: DynamoDbClient,
 ) : ApplicationEventListener<StartupEvent> {

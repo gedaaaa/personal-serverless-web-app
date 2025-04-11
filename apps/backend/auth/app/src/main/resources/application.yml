@@ -45,16 +45,7 @@ netty:
 # DynamoDB configuration
 dynamodb:
   table-name: 'users'
-  custom-initialization:
+
+my-property:
+  custom-dynamodb-initialization:
     enabled: true
-
-# Resend configuration
-resend:
-  enabled: false
-  from-email: 'noreply@sunbath.top'
-  from-name: 'Sunbath Auth'
-
-# Cache configuration
-cache:
-  ssm-parameters:
-    expire-after-write: '60m'

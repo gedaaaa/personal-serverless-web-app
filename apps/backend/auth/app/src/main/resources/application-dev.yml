@@ -23,7 +23,3 @@ aws:
   region: us-east-1
   access-key-id: fakeMyKeyId
   secret-access-key: fakeSecretAccessKey
-
-# Resend configuration for development, use DoNothingEmailService
-resend:
-  enabled: false

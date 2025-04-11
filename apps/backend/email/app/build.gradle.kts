@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":libs:jvm-shared-lib"))
 
     // Micronaut Dependencies
+    implementation(libs.micronaut.aws.sdk.v2)
     implementation(libs.micronaut.cache.caffeine)
     implementation(libs.micronaut.serde.jackson)
     implementation(libs.micronaut.validation)
@@ -54,6 +55,7 @@ dependencies {
     // AWS SDK Dependencies
     implementation(libs.aws.dynamodb)
     implementation(libs.aws.lambda.java.events)
+    implementation(libs.aws.ssm)
 
     // Other Third-Party Dependencies
     implementation(libs.jackson.databind)

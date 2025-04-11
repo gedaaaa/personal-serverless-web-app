@@ -45,10 +45,10 @@ dependencies {
     implementation(project(":libs:jvm-shared-lib"))
 
     // Micronaut Dependencies
+    implementation(libs.micronaut.aws.sdk.v2)
     implementation(libs.micronaut.cache.caffeine)
     implementation(libs.micronaut.serde.jackson)
     implementation(libs.micronaut.validation)
-    implementation(libs.micronaut.aws.sdk.v2)
     runtimeOnly(libs.micronaut.aws.lambda.events.serde)
     runtimeOnly(libs.micronaut.http.client.jdk)
 

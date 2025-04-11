@@ -1,7 +1,6 @@
 package top.sunbath.api.auth.controller
 
 import io.micronaut.http.HttpStatus
-import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -18,7 +17,6 @@ import top.sunbath.api.auth.service.AuthService
 /**
  * Unit tests for the EmailVerificationController.
  */
-@MicronautTest
 @ExtendWith(MockKExtension::class)
 class EmailVerificationControllerTest {
     @MockK

@@ -48,12 +48,14 @@ dependencies {
     implementation(libs.micronaut.cache.caffeine)
     implementation(libs.micronaut.serde.jackson)
     implementation(libs.micronaut.validation)
+    implementation(libs.micronaut.aws.sdk.v2)
     runtimeOnly(libs.micronaut.aws.lambda.events.serde)
     runtimeOnly(libs.micronaut.http.client.jdk)
 
     // AWS SDK Dependencies
     implementation(libs.aws.dynamodb)
     implementation(libs.aws.lambda.java.events)
+    implementation(libs.aws.ssm)
 
     // Other Third-Party Dependencies
     implementation(libs.jackson.databind)

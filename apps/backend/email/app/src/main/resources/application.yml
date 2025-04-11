@@ -40,8 +40,6 @@ netty:
 # DynamoDB configuration
 dynamodb:
   table-name: 'email'
-  custom-initialization:
-    enabled: true
 
 # Resend configuration
 resend:
@@ -51,3 +49,9 @@ resend:
 cache:
   ssm-parameters:
     expire-after-write: '60m'
+
+my-property:
+  custom-dynamodb-initialization:
+    enabled: true
+  ssm-provider:
+    enabled: true

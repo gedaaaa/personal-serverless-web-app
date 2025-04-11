@@ -30,26 +30,25 @@ version = "0.1"
 group = "top.sunbath.shared"
 
 dependencies {
-    // platform BOMs
-    implementation(platform(libs.micronaut.bom))
+    // Platform BOMs
     implementation(platform(libs.aws.sdk.bom))
+    implementation(platform(libs.micronaut.bom))
 
     // KSP Annotation Processors
     ksp(libs.micronaut.validation.processor)
 
     // Micronaut Dependencies
-    implementation(libs.micronaut.serde.api)
-    implementation(libs.micronaut.serde.jackson)
     implementation(libs.micronaut.cache.core)
     implementation(libs.micronaut.inject)
-    implementation(libs.micronaut.aws.sdk.v2)
+    implementation(libs.micronaut.serde.api)
+    implementation(libs.micronaut.serde.jackson)
 
     // AWS SDK Dependencies
-    implementation(libs.aws.ssm)
     implementation(libs.aws.dynamodb)
+    implementation(libs.aws.ssm)
 
     // Other Dependencies
-    implementation(libs.ksuid)
     implementation(libs.jakarta.validation)
+    implementation(libs.ksuid)
     runtimeOnly(libs.jackson.module.kotlin)
 }

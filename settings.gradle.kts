@@ -15,6 +15,11 @@ pluginManagement {
     }
 }
 
+plugins {
+    id("com.autonomousapps.build-health") version "2.0.0"
+    id("org.jetbrains.kotlin.jvm") version "1.9.25" apply false
+}
+
 dependencyResolutionManagement {
     repositories {
         mavenCentral()

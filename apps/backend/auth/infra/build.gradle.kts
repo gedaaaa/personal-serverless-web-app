@@ -8,13 +8,18 @@ repositories {
 }
 
 dependencies {
+    // Platform BOMs
     implementation(platform(libs.micronaut.bom))
+
+    // Implementation Dependencies
+    implementation(libs.aws.cdk.lib)
     implementation(libs.micronaut.starter.aws.cdk) {
         exclude(group = "software.amazon.awscdk", module = "aws-cdk-lib")
     }
-    implementation(libs.aws.cdk.lib)
+
+    // Test Dependencies
     testImplementation(libs.junit.jupiter.api)
-    testImplementation(libs.junit.jupiter.engine)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 }
 
 application {

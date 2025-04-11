@@ -44,26 +44,17 @@ dependencies {
     implementation(project(":libs:jvm-shared-lib"))
 
     // Micronaut Dependencies
-    implementation(libs.micronaut.aws.apigateway)
-    implementation(libs.micronaut.aws.lambda.events.serde)
-    implementation(libs.micronaut.crac)
-    implementation(libs.micronaut.kotlin.runtime)
-    implementation(libs.micronaut.serde.jackson)
-
-    // Other Third-Party Dependencies
-    implementation(libs.kotlin.reflect)
-    implementation(libs.kotlin.stdlib)
-
-    // CompileOnly Dependencies
     compileOnly(libs.micronaut.http.client.jdk)
-
-    // RuntimeOnly Dependencies
+    implementation(libs.kotlin.stdlib)
+    runtimeOnly(libs.micronaut.aws.lambda.events.serde)
+    runtimeOnly(libs.micronaut.kotlin.runtime)
     runtimeOnly(libs.jackson.module.kotlin)
+    runtimeOnly(libs.kotlin.reflect)
     runtimeOnly(libs.logback)
     runtimeOnly(libs.snakeyaml)
 
-    // TestImplementation Dependencies
-    testImplementation(libs.micronaut.http.client.jdk)
+    // Test Dependencies
+    testRuntimeOnly(libs.micronaut.http.client.jdk)
 }
 
 application {

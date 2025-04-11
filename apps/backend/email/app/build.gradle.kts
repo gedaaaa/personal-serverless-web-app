@@ -34,8 +34,8 @@ group = "top.sunbath.api.email"
 
 dependencies {
     // Platform BOMs
-    implementation(platform(libs.micronaut.bom))
     implementation(platform(libs.aws.sdk.bom))
+    implementation(platform(libs.micronaut.bom))
 
     // KSP/Annotation Processors
     ksp(libs.micronaut.http.validation)
@@ -45,29 +45,25 @@ dependencies {
     implementation(project(":libs:jvm-shared-lib"))
 
     // Micronaut Dependencies
-    implementation(libs.micronaut.http.client.jdk)
-    implementation(libs.micronaut.aws.sdk.v2)
-    implementation(libs.micronaut.aws.lambda.events.serde)
+    implementation(libs.micronaut.cache.caffeine)
     implementation(libs.micronaut.serde.jackson)
     implementation(libs.micronaut.validation)
-    implementation(libs.micronaut.cache.caffeine)
+    runtimeOnly(libs.micronaut.aws.lambda.events.serde)
+    runtimeOnly(libs.micronaut.http.client.jdk)
 
     // AWS SDK Dependencies
     implementation(libs.aws.dynamodb)
+    implementation(libs.aws.lambda.java.events)
 
     // Other Third-Party Dependencies
-    implementation(libs.aws.lambda.java.events)
-    implementation(libs.resend)
     implementation(libs.jackson.databind)
     implementation(libs.jakarta.validation)
-
-    // RuntimeOnly Dependencies
-    runtimeOnly(libs.snakeyaml)
-    runtimeOnly(libs.slf4j.simple)
+    implementation(libs.resend)
     runtimeOnly(libs.jackson.module.kotlin)
     runtimeOnly(libs.logback)
+    runtimeOnly(libs.snakeyaml)
 
-    // TestImplementation Dependencies (Add if needed, none present currently)
+    // Test Dependencies
 }
 
 application {

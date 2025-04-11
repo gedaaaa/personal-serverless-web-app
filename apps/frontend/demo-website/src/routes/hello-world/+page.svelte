@@ -51,6 +51,10 @@
       <p class="text-gray-700" data-testid="server-response">
         Server says: <span class="font-medium text-purple-600">{greeting}</span>
       </p>
+      <button
+        class="mt-4 rounded-md bg-purple-600 px-4 py-2 text-white transition hover:bg-purple-700"
+        onclick={sayHello}>Say Hello Again</button
+      >
     {:else}
       <div>
         <p class="text-gray-700">Do you want to say hello?</p>

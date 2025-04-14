@@ -10,13 +10,6 @@ import java.time.Instant
  */
 interface MemoRepository {
     /**
-     * Find all memos.
-     * @return List of all memos
-     */
-    @NonNull
-    fun findAll(): List<Memo>
-
-    /**
      * Find memos with cursor-based pagination.
      * @param limit The maximum number of items to return
      * @param lastEvaluatedId The ID of the last evaluated item from the previous page (null for first page)

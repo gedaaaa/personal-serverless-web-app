@@ -126,22 +126,6 @@ open class DefaultMemoRepository(
     }
 
     @NonNull
-    override fun findAll(): List<Memo> {
-        val result = ArrayList<Memo>()
-        var beforeId: String? = null
-        do {
-            val request: QueryRequest = findAllQueryRequest(Memo::class.java, beforeId, null)
-            val response: QueryResponse = dynamoDbClient.query(request)
-            if (LOG.isTraceEnabled) {
-                LOG.trace(response.toString())
-            }
-            result.addAll(parseInResponse(response))
-            beforeId = lastEvaluatedId(response, Memo::class.java).orElse(null)
-        } while (beforeId != null)
-        return result
-    }
-
-    @NonNull
     override fun findAllWithCursor(
         limit: Int,
         lastEvaluatedId: String?,

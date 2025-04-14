@@ -40,6 +40,8 @@ dependencies {
     // Micronaut Dependencies
     implementation(libs.micronaut.cache.core)
     implementation(libs.micronaut.inject)
+    implementation(libs.micronaut.security)
+    implementation(libs.micronaut.security.jwt)
     implementation(libs.micronaut.serde.api)
     implementation(libs.micronaut.serde.jackson)
 

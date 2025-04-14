@@ -22,19 +22,83 @@ class MemoService(
         reminderTime: Instant?,
     ): String {
         // TODO: notification
-        return memoRepository.save(userId, title, content, reminderTime)
+        return memoRepository.save(
+            userId = userId,
+            title = title,
+            content = content,
+            reminderTime = reminderTime,
+        )
     }
 
-    fun getMemoById(id: String): Memo? = memoRepository.findById(id)
+    fun getMemoById(
+        userId: String,
+        id: String,
+    ): Memo? {
+        val memo = memoRepository.findById(id)
+        if (memo == null) {
+            return null
+        }
+        if (memo.userId != userId) {
+            return null
+        }
+        return memo
+    }
 
     fun getAllMemosWithCursor(
+        userId: String,
         limit: Int,
         cursor: String?,
-    ): Pair<List<Memo>, String?> = memoRepository.findAllWithCursor(limit, cursor)
+    ): Pair<List<Memo>, String?> {
+        val memos =
+            memoRepository.findAllWithCursor(
+                limit = limit,
+                lastEvaluatedId = cursor,
+            )
 
-    fun updateMemo(memo: Memo): Boolean {
-        val id = memo.id
-        if (id == null) {
+        // TODO: add userId filter
+        logger.info("memos: $memos, userId: $userId")
+
+        return memos
+    }
+
+    fun updateMemo(
+        userId: String,
+        id: String,
+        title: String?,
+        content: String?,
+        reminderTime: Instant?,
+        isCompleted: Boolean?,
+        isDeleted: Boolean?,
+    ): Boolean {
+        val existingMemo = memoRepository.findById(id)
+        if (existingMemo == null) {
+            return false
+        }
+
+        if (existingMemo.userId != userId) {
+            return false
+        }
+
+        // TODO: notification
+        return memoRepository.update(
+            id = id,
+            title = title ?: existingMemo.title,
+            content = content ?: existingMemo.content,
+            reminderTime = reminderTime ?: existingMemo.reminderTime,
+            isCompleted = isCompleted ?: existingMemo.isCompleted,
+            isDeleted = isDeleted ?: existingMemo.isDeleted,
+        )
+    }
+
+    fun deleteMemo(
+        userId: String,
+        id: String,
+    ): Boolean {
+        val memo = memoRepository.findById(id)
+        if (memo == null) {
+            return false
+        }
+        if (memo.userId != userId) {
             return false
         }
         // TODO: notification
@@ -44,16 +108,7 @@ class MemoService(
             content = memo.content,
             reminderTime = memo.reminderTime,
             isCompleted = memo.isCompleted,
-            isDeleted = memo.isDeleted,
+            isDeleted = true,
         )
-    }
-
-    fun deleteMemo(id: String): Boolean {
-        val memo = memoRepository.findById(id)
-        if (memo == null) {
-            return false
-        }
-        memo.isDeleted = true
-        return updateMemo(memo)
     }
 }

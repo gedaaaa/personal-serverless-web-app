@@ -18,6 +18,4 @@ data class CreateMemoRequest(
     val content: String,
     @field:Nullable
     val reminderTime: Instant?,
-    @field:NotBlank
-    val userId: String,
 )

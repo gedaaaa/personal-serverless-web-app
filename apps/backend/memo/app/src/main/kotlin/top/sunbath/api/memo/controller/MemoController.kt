@@ -20,6 +20,7 @@ import top.sunbath.api.memo.controller.request.CreateMemoRequest
 import top.sunbath.api.memo.controller.request.UpdateMemoRequest
 import top.sunbath.api.memo.model.Memo
 import top.sunbath.api.memo.service.MemoService
+import top.sunbath.shared.security.currentUser.CurrentUser
 import top.sunbath.shared.types.PagedListResponse
 import java.net.URI
 
@@ -42,8 +43,9 @@ class MemoController(
     fun index(
         @QueryValue(defaultValue = "10") @Max(100) limit: Int,
         @QueryValue()@Nullable() cursor: String?,
+        @CurrentUser userId: String,
     ): PagedListResponse<Memo> {
-        val (memos, nextCursor) = memoService.getAllMemosWithCursor(limit, cursor)
+        val (memos, nextCursor) = memoService.getAllMemosWithCursor(userId, limit, cursor)
         return PagedListResponse(
             items = memos,
             nextCursor = nextCursor,
@@ -58,9 +60,10 @@ class MemoController(
      */
     @Get("/{id}")
     fun show(
+        @CurrentUser userId: String,
         @PathVariable id: String,
     ): HttpResponse<Memo> {
-        val memo = memoService.getMemoById(id)
+        val memo = memoService.getMemoById(userId, id)
         return if (memo != null) {
             HttpResponse.ok(memo)
         } else {
@@ -75,9 +78,9 @@ class MemoController(
      */
     @Post
     fun save(
+        @CurrentUser userId: String,
         @Body @Valid request: CreateMemoRequest,
     ): HttpResponse<Void> {
-        val userId = "TODO: get user id from context"
         val id =
             memoService.createMemo(
                 userId = userId,
@@ -100,9 +103,10 @@ class MemoController(
      */
     @Delete("/{id}")
     fun delete(
+        @CurrentUser userId: String,
         @PathVariable id: String,
     ): HttpResponse<Void> {
-        memoService.deleteMemo(id)
+        memoService.deleteMemo(userId, id)
         return HttpResponse.status(HttpStatus.NO_CONTENT)
     }
 
@@ -114,29 +118,23 @@ class MemoController(
      */
     @Put("/{id}")
     fun update(
+        @CurrentUser userId: String,
         @PathVariable id: String,
         @Body @Valid request: UpdateMemoRequest,
     ): HttpResponse<Memo> {
-        val memo = memoService.getMemoById(id) ?: return HttpResponse.notFound()
-
-        memo.title = request.title ?: memo.title
-        memo.content = request.content ?: memo.content
-        memo.reminderTime = request.reminderTime ?: memo.reminderTime
-        memo.isCompleted = request.isCompleted ?: memo.isCompleted
-
-        val updated =
+        val updateResult =
             memoService.updateMemo(
-                memo = memo,
+                userId = userId,
+                id = id,
+                title = request.title,
+                content = request.content,
+                reminderTime = request.reminderTime,
+                isCompleted = request.isCompleted,
+                isDeleted = null,
             )
 
-        return if (updated) {
-            val updatedMemo = memoService.getMemoById(id)
-            if (updatedMemo != null) {
-                HttpResponse.ok(updatedMemo)
-            } else {
-                // This should never happen as we just updated the memo
-                HttpResponse.serverError()
-            }
+        return if (updateResult) {
+            HttpResponse.ok(memoService.getMemoById(userId, id) ?: return HttpResponse.notFound())
         } else {
             HttpResponse.notFound()
         }

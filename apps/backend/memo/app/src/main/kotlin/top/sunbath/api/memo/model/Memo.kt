@@ -22,7 +22,7 @@ class Memo :
             userId: String,
             isDeleted: Boolean,
             isCompleted: Boolean,
-        ): String = "USER_ID#${userId}_IS_DELETED#${isDeleted}_IS_COMPLETED#$isCompleted"
+        ): String = "CLS#${Memo::class.simpleName}_USER_ID#${userId}_IS_DELETED#{$isDeleted}_IS_COMPLETED#$isCompleted"
 
         fun getReminderTimeSkValue(
             reminderTime: Instant?,

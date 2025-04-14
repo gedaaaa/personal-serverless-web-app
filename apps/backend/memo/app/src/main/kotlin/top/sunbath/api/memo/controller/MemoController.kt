@@ -22,6 +22,7 @@ import top.sunbath.api.memo.model.Memo
 import top.sunbath.api.memo.service.MemoService
 import top.sunbath.shared.security.currentUser.CurrentUser
 import top.sunbath.shared.types.PagedListResponse
+import top.sunbath.shared.types.UserInfo
 import java.net.URI
 
 /**
@@ -43,9 +44,9 @@ class MemoController(
     fun index(
         @QueryValue(defaultValue = "10") @Max(100) limit: Int,
         @QueryValue()@Nullable() cursor: String?,
-        @CurrentUser userId: String,
+        @CurrentUser userInfo: UserInfo,
     ): PagedListResponse<Memo> {
-        val (memos, nextCursor) = memoService.getAllMemosWithCursor(userId, limit, cursor)
+        val (memos, nextCursor) = memoService.getAllMemosWithCursor(userInfo, limit, cursor)
         return PagedListResponse(
             items = memos,
             nextCursor = nextCursor,
@@ -60,10 +61,10 @@ class MemoController(
      */
     @Get("/{id}")
     fun show(
-        @CurrentUser userId: String,
+        @CurrentUser userInfo: UserInfo,
         @PathVariable id: String,
     ): HttpResponse<Memo> {
-        val memo = memoService.getMemoById(userId, id)
+        val memo = memoService.getMemoById(userInfo, id)
         return if (memo != null) {
             HttpResponse.ok(memo)
         } else {
@@ -78,12 +79,12 @@ class MemoController(
      */
     @Post
     fun save(
-        @CurrentUser userId: String,
+        @CurrentUser userInfo: UserInfo,
         @Body @Valid request: CreateMemoRequest,
     ): HttpResponse<Void> {
         val id =
             memoService.createMemo(
-                userId = userId,
+                userInfo = userInfo,
                 title = request.title,
                 content = request.content,
                 reminderTime = request.reminderTime,
@@ -103,10 +104,10 @@ class MemoController(
      */
     @Delete("/{id}")
     fun delete(
-        @CurrentUser userId: String,
+        @CurrentUser userInfo: UserInfo,
         @PathVariable id: String,
     ): HttpResponse<Void> {
-        memoService.deleteMemo(userId, id)
+        memoService.deleteMemo(userInfo, id)
         return HttpResponse.status(HttpStatus.NO_CONTENT)
     }
 
@@ -118,13 +119,13 @@ class MemoController(
      */
     @Put("/{id}")
     fun update(
-        @CurrentUser userId: String,
+        @CurrentUser userInfo: UserInfo,
         @PathVariable id: String,
         @Body @Valid request: UpdateMemoRequest,
     ): HttpResponse<Memo> {
         val updateResult =
             memoService.updateMemo(
-                userId = userId,
+                userInfo = userInfo,
                 id = id,
                 title = request.title,
                 content = request.content,
@@ -134,7 +135,7 @@ class MemoController(
             )
 
         return if (updateResult) {
-            HttpResponse.ok(memoService.getMemoById(userId, id) ?: return HttpResponse.notFound())
+            HttpResponse.ok(memoService.getMemoById(userInfo, id) ?: return HttpResponse.notFound())
         } else {
             HttpResponse.notFound()
         }

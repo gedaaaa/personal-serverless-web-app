@@ -21,6 +21,7 @@ class JwtService(
             mapOf(
                 "sub" to user.id,
                 "username" to user.username,
+                "email" to user.email,
                 "roles" to user.roles,
             )
         return jwtTokenGenerator.generateToken(claims).get()

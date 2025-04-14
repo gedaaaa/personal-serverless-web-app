@@ -8,6 +8,7 @@ import top.sunbath.api.memo.repository.MemoRepository
 import top.sunbath.api.memo.repository.MemoSort
 import top.sunbath.api.memo.repository.MemoSortKey
 import top.sunbath.api.memo.repository.MemoSortOrder
+import top.sunbath.shared.types.UserInfo
 import java.time.Instant
 
 /**
@@ -16,40 +17,45 @@ import java.time.Instant
 @Singleton
 class MemoService(
     private val memoRepository: MemoRepository,
+    private val notificationScheduleService: NotificationScheduleService,
 ) {
     private val logger = LoggerFactory.getLogger(Memo::class.java)
 
     fun createMemo(
-        userId: String,
+        userInfo: UserInfo,
         title: String,
         content: String,
         reminderTime: Instant?,
     ): String {
-        // TODO: notification
-        return memoRepository.save(
-            userId = userId,
-            title = title,
-            content = content,
-            reminderTime = reminderTime,
-        )
+        val memoId =
+            memoRepository.save(
+                userId = userInfo.id,
+                title = title,
+                content = content,
+                reminderTime = reminderTime,
+            )
+
+        handleNotificationSchedule(memoId, userInfo.email)
+
+        return memoId
     }
 
     fun getMemoById(
-        userId: String,
+        userInfo: UserInfo,
         id: String,
     ): Memo? {
         val memo = memoRepository.findById(id)
         if (memo == null) {
             return null
         }
-        if (memo.userId != userId) {
+        if (memo.userId != userInfo.id) {
             return null
         }
         return memo
     }
 
     fun getAllMemosWithCursor(
-        userId: String,
+        userInfo: UserInfo,
         limit: Int,
         cursor: String?,
     ): Pair<List<Memo>, String?> {
@@ -59,7 +65,7 @@ class MemoService(
                 lastEvaluatedId = cursor,
                 filter =
                     MemoListFilter(
-                        userId = userId,
+                        userId = userInfo.id,
                         isCompleted = false,
                         isDeleted = false,
                     ),
@@ -70,14 +76,11 @@ class MemoService(
                     ),
             )
 
-        // TODO: add userId filter
-        logger.info("memos: $memos, userId: $userId")
-
         return memos
     }
 
     fun updateMemo(
-        userId: String,
+        userInfo: UserInfo,
         id: String,
         title: String?,
         content: String?,
@@ -90,40 +93,66 @@ class MemoService(
             return false
         }
 
-        if (existingMemo.userId != userId) {
+        if (existingMemo.userId != userInfo.id) {
             return false
         }
 
-        // TODO: notification
-        return memoRepository.update(
-            id = id,
-            title = title ?: existingMemo.title,
-            content = content ?: existingMemo.content,
-            reminderTime = reminderTime ?: existingMemo.reminderTime,
-            isCompleted = isCompleted ?: existingMemo.isCompleted,
-            isDeleted = isDeleted ?: existingMemo.isDeleted,
-        )
+        val updateSuccess =
+            memoRepository.update(
+                id = id,
+                title = title ?: existingMemo.title,
+                content = content ?: existingMemo.content,
+                reminderTime = reminderTime ?: existingMemo.reminderTime,
+                isCompleted = isCompleted ?: existingMemo.isCompleted,
+                isDeleted = isDeleted ?: existingMemo.isDeleted,
+            )
+
+        if (updateSuccess) {
+            handleNotificationSchedule(id, userInfo.email)
+        }
+
+        return updateSuccess
     }
 
     fun deleteMemo(
-        userId: String,
+        userInfo: UserInfo,
         id: String,
     ): Boolean {
         val memo = memoRepository.findById(id)
         if (memo == null) {
             return false
         }
-        if (memo.userId != userId) {
+        if (memo.userId != userInfo.id) {
             return false
         }
-        // TODO: notification
-        return memoRepository.update(
-            id = id,
-            title = memo.title,
-            content = memo.content,
-            reminderTime = memo.reminderTime,
-            isCompleted = memo.isCompleted,
-            isDeleted = true,
-        )
+        val updateSuccess =
+            memoRepository.update(
+                id = id,
+                title = memo.title,
+                content = memo.content,
+                reminderTime = memo.reminderTime,
+                isCompleted = memo.isCompleted,
+                isDeleted = true,
+            )
+
+        if (updateSuccess) {
+            handleNotificationSchedule(id, userInfo.email)
+        }
+
+        return updateSuccess
+    }
+
+    private fun handleNotificationSchedule(
+        memoId: String,
+        userEmail: String,
+    ) {
+        try {
+            val memo = memoRepository.findById(memoId)
+            if (memo != null) {
+                notificationScheduleService.handleNotificationSchedule(memo, userEmail)
+            }
+        } catch (e: Exception) {
+            logger.error("Error handling notification schedule", e)
+        }
     }
 }

@@ -8,6 +8,7 @@ import io.micronaut.security.authentication.Authentication
 import io.micronaut.security.utils.SecurityService
 import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
+import top.sunbath.shared.types.UserInfo
 
 /**
  * Method interceptor that resolves @CurrentUser annotated parameters in controller methods.
@@ -42,14 +43,23 @@ class CurrentUserMethodInterceptor(
         }
 
         // Get user ID from JWT claims (sub field)
-        val userId = authentication.name
+        val userId = authentication.attributes["sub"] as String
+        val username = authentication.attributes["username"] as String
+        val email = authentication.attributes["email"] as String
+
+        val userInfo =
+            UserInfo(
+                id = userId,
+                username = username,
+                email = email,
+            )
 
         // Set user ID for all @CurrentUser parameters
         parameters.forEach { (name, _) ->
             val param = context.parameters[name]
-            if (param is MutableArgumentValue<*> && param.type == String::class.java) {
+            if (param is MutableArgumentValue<*> && param.type == UserInfo::class.java) {
                 @Suppress("UNCHECKED_CAST")
-                (param as MutableArgumentValue<String>).setValue(userId)
+                (param as MutableArgumentValue<UserInfo>).setValue(userInfo)
             }
         }
 

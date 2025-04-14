@@ -5,6 +5,28 @@ import jakarta.validation.constraints.NotBlank
 import top.sunbath.api.memo.model.Memo
 import java.time.Instant
 
+data class MemoListFilter(
+    val userId: String,
+    val isCompleted: Boolean,
+    val isDeleted: Boolean,
+)
+
+enum class MemoSortOrder {
+    ASC,
+    DESC,
+}
+
+enum class MemoSortKey(
+    val value: String,
+) {
+    REMINDER_TIME("reminderTime"),
+}
+
+data class MemoSort(
+    val sortOrder: MemoSortOrder? = MemoSortOrder.ASC,
+    val sortKey: MemoSortKey? = MemoSortKey.REMINDER_TIME,
+)
+
 /**
  * Repository interface for Memo entity operations.
  */
@@ -19,6 +41,8 @@ interface MemoRepository {
     fun findAllWithCursor(
         limit: Int,
         lastEvaluatedId: String?,
+        filter: MemoListFilter,
+        sort: MemoSort,
     ): Pair<List<Memo>, String?>
 
     /**

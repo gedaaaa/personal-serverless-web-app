@@ -17,6 +17,19 @@ import java.time.Instant
 class Memo :
     Identified,
     Indexable {
+    companion object {
+        fun getUserIdStatusPkValue(
+            userId: String,
+            isDeleted: Boolean,
+            isCompleted: Boolean,
+        ): String = "USER_ID#${userId}_IS_DELETED#${isDeleted}_IS_COMPLETED#$isCompleted"
+
+        fun getReminderTimeSkValue(
+            reminderTime: Instant?,
+            createdAt: Instant,
+        ): String = "REMINDER_TIME#${reminderTime?.toString() ?: "9999-12-31T23:59:59.999Z"}_CREATED_AT#$createdAt"
+    }
+
     @get:NonNull
     override var id: String? = null
 
@@ -76,6 +89,13 @@ class Memo :
      */
     override fun getIndexValues(): Map<String, String> {
         val indexValues = mutableMapOf<String, String>()
+
+        // 为USER_FILTER_INDEX创建索引值
+        // 分区键：userId_isDeleted_isCompleted
+        indexValues["USER_FILTER_PK"] = getUserIdStatusPkValue(userId, isDeleted, isCompleted)
+
+        // 排序键：reminderTime_createTime
+        indexValues["USER_FILTER_SK"] = getReminderTimeSkValue(reminderTime, createdAt)
 
         return indexValues
     }

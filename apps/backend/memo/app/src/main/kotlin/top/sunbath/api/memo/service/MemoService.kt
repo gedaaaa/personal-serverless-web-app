@@ -3,7 +3,11 @@ package top.sunbath.api.memo.service
 import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
 import top.sunbath.api.memo.model.Memo
+import top.sunbath.api.memo.repository.MemoListFilter
 import top.sunbath.api.memo.repository.MemoRepository
+import top.sunbath.api.memo.repository.MemoSort
+import top.sunbath.api.memo.repository.MemoSortKey
+import top.sunbath.api.memo.repository.MemoSortOrder
 import java.time.Instant
 
 /**
@@ -53,6 +57,17 @@ class MemoService(
             memoRepository.findAllWithCursor(
                 limit = limit,
                 lastEvaluatedId = cursor,
+                filter =
+                    MemoListFilter(
+                        userId = userId,
+                        isCompleted = false,
+                        isDeleted = false,
+                    ),
+                sort =
+                    MemoSort(
+                        sortOrder = MemoSortOrder.ASC,
+                        sortKey = MemoSortKey.REMINDER_TIME,
+                    ),
             )
 
         // TODO: add userId filter

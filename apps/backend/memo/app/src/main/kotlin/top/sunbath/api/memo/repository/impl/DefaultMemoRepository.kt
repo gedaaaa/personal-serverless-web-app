@@ -16,7 +16,10 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemResponse
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse
 import top.sunbath.api.memo.model.Memo
+import top.sunbath.api.memo.repository.MemoListFilter
 import top.sunbath.api.memo.repository.MemoRepository
+import top.sunbath.api.memo.repository.MemoSort
+import top.sunbath.api.memo.repository.MemoSortOrder
 import top.sunbath.shared.dynamodb.DynamoConfiguration
 import top.sunbath.shared.dynamodb.DynamoRepository
 import top.sunbath.shared.dynamodb.IdGenerator
@@ -41,14 +44,14 @@ open class DefaultMemoRepository(
         private const val ATTRIBUTE_IS_COMPLETED = "isCompleted"
         private const val ATTRIBUTE_IS_DELETED = "isDeleted"
 
-        // Define index constants
-        private const val USER_ID_STATUS_INDEX = "USER_ID_STATUS_INDEX"
-        private const val USER_ID_STATUS_PK = "USER_ID_STATUS_PK"
-        private const val USER_ID_STATUS_SK = "USER_ID_STATUS_SK"
+        // Define index constants for USER_FILTER_INDEX
+        private const val PK_USER_STATUS_SK_REMIDER_TIME_INDEX = "P_USER_STATUS_S_REMIDER_TIME_INDEX"
+        private const val PK_USER_STATUS = "USER_FILTER_PK" // 分区键：USER_ID#userId_IS_DELETED#isDeleted_IS_COMPLETED#isCompleted
+        private const val SK_REMIDER_TIME = "USER_FILTER_SK" // 排序键：REMINDER_TIME#reminderTime_CREATED_AT#createdAt
 
         // Register indexes
         init {
-            DynamoRepository.registerIndex(IndexDefinition(USER_ID_STATUS_INDEX, USER_ID_STATUS_PK, USER_ID_STATUS_SK))
+            DynamoRepository.registerIndex(IndexDefinition(PK_USER_STATUS_SK_REMIDER_TIME_INDEX, PK_USER_STATUS, SK_REMIDER_TIME))
         }
     }
 
@@ -56,7 +59,7 @@ open class DefaultMemoRepository(
     init {
         // This ensures that the companion object's init block is executed
         // and the indexes are registered before the repository is used
-        LOG.debug("Initializing DefaultMemoRepository with user_id_status index: $USER_ID_STATUS_INDEX")
+        LOG.debug("Initializing DefaultMemoRepository with user_filter index: $PK_USER_STATUS_SK_REMIDER_TIME_INDEX")
     }
 
     @NonNull
@@ -129,20 +132,79 @@ open class DefaultMemoRepository(
     override fun findAllWithCursor(
         limit: Int,
         lastEvaluatedId: String?,
+        filter: MemoListFilter,
+        sort: MemoSort,
     ): Pair<List<Memo>, String?> {
         if (limit <= 0) {
             return Pair(emptyList(), null)
         }
 
-        val request: QueryRequest = findAllQueryRequest(Memo::class.java, lastEvaluatedId, limit)
-        val response: QueryResponse = dynamoDbClient.query(request)
+        // Build partition key value
+        val userFilterPkValue =
+            Memo.getUserIdStatusPkValue(
+                userId = filter.userId,
+                isDeleted = filter.isDeleted,
+                isCompleted = filter.isCompleted,
+            )
 
+        // Create query request
+        val requestBuilder =
+            QueryRequest
+                .builder()
+                .tableName(dynamoConfiguration.tableName)
+                .indexName(PK_USER_STATUS_SK_REMIDER_TIME_INDEX)
+                .scanIndexForward(sort.sortOrder == MemoSortOrder.ASC) // Determine scan direction based on sort order
+                .limit(limit)
+
+        if (lastEvaluatedId == null) {
+            // First query
+            requestBuilder
+                .keyConditionExpression("#pk = :pk")
+                .expressionAttributeNames(
+                    mapOf("#pk" to PK_USER_STATUS),
+                ).expressionAttributeValues(
+                    mapOf(":pk" to AttributeValue.builder().s(userFilterPkValue).build()),
+                )
+        } else {
+            // Pagination query - need last evaluated ID from previous query
+            // Get last item's sort key value
+            val lastItem = findById(Memo::class.java, lastEvaluatedId)
+
+            if (lastItem == null) {
+                // If the item corresponding to the previous ID is not found, treat it as the first query
+                return findAllWithCursor(limit, null, filter, sort)
+            }
+
+            // Build pagination query
+            requestBuilder
+                .keyConditionExpression("#pk = :pk AND #sk < :sk")
+                .expressionAttributeNames(
+                    mapOf(
+                        "#pk" to PK_USER_STATUS,
+                        "#sk" to SK_REMIDER_TIME,
+                    ),
+                ).expressionAttributeValues(
+                    mapOf(
+                        ":pk" to AttributeValue.builder().s(userFilterPkValue).build(),
+                        ":sk" to AttributeValue.builder().s(lastItem[SK_REMIDER_TIME]!!.s()).build(),
+                    ),
+                )
+        }
+
+        val response = dynamoDbClient.query(requestBuilder.build())
         if (LOG.isTraceEnabled) {
             LOG.trace(response.toString())
         }
-
         val memos = parseInResponse(response)
-        val nextCursor = lastEvaluatedId(response, Memo::class.java).orElse(null)
+
+        // Get next page cursor
+        val nextCursor =
+            if (response.hasLastEvaluatedKey()) {
+                val item = response.lastEvaluatedKey()
+                item[ATTRIBUTE_ID]?.s()
+            } else {
+                null
+            }
 
         return Pair(memos, nextCursor)
     }

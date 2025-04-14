@@ -10,7 +10,7 @@ import top.sunbath.api.email.service.EmailService
 import top.sunbath.shared.types.EmailData
 
 @Introspected
-class FunctionHandler : MicronautRequestHandler<SQSEvent, String>() {
+class SendEmailFunctionHandler : MicronautRequestHandler<SQSEvent, String>() {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val objectMapper = ObjectMapper()
 

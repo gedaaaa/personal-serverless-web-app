@@ -67,13 +67,15 @@ class SqsEmailNotificationService(
 
             val messageBody = objectMapper.writeValueAsString(emailData)
             val memoReminderTime = memo.reminderTime!!
+            // 30s before the reminder time
+            val delaySeconds = Math.max(memoReminderTime.epochSecond - Instant.now().epochSecond - 30, 0).toInt()
             val response =
                 sqsClient.sendMessage(
                     SendMessageRequest
                         .builder()
                         .queueUrl(queueUrl)
                         .messageBody(messageBody)
-                        .delaySeconds((memoReminderTime.epochSecond - Instant.now().epochSecond - 30).toInt())
+                        .delaySeconds(delaySeconds)
                         .build(),
                 )
             val messageId = response.messageId()

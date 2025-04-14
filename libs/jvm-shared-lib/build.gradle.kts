@@ -53,4 +53,8 @@ dependencies {
     implementation(libs.jakarta.validation)
     implementation(libs.ksuid)
     runtimeOnly(libs.jackson.module.kotlin)
+
+    // Test Dependencies
+    testImplementation(libs.mockk)
+    testImplementation(libs.micronaut.test.junit5)
 }

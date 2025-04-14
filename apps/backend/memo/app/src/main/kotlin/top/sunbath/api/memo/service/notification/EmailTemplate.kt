@@ -1,4 +1,4 @@
-package top.sunbath.api.memo.service
+package top.sunbath.api.memo.service.notification
 
 import top.sunbath.api.memo.model.Memo
 import java.time.ZoneId

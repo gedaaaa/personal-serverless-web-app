@@ -5,6 +5,7 @@ import io.micronaut.core.annotation.Introspected
 import io.micronaut.core.annotation.NonNull
 import io.micronaut.core.annotation.Nullable
 import io.micronaut.serde.annotation.Serdeable
+import jakarta.validation.constraints.Size
 import top.sunbath.shared.dynamodb.Identified
 import top.sunbath.shared.dynamodb.Indexable
 import java.time.Instant
@@ -34,9 +35,11 @@ class Memo :
     override var id: String? = null
 
     @get:NonNull
+    @get:Size(min = 0, max = 100)
     var title: String = ""
 
     @get:NonNull
+    @get:Size(min = 0, max = 1000)
     var content: String = ""
 
     @get:NonNull

@@ -35,7 +35,7 @@ class MemoService(
                 reminderTime = reminderTime,
             )
 
-        handleNotificationSchedule(memoId, userInfo.email)
+        handleNotificationSchedule(memoId, userInfo)
 
         return memoId
     }
@@ -108,7 +108,7 @@ class MemoService(
             )
 
         if (updateSuccess) {
-            handleNotificationSchedule(id, userInfo.email)
+            handleNotificationSchedule(id, userInfo)
         }
 
         return updateSuccess
@@ -136,7 +136,7 @@ class MemoService(
             )
 
         if (updateSuccess) {
-            handleNotificationSchedule(id, userInfo.email)
+            handleNotificationSchedule(id, userInfo)
         }
 
         return updateSuccess
@@ -144,12 +144,12 @@ class MemoService(
 
     private fun handleNotificationSchedule(
         memoId: String,
-        userEmail: String,
+        userInfo: UserInfo,
     ) {
         try {
             val memo = memoRepository.findById(memoId)
             if (memo != null) {
-                notificationScheduleService.handleNotificationSchedule(memo, userEmail)
+                notificationScheduleService.handleNotificationSchedule(memo, userInfo)
             }
         } catch (e: Exception) {
             logger.error("Error handling notification schedule", e)

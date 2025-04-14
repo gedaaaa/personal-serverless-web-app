@@ -30,7 +30,7 @@ tasks.withType<org.jlleitschuh.gradle.ktlint.tasks.KtLintFormatTask>().configure
 }
 
 version = "0.1"
-group = "top.sunbath.api.auth"
+group = "top.sunbath.api.memo"
 
 dependencies {
     // Platform BOMs
@@ -61,7 +61,6 @@ dependencies {
     implementation(libs.aws.sqs)
 
     // Other Third-Party Dependencies
-    implementation(libs.bcrypt)
     implementation(libs.jackson.databind)
     implementation(libs.jakarta.validation)
     implementation(libs.kotlin.stdlib)
@@ -79,7 +78,7 @@ dependencies {
 }
 
 application {
-    mainClass = "top.sunbath.api.auth.ApplicationKt"
+    mainClass = "top.sunbath.api.memo.ApplicationKt"
 }
 java {
     sourceCompatibility = JavaVersion.toVersion("21")
@@ -95,7 +94,7 @@ micronaut {
     }
     processing {
         incremental(true)
-        annotations("top.sunbath.api.auth.*")
+        annotations("top.sunbath.api.memo.*")
     }
     aot {
         // Please review carefully the optimizations enabled below

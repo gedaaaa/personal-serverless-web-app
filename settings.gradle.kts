@@ -109,5 +109,7 @@ include("apps:backend:email:app")
 include("apps:backend:email:infra")
 include("apps:backend:helloworld:app")
 include("apps:backend:helloworld:infra")
+include("apps:backend:memo:app")
+include("apps:backend:memo:infra")
 
 include("libs:jvm-shared-lib")

@@ -55,7 +55,7 @@ class UsersControllerTest {
         val result = controller.index(limit, cursor)
 
         // Then
-        assertEquals(users, result.users)
+        assertEquals(users, result.items)
         assertEquals(nextCursor, result.nextCursor)
         assertEquals(true, result.hasMore)
 

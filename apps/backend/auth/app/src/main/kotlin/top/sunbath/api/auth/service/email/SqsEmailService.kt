@@ -10,6 +10,8 @@ import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import top.sunbath.shared.sqs.SqsConfiguration
 import top.sunbath.shared.types.EmailData
+import top.sunbath.shared.types.SqsMessage
+import java.util.UUID
 
 /**
  * Email service implementation using Resend.
@@ -64,7 +66,13 @@ class SqsEmailService(
                     html = html,
                 )
 
-            val messageBody = objectMapper.writeValueAsString(emailData)
+            val message =
+                SqsMessage(
+                    id = UUID.randomUUID().toString(),
+                    data = emailData,
+                )
+
+            val messageBody = objectMapper.writeValueAsString(message)
 
             sqsClient.sendMessage(
                 SendMessageRequest

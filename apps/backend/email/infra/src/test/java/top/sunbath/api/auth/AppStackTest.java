@@ -14,7 +14,9 @@ class AppStackTest {
             AppStack stack = new AppStack(new App(), "TestEmailAppStack");
             Template template = Template.fromStack(stack);
             template.hasResourceProperties("AWS::Lambda::Function",
-                    Collections.singletonMap("Handler", "top.sunbath.api.email.handler.FunctionHandler"));
+                    Collections.singletonMap("Handler", "top.sunbath.api.email.handler.EmailFunctionHandler"));
+            template.hasResourceProperties("AWS::Lambda::Function",
+                    Collections.singletonMap("Handler", "top.sunbath.api.email.handler.CancelEmailFunctionHandler"));
         }
     }
 }

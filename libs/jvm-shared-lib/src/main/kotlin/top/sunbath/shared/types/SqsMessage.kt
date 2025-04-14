@@ -1,6 +1,15 @@
 package top.sunbath.shared.types
 
-data class SqsMessage<T>(
-    val id: String,
-    val data: T,
-)
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
+import io.micronaut.core.annotation.Introspected
+import io.micronaut.serde.annotation.Serdeable
+
+@Introspected
+@Serdeable
+data class SqsMessage<T>
+    @JsonCreator
+    constructor(
+        @JsonProperty("id") val id: String,
+        @JsonProperty("data") val data: T,
+    )

@@ -331,4 +331,4 @@ class NotificationScheduleServiceTest {
         verify(exactly = 1) { notificationService.sendNotification(memo, testUserInfo) }
         verify(exactly = 1) { notificationScheduleRepository.save(memoId, newNotificationId, futureTime) }
     }
-} 
+}

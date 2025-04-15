@@ -13,7 +13,7 @@ import top.sunbath.shared.types.CurrentUser
  */
 @Singleton
 @Requires(env = ["dev"])
-class DoNothingNotificationService : NotificationService {
+open class DoNothingNotificationService : NotificationService {
     private val logger = LoggerFactory.getLogger(DoNothingNotificationService::class.java)
 
     override fun sendNotification(

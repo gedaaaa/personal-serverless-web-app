@@ -26,7 +26,7 @@ interface NotificationScheduleRepository {
     fun save(
         @NonNull @NotBlank id: String,
         @NonNull @NotBlank notificationId: String,
-        @NonNull @NotBlank reminderTime: Instant,
+        @NonNull reminderTime: Instant,
     ): String
 
     /**

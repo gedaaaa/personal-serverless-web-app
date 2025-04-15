@@ -55,7 +55,7 @@ open class DefaultNotificationScheduleRepository(
     override fun save(
         @NonNull @NotBlank id: String,
         @NonNull @NotBlank notificationId: String,
-        @NonNull @NotBlank reminderTime: Instant,
+        @NonNull reminderTime: Instant,
     ): String {
         save(
             NotificationSchedule(

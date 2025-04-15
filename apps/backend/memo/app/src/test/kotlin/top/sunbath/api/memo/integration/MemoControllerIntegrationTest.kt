@@ -5,11 +5,9 @@ import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
 import io.micronaut.security.token.jwt.generator.JwtTokenGenerator
-import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import io.mockk.mockk
+import io.mockk.verify
 import jakarta.inject.Inject
-import jakarta.inject.Singleton
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -29,7 +27,7 @@ import top.sunbath.shared.dynamodb.DynamoConfiguration
 import top.sunbath.shared.types.CurrentUser
 import top.sunbath.shared.types.PagedListResponse
 
-@MicronautTest
+@MicronautTest(environments = ["test"])
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MemoControllerIntegrationTest {
     @Inject
@@ -48,9 +46,8 @@ class MemoControllerIntegrationTest {
     @Inject
     lateinit var dynamoConfiguration: DynamoConfiguration
 
-    @MockBean(NotificationService::class)
-    @Singleton
-    fun mockNotificationService(): NotificationService = mockk(relaxed = true)
+    @Inject
+    lateinit var notificationService: NotificationService
 
     // Test User Info
     private val testUser = TestUserFactory.createUserInfo()
@@ -247,6 +244,13 @@ class MemoControllerIntegrationTest {
         // Assert
         assertEquals(HttpStatus.CREATED, response.status)
         assertNotNull(response.header("Location"))
+
+        verify(exactly = 1) {
+            notificationService.sendNotification(
+                memo = any<Memo>(),
+                to = any<CurrentUser>(),
+            )
+        }
     }
 
     @Test
@@ -280,11 +284,6 @@ class MemoControllerIntegrationTest {
         assertEquals(updateRequest.content, body.content)
         assertEquals(updateRequest.reminderTime, body.reminderTime)
         assertEquals(updateRequest.isCompleted, body.isCompleted)
-
-        // Verify notification is not scheduled
-        // verify(exactly = 0) {
-        //     notificationService.sendNotification(any(), any())
-        // }
     }
 
     @Test

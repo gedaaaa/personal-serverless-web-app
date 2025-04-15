@@ -28,7 +28,6 @@ import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 import java.util.Arrays
 import java.util.Collections
-import java.util.Optional
 
 @Requires(condition = CIAwsRegionProviderChainCondition::class)
 @Requires(condition = CIAwsCredentialsProviderChainCondition::class)
@@ -65,14 +64,14 @@ open class DynamoRepository<T : Identified>(
         fun lastEvaluatedId(
             @NonNull response: QueryResponse,
             @NonNull cls: Class<*>,
-        ): Optional<String> {
+        ): String? {
             if (response.hasLastEvaluatedKey()) {
                 val item = response.lastEvaluatedKey()
                 if (item != null && item.containsKey(ATTRIBUTE_PK)) {
                     return id(cls, item[ATTRIBUTE_PK]!!)
                 }
             }
-            return Optional.empty()
+            return null
         }
 
         private fun gsi1(): GlobalSecondaryIndex =
@@ -142,10 +141,10 @@ open class DynamoRepository<T : Identified>(
         protected fun id(
             @NonNull cls: Class<*>,
             @NonNull attributeValue: AttributeValue,
-        ): Optional<String> {
+        ): String? {
             val str = attributeValue.s()
             val substring = cls.simpleName.uppercase() + HASH
-            return if (str.startsWith(substring)) Optional.of(str.substring(substring.length)) else Optional.empty()
+            return if (str.startsWith(substring)) str.substring(substring.length) else null
         }
     }
 

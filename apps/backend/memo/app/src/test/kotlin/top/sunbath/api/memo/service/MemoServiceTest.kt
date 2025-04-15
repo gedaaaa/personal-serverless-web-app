@@ -21,7 +21,7 @@ import top.sunbath.api.memo.repository.MemoRepository
 import top.sunbath.api.memo.repository.MemoSort
 import top.sunbath.api.memo.repository.MemoSortKey
 import top.sunbath.api.memo.repository.MemoSortOrder
-import top.sunbath.shared.types.UserInfo
+import top.sunbath.shared.types.CurrentUser
 import java.time.Instant
 
 /**
@@ -38,7 +38,7 @@ class MemoServiceTest {
     private lateinit var memoService: MemoService
 
     private val testUserInfo =
-        UserInfo(
+        CurrentUser(
             id = "test-user-id",
             username = "testuser",
             email = "test@example.com",

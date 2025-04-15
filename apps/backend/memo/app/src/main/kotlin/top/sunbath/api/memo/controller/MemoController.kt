@@ -16,24 +16,26 @@ import io.micronaut.security.annotation.Secured
 import io.micronaut.validation.Validated
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
+import org.slf4j.LoggerFactory
 import top.sunbath.api.memo.controller.request.CreateMemoRequest
 import top.sunbath.api.memo.controller.request.UpdateMemoRequest
 import top.sunbath.api.memo.model.Memo
 import top.sunbath.api.memo.service.MemoService
-import top.sunbath.shared.security.currentUser.CurrentUser
+import top.sunbath.shared.types.CurrentUser
 import top.sunbath.shared.types.PagedListResponse
-import top.sunbath.shared.types.UserInfo
 import java.net.URI
 
 /**
  * Controller for Memo CRUD operations.
  */
 @Validated
-@Controller("")
+@Controller("/items")
 @Secured("ROLE_USER")
 class MemoController(
     private val memoService: MemoService,
 ) {
+    private val logger = LoggerFactory.getLogger(MemoController::class.java)
+
     /**
      * Get all memos with pagination.
      * @param limit The maximum number of memos to return (default: 10)
@@ -44,13 +46,15 @@ class MemoController(
     fun index(
         @QueryValue(defaultValue = "10") @Max(100) limit: Int,
         @QueryValue()@Nullable() cursor: String?,
-        @CurrentUser userInfo: UserInfo,
-    ): PagedListResponse<Memo> {
+        userInfo: CurrentUser,
+    ): HttpResponse<PagedListResponse<Memo>> {
         val (memos, nextCursor) = memoService.getAllMemosWithCursor(userInfo, limit, cursor)
-        return PagedListResponse(
-            items = memos,
-            nextCursor = nextCursor,
-            hasMore = nextCursor != null,
+        return HttpResponse.ok(
+            PagedListResponse(
+                items = memos,
+                nextCursor = nextCursor,
+                hasMore = nextCursor != null,
+            ),
         )
     }
 
@@ -61,7 +65,7 @@ class MemoController(
      */
     @Get("/{id}")
     fun show(
-        @CurrentUser userInfo: UserInfo,
+        userInfo: CurrentUser,
         @PathVariable id: String,
     ): HttpResponse<Memo> {
         val memo = memoService.getMemoById(userInfo, id)
@@ -79,7 +83,7 @@ class MemoController(
      */
     @Post
     fun save(
-        @CurrentUser userInfo: UserInfo,
+        userInfo: CurrentUser,
         @Body @Valid request: CreateMemoRequest,
     ): HttpResponse<Void> {
         val id =
@@ -104,7 +108,7 @@ class MemoController(
      */
     @Delete("/{id}")
     fun delete(
-        @CurrentUser userInfo: UserInfo,
+        userInfo: CurrentUser,
         @PathVariable id: String,
     ): HttpResponse<Void> {
         memoService.deleteMemo(userInfo, id)
@@ -119,7 +123,7 @@ class MemoController(
      */
     @Put("/{id}")
     fun update(
-        @CurrentUser userInfo: UserInfo,
+        userInfo: CurrentUser,
         @PathVariable id: String,
         @Body @Valid request: UpdateMemoRequest,
     ): HttpResponse<Memo> {

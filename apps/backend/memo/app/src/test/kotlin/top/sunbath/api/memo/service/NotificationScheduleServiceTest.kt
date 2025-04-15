@@ -15,7 +15,7 @@ import top.sunbath.api.memo.model.Memo
 import top.sunbath.api.memo.model.NotificationSchedule
 import top.sunbath.api.memo.repository.NotificationScheduleRepository
 import top.sunbath.api.memo.service.notification.NotificationService
-import top.sunbath.shared.types.UserInfo
+import top.sunbath.shared.types.CurrentUser
 import java.time.Instant
 
 /**
@@ -32,7 +32,7 @@ class NotificationScheduleServiceTest {
     private lateinit var notificationScheduleService: NotificationScheduleService
 
     private val testUserInfo =
-        UserInfo(
+        CurrentUser(
             id = "test-user-id",
             username = "testuser",
             email = "test@example.com",

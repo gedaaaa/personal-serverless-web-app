@@ -1,0 +1,15 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+    </root>
+    s
+    <logger name="io.micronaut" level="INFO"/>
+    <logger name="top.sunbath.api.memo" level="DEBUG"/>
+    <logger name="io.micronaut.security" level="INFO"/>
+</configuration> 

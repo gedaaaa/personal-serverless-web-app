@@ -1,7 +1,7 @@
 package top.sunbath.api.memo.service.notification
 
 import top.sunbath.api.memo.model.Memo
-import top.sunbath.shared.types.UserInfo
+import top.sunbath.shared.types.CurrentUser
 
 interface NotificationService {
     /**
@@ -13,7 +13,7 @@ interface NotificationService {
      */
     fun sendNotification(
         memo: Memo,
-        to: UserInfo,
+        to: CurrentUser,
     ): String?
 
     /**

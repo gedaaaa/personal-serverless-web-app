@@ -139,6 +139,9 @@ open class DefaultMemoRepository(
             return Pair(emptyList(), null)
         }
 
+        val direction = sort.sortOrder == MemoSortOrder.ASC
+        val skOperator = if (direction) ">" else "<"
+
         // Build partition key value
         val userFilterPkValue =
             Memo.getUserIdStatusPkValue(
@@ -153,7 +156,7 @@ open class DefaultMemoRepository(
                 .builder()
                 .tableName(dynamoConfiguration.tableName)
                 .indexName(PK_USER_STATUS_SK_REMIDER_TIME_INDEX)
-                .scanIndexForward(sort.sortOrder == MemoSortOrder.ASC) // Determine scan direction based on sort order
+                .scanIndexForward(direction) // Determine scan direction based on sort order
                 .limit(limit)
 
         if (lastEvaluatedId == null) {
@@ -177,7 +180,7 @@ open class DefaultMemoRepository(
 
             // Build pagination query
             requestBuilder
-                .keyConditionExpression("#pk = :pk AND #sk < :sk")
+                .keyConditionExpression("#pk = :pk AND #sk $skOperator :sk")
                 .expressionAttributeNames(
                     mapOf(
                         "#pk" to PK_USER_STATUS,
@@ -198,13 +201,7 @@ open class DefaultMemoRepository(
         val memos = parseInResponse(response)
 
         // Get next page cursor
-        val nextCursor =
-            if (response.hasLastEvaluatedKey()) {
-                val item = response.lastEvaluatedKey()
-                item[ATTRIBUTE_ID]?.s()
-            } else {
-                null
-            }
+        val nextCursor = lastEvaluatedId(response, Memo::class.java)
 
         return Pair(memos, nextCursor)
     }

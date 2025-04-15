@@ -11,9 +11,9 @@ import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import top.sunbath.api.memo.model.Memo
 import top.sunbath.api.memo.service.notification.EmailTemplate
 import top.sunbath.shared.sqs.SqsConfiguration
+import top.sunbath.shared.types.CurrentUser
 import top.sunbath.shared.types.EmailData
 import top.sunbath.shared.types.SqsMessage
-import top.sunbath.shared.types.UserInfo
 import java.time.Instant
 import java.util.UUID
 
@@ -58,7 +58,7 @@ class SqsEmailNotificationService(
 
     override fun sendNotification(
         memo: Memo,
-        to: UserInfo,
+        to: CurrentUser,
     ): String? {
         try {
             if (memo.reminderTime == null) {

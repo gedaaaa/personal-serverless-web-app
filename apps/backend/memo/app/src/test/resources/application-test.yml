@@ -3,12 +3,16 @@ micronaut:
     name: memo
   security:
     enabled: true
+    authentication: bearer
+    endpoints:
+      login:
+        enabled: false
     token:
       jwt:
         signatures:
           secret:
             generator:
-              secret: 'pleaseChangeThisSecretForANewOne'
+              secret: ${JWT_SECRET:pleaseChangeThisSecretForANewOne}
 test-resources:
   containers:
     dynamodb:

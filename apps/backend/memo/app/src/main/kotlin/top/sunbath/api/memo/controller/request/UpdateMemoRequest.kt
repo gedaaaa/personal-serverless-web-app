@@ -4,6 +4,7 @@ import io.micronaut.core.annotation.Introspected
 import io.micronaut.core.annotation.Nullable
 import io.micronaut.serde.annotation.Serdeable
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import java.time.Instant
 
 /**
@@ -18,6 +19,6 @@ data class UpdateMemoRequest(
     val content: String?,
     @field:Nullable
     val reminderTime: Instant?,
-    @field:NotBlank
-    val isCompleted: Boolean?,
+    @field:NotNull
+    val isCompleted: Boolean,
 )

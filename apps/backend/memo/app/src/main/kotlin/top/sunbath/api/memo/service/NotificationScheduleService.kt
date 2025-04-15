@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import top.sunbath.api.memo.model.Memo
 import top.sunbath.api.memo.repository.NotificationScheduleRepository
 import top.sunbath.api.memo.service.notification.NotificationService
-import top.sunbath.shared.types.UserInfo
+import top.sunbath.shared.types.CurrentUser
 import java.time.Instant
 
 /**
@@ -28,7 +28,7 @@ open class NotificationScheduleService(
      */
     open fun handleNotificationSchedule(
         memo: Memo,
-        to: UserInfo,
+        to: CurrentUser,
     ) {
         // We will use the memo id as the schedule id
         val memoId = memo.id ?: throw IllegalStateException("Memo ID is null")

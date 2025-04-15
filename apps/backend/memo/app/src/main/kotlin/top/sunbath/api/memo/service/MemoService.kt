@@ -8,7 +8,7 @@ import top.sunbath.api.memo.repository.MemoRepository
 import top.sunbath.api.memo.repository.MemoSort
 import top.sunbath.api.memo.repository.MemoSortKey
 import top.sunbath.api.memo.repository.MemoSortOrder
-import top.sunbath.shared.types.UserInfo
+import top.sunbath.shared.types.CurrentUser
 import java.time.Instant
 
 /**
@@ -22,7 +22,7 @@ class MemoService(
     private val logger = LoggerFactory.getLogger(Memo::class.java)
 
     fun createMemo(
-        userInfo: UserInfo,
+        userInfo: CurrentUser,
         title: String,
         content: String,
         reminderTime: Instant?,
@@ -41,7 +41,7 @@ class MemoService(
     }
 
     fun getMemoById(
-        userInfo: UserInfo,
+        userInfo: CurrentUser,
         id: String,
     ): Memo? {
         val memo = memoRepository.findById(id)
@@ -55,7 +55,7 @@ class MemoService(
     }
 
     fun getAllMemosWithCursor(
-        userInfo: UserInfo,
+        userInfo: CurrentUser,
         limit: Int,
         cursor: String?,
     ): Pair<List<Memo>, String?> {
@@ -80,7 +80,7 @@ class MemoService(
     }
 
     fun updateMemo(
-        userInfo: UserInfo,
+        userInfo: CurrentUser,
         id: String,
         title: String?,
         content: String?,
@@ -115,7 +115,7 @@ class MemoService(
     }
 
     fun deleteMemo(
-        userInfo: UserInfo,
+        userInfo: CurrentUser,
         id: String,
     ): Boolean {
         val memo = memoRepository.findById(id)
@@ -144,7 +144,7 @@ class MemoService(
 
     private fun handleNotificationSchedule(
         memoId: String,
-        userInfo: UserInfo,
+        userInfo: CurrentUser,
     ) {
         try {
             val memo = memoRepository.findById(memoId)

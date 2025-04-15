@@ -38,3 +38,5 @@ dynamodb:
 my-property:
   custom-dynamodb-initialization:
     enabled: true
+  current-user:
+    enabled: true

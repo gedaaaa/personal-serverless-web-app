@@ -4,7 +4,7 @@ import io.micronaut.context.annotation.Requires
 import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
 import top.sunbath.api.memo.model.Memo
-import top.sunbath.shared.types.UserInfo
+import top.sunbath.shared.types.CurrentUser
 
 /**
  * A notification service that does nothing.
@@ -12,13 +12,13 @@ import top.sunbath.shared.types.UserInfo
  * This is used in development environments where we don't want to send notifications.
  */
 @Singleton
-@Requires(env = ["dev", "test"])
+@Requires(env = ["dev"])
 class DoNothingNotificationService : NotificationService {
     private val logger = LoggerFactory.getLogger(DoNothingNotificationService::class.java)
 
     override fun sendNotification(
         memo: Memo,
-        to: UserInfo,
+        to: CurrentUser,
     ): String? {
         logger.info("Sending notification to [${to.email}] for memo [${memo.id}]")
         return "fake-notification-id"

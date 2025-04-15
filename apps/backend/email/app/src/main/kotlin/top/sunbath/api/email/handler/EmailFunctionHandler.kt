@@ -12,12 +12,12 @@ import top.sunbath.shared.types.EmailData
 import top.sunbath.shared.types.SqsMessage
 
 @Introspected
-class EmailFunctionHandler : MicronautRequestHandler<SQSEvent, String>() {
-    private val log = LoggerFactory.getLogger(this::class.java)
-    private val objectMapper = ObjectMapper()
+open class EmailFunctionHandler : MicronautRequestHandler<SQSEvent, List<String>>() {
+    protected val log = LoggerFactory.getLogger(this::class.java)
+    protected val objectMapper = ObjectMapper()
 
-    private lateinit var emailService: EmailService
-    private lateinit var preventEmailJobRepository: PreventEmailJobRepository
+    protected lateinit var emailService: EmailService
+    protected lateinit var preventEmailJobRepository: PreventEmailJobRepository
 
     override fun getApplicationContext(): ApplicationContext {
         val ctx = super.getApplicationContext()
@@ -26,11 +26,17 @@ class EmailFunctionHandler : MicronautRequestHandler<SQSEvent, String>() {
         return ctx
     }
 
-    override fun execute(input: SQSEvent): String {
+    override fun execute(input: SQSEvent): List<String> {
+        val result = mutableListOf<String>()
         input.records.forEach { record ->
             try {
-                @Suppress("UNCHECKED_CAST")
-                val message = objectMapper.readValue(record.body, SqsMessage::class.java) as SqsMessage<EmailData>
+                val type =
+                    objectMapper.typeFactory.constructParametricType(
+                        SqsMessage::class.java,
+                        EmailData::class.java,
+                    )
+                val message = objectMapper.readValue<SqsMessage<EmailData>>(record.body, type)
+
                 val jobId = message.id
                 val preventEmailJob = preventEmailJobRepository.findById(jobId)
                 if (preventEmailJob != null) {
@@ -38,8 +44,9 @@ class EmailFunctionHandler : MicronautRequestHandler<SQSEvent, String>() {
                     return@forEach
                 }
 
-                sendEmail(message.data)
+                val emailRecordId = sendEmail(message.data)
                 log.info("Email sent to ${message.data.to}")
+                result.add(emailRecordId)
                 // Resend API has a limit of 2 requests per second.
                 Thread.sleep(500)
             } catch (e: Exception) {
@@ -47,15 +54,14 @@ class EmailFunctionHandler : MicronautRequestHandler<SQSEvent, String>() {
                 throw e // 触发SQS重试
             }
         }
-        return "Executed"
+        return result
     }
 
-    private fun sendEmail(emailData: EmailData) {
+    private fun sendEmail(emailData: EmailData): String =
         emailService.send(
             from = emailData.from,
             to = emailData.to,
             subject = emailData.subject,
             html = emailData.html,
         )
-    }
 }

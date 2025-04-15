@@ -1,6 +1,7 @@
 package top.sunbath.api.email.repository.impl
 
 import io.micronaut.core.annotation.NonNull
+import io.micronaut.core.annotation.Nullable
 import jakarta.inject.Singleton
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -90,6 +91,11 @@ open class DefaultEmailRecordRepository(
         }
     }
 
+    @Nullable
+    override fun findById(id: String): EmailRecord? {
+        return findById(EmailRecord::class.java, id)?.let { return emailRecordOf(it) }
+    }
+
     @NonNull
     override fun item(
         @NonNull entity: EmailRecord,
@@ -104,4 +110,14 @@ open class DefaultEmailRecordRepository(
 
         return result
     }
+
+    private fun emailRecordOf(item: Map<String, AttributeValue>): EmailRecord =
+        EmailRecord(
+            id = item[ATTRIBUTE_ID]?.s() ?: throw IllegalArgumentException("id is required"),
+            to = item[ATTRIBUTE_TO]?.s() ?: throw IllegalArgumentException("to is required"),
+            from = item[ATTRIBUTE_FROM]?.s() ?: throw IllegalArgumentException("from is required"),
+            subject = item[ATTRIBUTE_SUBJECT]?.s() ?: throw IllegalArgumentException("subject is required"),
+            html = item[ATTRIBUTE_HTML]?.s() ?: throw IllegalArgumentException("html is required"),
+            vendorResponse = item[ATTRIBUTE_VENDOR_RESPONSE]?.s() ?: throw IllegalArgumentException("vendorResponse is required"),
+        )
 }

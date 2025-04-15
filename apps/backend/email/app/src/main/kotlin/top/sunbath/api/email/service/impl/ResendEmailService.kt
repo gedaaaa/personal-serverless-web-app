@@ -15,11 +15,12 @@ import top.sunbath.api.email.service.EmailService
  * Email service implementation using Resend.
  */
 @Singleton
-@Requires(env = ["production"])
+@Requires(env = ["production", "test"])
 class ResendEmailService(
     private val resendConfiguration: ResendConfiguration,
     private val resendApiKeyProvider: ResendApiKeyProvider,
     private val emailRecordRepository: EmailRecordRepository,
+    private val resend: Resend,
 ) : EmailService {
     private val logger = LoggerFactory.getLogger(ResendEmailService::class.java)
 
@@ -28,12 +29,11 @@ class ResendEmailService(
         to: String,
         subject: String,
         html: String,
-    ) {
+    ): String {
         if (!resendConfiguration.enabled) {
             throw IllegalStateException("Resend service is not enabled")
         }
 
-        val resend = Resend(resendApiKeyProvider.getApiKey())
         val objectMapper = ObjectMapper()
 
         logger.info("Sending email from $from to $to with subject $subject, content: $html")
@@ -49,7 +49,7 @@ class ResendEmailService(
                     .build()
 
             val response = resend.emails().send(params)
-            emailRecordRepository.save(
+            return emailRecordRepository.save(
                 to = to,
                 from = from,
                 subject = subject,
@@ -58,7 +58,7 @@ class ResendEmailService(
             )
         } catch (e: Exception) {
             // persist the error, do not retry for now.
-            emailRecordRepository.save(
+            return emailRecordRepository.save(
                 to = to,
                 from = from,
                 subject = subject,

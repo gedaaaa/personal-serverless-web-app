@@ -40,7 +40,7 @@ open class DynamoRepository<T : Identified>(
     protected val dynamoConfiguration: DynamoConfiguration,
 ) {
     companion object {
-        private val LOG: Logger = LoggerFactory.getLogger(DynamoRepository::class.java)
+        private val logger: Logger = LoggerFactory.getLogger(DynamoRepository::class.java)
         protected const val HASH = "#"
         protected const val ATTRIBUTE_PK = "pk"
         protected const val ATTRIBUTE_SK = "sk"
@@ -188,10 +188,10 @@ open class DynamoRepository<T : Identified>(
                 }
 
             if (indexesToAdd.isNotEmpty()) {
-                LOG.info("Adding ${indexesToAdd.size} new indexes to table ${dynamoConfiguration.tableName}")
+                logger.info("Adding ${indexesToAdd.size} new indexes to table ${dynamoConfiguration.tableName}")
 
                 for (index in indexesToAdd) {
-                    LOG.info("Adding index ${index.indexName} to table ${dynamoConfiguration.tableName}")
+                    logger.info("Adding index ${index.indexName} to table ${dynamoConfiguration.tableName}")
                     val attributeDefinitions = mutableListOf<AttributeDefinition>()
                     // build attribute definitions for current index
                     attributeDefinitions.add(
@@ -233,13 +233,13 @@ open class DynamoRepository<T : Identified>(
                     )
 
                     waitForIndexesToBecomeActive(listOf(index.indexName))
-                    LOG.info("Index ${index.indexName} added to table ${dynamoConfiguration.tableName}")
+                    logger.info("Index ${index.indexName} added to table ${dynamoConfiguration.tableName}")
                 }
             } else {
-                LOG.info("No new indexes to add to table ${dynamoConfiguration.tableName}")
+                logger.info("No new indexes to add to table ${dynamoConfiguration.tableName}")
             }
         } catch (e: Exception) {
-            LOG.error("Error updating table indexes", e)
+            logger.error("Error updating table indexes", e)
             throw e
         }
     }
@@ -252,7 +252,7 @@ open class DynamoRepository<T : Identified>(
     private fun waitForIndexesToBecomeActive(indexNames: List<String>) {
         if (indexNames.isEmpty()) return
 
-        LOG.info("Waiting for indexes ${indexNames.joinToString(", ")} to become active")
+        logger.info("Waiting for indexes ${indexNames.joinToString(", ")} to become active")
 
         var allActive = false
         var attempts = 0
@@ -282,24 +282,24 @@ open class DynamoRepository<T : Identified>(
                     gsiStatuses.values.all { it == software.amazon.awssdk.services.dynamodb.model.IndexStatus.ACTIVE }
                 ) {
                     allActive = true
-                    LOG.info("All indexes are now active")
+                    logger.info("All indexes are now active")
                 } else {
                     val pendingIndexes =
                         gsiStatuses
                             .filter { it.value != software.amazon.awssdk.services.dynamodb.model.IndexStatus.ACTIVE }
                             .keys
                             .joinToString(", ")
-                    LOG.info("Waiting for indexes to become active: $pendingIndexes")
+                    logger.info("Waiting for indexes to become active: $pendingIndexes")
                 }
             } catch (e: Exception) {
-                LOG.warn("Error checking index status", e)
+                logger.warn("Error checking index status", e)
             }
 
             attempts++
         }
 
         if (!allActive) {
-            LOG.warn("Timed out waiting for indexes to become active")
+            logger.warn("Timed out waiting for indexes to become active")
         }
     }
 
@@ -421,8 +421,8 @@ open class DynamoRepository<T : Identified>(
                     .key(mapOf(ATTRIBUTE_PK to pk, ATTRIBUTE_SK to pk))
                     .build(),
             )
-        if (LOG.isDebugEnabled) {
-            LOG.debug(deleteItemResponse.toString())
+        if (logger.isDebugEnabled) {
+            logger.debug(deleteItemResponse.toString())
         }
     }
 

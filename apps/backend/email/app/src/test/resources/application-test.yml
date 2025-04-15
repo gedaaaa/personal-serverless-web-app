@@ -1,6 +1,10 @@
 micronaut:
   application:
     name: email
+  server:
+    port: -1
+  security:
+    enabled: false
 
 test-resources:
   containers:
@@ -11,10 +15,24 @@ test-resources:
       exposed-ports:
         - dynamodb-local.port: 8000
 
+endpoints:
+  health:
+    enabled: true
+    sensitive: false
+    details-visible: ANONYMOUS
+
 dynamodb:
-  table-name: 'email-test'
+  table-name: test-table
 
 aws:
   region: 'us-east-1'
   access-key-id: 'fake-key-id'
   secret-access-key: 'fake-access-key'
+
+resend:
+  enabled: true
+  api-key: test-api-key
+
+my-property:
+  ssm-provider:
+    enabled: false

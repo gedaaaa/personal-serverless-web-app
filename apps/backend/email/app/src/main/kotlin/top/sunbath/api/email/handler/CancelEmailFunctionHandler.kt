@@ -10,11 +10,11 @@ import top.sunbath.api.email.repository.PreventEmailJobRepository
 import top.sunbath.shared.types.SqsMessage
 
 @Introspected
-class CancelEmailFunctionHandler : MicronautRequestHandler<SQSEvent, String>() {
-    private val log = LoggerFactory.getLogger(this::class.java)
-    private val objectMapper = ObjectMapper()
+open class CancelEmailFunctionHandler : MicronautRequestHandler<SQSEvent, String>() {
+    protected val log = LoggerFactory.getLogger(this::class.java)
+    protected val objectMapper = ObjectMapper()
 
-    private lateinit var preventEmailJobRepository: PreventEmailJobRepository
+    protected lateinit var preventEmailJobRepository: PreventEmailJobRepository
 
     override fun getApplicationContext(): ApplicationContext {
         val ctx = super.getApplicationContext()

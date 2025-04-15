@@ -1,24 +1,22 @@
 package top.sunbath.api.email.repository
 
 import io.micronaut.core.annotation.NonNull
+import io.micronaut.core.annotation.Nullable
 import jakarta.validation.constraints.NotBlank
+import top.sunbath.api.email.model.EmailRecord
 
 /**
- * Repository interface for User entity operations.
+ * Repository interface for Email Record operations.
  */
 interface EmailRecordRepository {
     /**
-     * Save a new user.
-     * @param username The username
-     * @param email The email
-     * @param password The hashed password
-     * @param roles The user roles
-     * @param fullName The full name (optional)
-     * @param emailVerified Whether the email is verified
-     * @param emailVerificationToken The email verification token
-     * @param emailVerificationTokenExpiresAt When the verification token expires
-     * @param lastVerificationEmailSentAt When the last verification email was sent
-     * @return The ID of the saved user
+     * Save a new email record.
+     * @param to The recipient's email address
+     * @param from The sender's email address
+     * @param subject The email subject
+     * @param html The email HTML content
+     * @param vendorResponse The vendor's response
+     * @return The ID of the saved record
      */
     @NonNull
     fun save(
@@ -28,4 +26,12 @@ interface EmailRecordRepository {
         @NonNull @NotBlank html: String,
         @NonNull vendorResponse: String,
     ): String
+
+    /**
+     * Find an email record by ID.
+     * @param id The record ID
+     * @return The email record if found, null otherwise
+     */
+    @Nullable
+    fun findById(id: String): EmailRecord?
 }

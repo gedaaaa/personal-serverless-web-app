@@ -66,6 +66,10 @@ dependencies {
     runtimeOnly(libs.snakeyaml)
 
     // Test Dependencies
+    testImplementation(libs.micronaut.test.junit5)
+    testImplementation(libs.mockk)
+    testRuntimeOnly(libs.micronaut.http.client.jdk)
+    testRuntimeOnly(libs.micronaut.test.resources.testcontainers)
 }
 
 application {

@@ -56,7 +56,7 @@ class SqsEmailNotificationService(
         logger.info("Queue URL: $cancelEmailQueueUrl")
     }
 
-    override fun sendNotification(
+    override fun publishNotification(
         memo: Memo,
         to: CurrentUser,
     ): String? {

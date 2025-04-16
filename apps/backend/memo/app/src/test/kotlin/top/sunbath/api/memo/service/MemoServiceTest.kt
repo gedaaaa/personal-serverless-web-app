@@ -214,7 +214,7 @@ class MemoServiceTest {
         } returns Pair(memos, nextCursor)
 
         // When
-        val result = memoService.getAllMemosWithCursor(testUserInfo, limit, cursor)
+        val result = memoService.getAllMemosWithCursor(testUserInfo, limit, cursor, null, null)
 
         // Then
         assertEquals(memos, result.first)
@@ -272,7 +272,7 @@ class MemoServiceTest {
         } returns Pair(memos, nextCursor)
 
         // When
-        val result = memoService.getAllMemosWithCursor(testUserInfo, limit, cursor)
+        val result = memoService.getAllMemosWithCursor(testUserInfo, limit, cursor, null, null)
 
         // Then
         assertEquals(memos, result.first)
@@ -306,7 +306,7 @@ class MemoServiceTest {
         } returns Pair(emptyList, null)
 
         // When
-        val result = memoService.getAllMemosWithCursor(testUserInfo, limit, cursor)
+        val result = memoService.getAllMemosWithCursor(testUserInfo, limit, cursor, null, null)
 
         // Then
         assertEquals(emptyList, result.first)
@@ -385,68 +385,6 @@ class MemoServiceTest {
     }
 
     @Test
-    fun `test updateMemo partial update success`() {
-        // Given
-        val memoId = "test-memo-id"
-        val updatedTitle = "Updated Title"
-        val originalContent = "Original Content"
-        val originalReminderTime = Instant.now()
-        val memo =
-            Memo().apply {
-                id = memoId
-                userId = testUserInfo.id
-                title = "Original Title"
-                content = originalContent
-                reminderTime = originalReminderTime
-                isCompleted = false
-                isDeleted = false
-            }
-        val updatedMemo =
-            Memo().apply {
-                id = memoId
-                userId = testUserInfo.id
-                title = updatedTitle
-                content = originalContent
-                reminderTime = originalReminderTime
-                isCompleted = false
-                isDeleted = false
-            }
-
-        every { memoRepository.findById(memoId) } returnsMany listOf(memo, updatedMemo)
-        every { memoRepository.update(any(), any(), any(), any(), any(), any()) } returns true
-        every { notificationScheduleService.handleNotificationSchedule(any(), any()) } just runs
-
-        // When - only update title
-        val result =
-            memoService.updateMemo(
-                testUserInfo,
-                memoId,
-                updatedTitle,
-                null,
-                null,
-                null,
-                null,
-            )
-
-        // Then
-        assertTrue(result)
-
-        // Verify
-        verify(exactly = 2) { memoRepository.findById(memoId) }
-        verify(exactly = 1) {
-            memoRepository.update(
-                id = memoId,
-                title = updatedTitle,
-                content = originalContent,
-                reminderTime = originalReminderTime,
-                isCompleted = false,
-                isDeleted = false,
-            )
-        }
-        verify(exactly = 1) { notificationScheduleService.handleNotificationSchedule(any(), testUserInfo) }
-    }
-
-    @Test
     fun `test updateMemo returns false for non-existent memo`() {
         // Given
         val memoId = "non-existent-memo-id"
@@ -460,10 +398,10 @@ class MemoServiceTest {
                 testUserInfo,
                 memoId,
                 updatedTitle,
+                "Updated Content",
                 null,
-                null,
-                null,
-                null,
+                false,
+                false,
             )
 
         // Then
@@ -497,10 +435,10 @@ class MemoServiceTest {
                 testUserInfo,
                 memoId,
                 updatedTitle,
+                "Updated Content",
                 null,
-                null,
-                null,
-                null,
+                false,
+                false,
             )
 
         // Then
@@ -542,10 +480,10 @@ class MemoServiceTest {
                 testUserInfo,
                 memoId,
                 updatedTitle,
+                "Updated Content",
                 null,
-                null,
-                null,
-                null,
+                false,
+                false,
             )
 
         // Then
@@ -604,7 +542,7 @@ class MemoServiceTest {
     }
 
     @Test
-    fun `test deleteMemo returns false for non-existent memo`() {
+    fun `test deleteMemo returns true for non-existent memo`() {
         // Given
         val memoId = "non-existent-memo-id"
 
@@ -614,7 +552,7 @@ class MemoServiceTest {
         val result = memoService.deleteMemo(testUserInfo, memoId)
 
         // Then
-        assertFalse(result)
+        assertTrue(result)
 
         // Verify
         verify(exactly = 1) { memoRepository.findById(memoId) }

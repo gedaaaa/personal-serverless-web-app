@@ -1,6 +1,5 @@
 package top.sunbath.api.memo.controller
 
-import io.micronaut.core.annotation.Nullable
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.annotation.Body
@@ -10,16 +9,15 @@ import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Put
-import io.micronaut.http.annotation.QueryValue
 import io.micronaut.http.uri.UriBuilder
 import io.micronaut.security.annotation.Secured
 import io.micronaut.validation.Validated
 import jakarta.validation.Valid
-import jakarta.validation.constraints.Max
 import org.slf4j.LoggerFactory
 import top.sunbath.api.memo.controller.request.CreateMemoRequest
+import top.sunbath.api.memo.controller.request.GetMemoListRequest
 import top.sunbath.api.memo.controller.request.UpdateMemoRequest
-import top.sunbath.api.memo.model.Memo
+import top.sunbath.api.memo.controller.response.MemoResponse
 import top.sunbath.api.memo.service.MemoService
 import top.sunbath.shared.types.CurrentUser
 import top.sunbath.shared.types.PagedListResponse
@@ -42,16 +40,30 @@ class MemoController(
      * @param cursor The cursor for pagination (null for first page)
      * @return Paginated list of memos
      */
-    @Get
+    @Get("/{?request*}")
     fun index(
-        @QueryValue(defaultValue = "10") @Max(100) limit: Int,
-        @QueryValue()@Nullable() cursor: String?,
+        request: GetMemoListRequest,
         userInfo: CurrentUser,
-    ): HttpResponse<PagedListResponse<Memo>> {
-        val (memos, nextCursor) = memoService.getAllMemosWithCursor(userInfo, limit, cursor)
+    ): HttpResponse<PagedListResponse<MemoResponse>> {
+        val limit = request.limit
+        val cursor = request.cursor
+        val filter = request.filter
+        val sort = request.sort
+
+        logger.info("index: limit: $limit, cursor: $cursor, filter: $filter, sort: $sort")
+
+        val (memos, nextCursor) =
+            memoService.getAllMemosWithCursor(
+                userInfo = userInfo,
+                limit = limit,
+                cursor = cursor,
+                filter = filter,
+                sort = sort,
+            )
+        val memoResponses = memos.map { MemoResponse.fromMemo(it) }
         return HttpResponse.ok(
             PagedListResponse(
-                items = memos,
+                items = memoResponses,
                 nextCursor = nextCursor,
                 hasMore = nextCursor != null,
             ),
@@ -67,10 +79,10 @@ class MemoController(
     fun show(
         userInfo: CurrentUser,
         @PathVariable id: String,
-    ): HttpResponse<Memo> {
+    ): HttpResponse<MemoResponse> {
         val memo = memoService.getMemoById(userInfo, id)
         return if (memo != null) {
-            HttpResponse.ok(memo)
+            HttpResponse.ok(MemoResponse.fromMemo(memo))
         } else {
             HttpResponse.notFound()
         }
@@ -111,8 +123,12 @@ class MemoController(
         userInfo: CurrentUser,
         @PathVariable id: String,
     ): HttpResponse<Void> {
-        memoService.deleteMemo(userInfo, id)
-        return HttpResponse.status(HttpStatus.NO_CONTENT)
+        val success = memoService.deleteMemo(userInfo, id)
+        return if (success) {
+            HttpResponse.status(HttpStatus.NO_CONTENT)
+        } else {
+            HttpResponse.notFound()
+        }
     }
 
     /**
@@ -126,7 +142,7 @@ class MemoController(
         userInfo: CurrentUser,
         @PathVariable id: String,
         @Body @Valid request: UpdateMemoRequest,
-    ): HttpResponse<Memo> {
+    ): HttpResponse<MemoResponse> {
         val updateResult =
             memoService.updateMemo(
                 userInfo = userInfo,
@@ -139,7 +155,7 @@ class MemoController(
             )
 
         return if (updateResult) {
-            HttpResponse.ok(memoService.getMemoById(userInfo, id) ?: return HttpResponse.notFound())
+            HttpResponse.ok(MemoResponse.fromMemo(memoService.getMemoById(userInfo, id) ?: return HttpResponse.notFound()))
         } else {
             HttpResponse.notFound()
         }

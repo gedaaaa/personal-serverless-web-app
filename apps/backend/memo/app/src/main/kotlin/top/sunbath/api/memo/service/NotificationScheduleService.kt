@@ -21,35 +21,71 @@ open class NotificationScheduleService(
 
     /**
      * Handle a notification schedule.
-     * @param shouldCancle Whether to cancel previous notification schedule
-     * @param id The ID of the notification schedule
-     * @param notificationId The ID of the notification
-     * @param reminderTime The reminder time
+     * @param memo The memo to handle the notification schedule for.
+     * @param to The user to send the notification to.
      */
     open fun handleNotificationSchedule(
         memo: Memo,
         to: CurrentUser,
     ) {
         // We will use the memo id as the schedule id
-        val memoId = memo.id ?: throw IllegalStateException("Memo ID is null")
-        val reminderTime = memo.reminderTime ?: throw IllegalStateException("Reminder time is null")
-        val shouldCancle = memo.isCompleted || memo.isDeleted || reminderTime < Instant.now()
+        val memoId = memo.id
 
-        // First, delete the message from the queue
-        val previousSchedule = notificationScheduleRepository.findById(memoId)
-        val previousNotificationId = previousSchedule?.notificationId
-        if (previousNotificationId != null) {
-            notificationService.deleteNotification(previousNotificationId)
-            logger.info("Deleted message: $previousNotificationId for update")
+        // Handle null reminderTime first
+        if (memo.reminderTime == null) {
+            logger.info("Reminder time is null for memo: $memoId, checking for existing schedule to delete.")
+            val previousSchedule = notificationScheduleRepository.findById(memoId)
+            if (previousSchedule?.notificationId != null) {
+                notificationService.deleteNotification(previousSchedule.notificationId)
+                notificationScheduleRepository.delete(memoId)
+                logger.info("Deleted existing schedule for memo $memoId because reminderTime is null.")
+            }
+            return // Nothing more to do if reminder time is null
         }
 
-        if (shouldCancle) {
-            logger.info("Canceling schedule for memo: $memoId")
+        // Reminder time is not null, proceed with scheduling logic
+        val reminderTime = memo.reminderTime // Already checked for null
+        // Use !! because we already checked for null
+        val shouldCancel = memo.isCompleted || memo.isDeleted || reminderTime!! < Instant.now()
+
+        // Find previous schedule *once*
+        val previousSchedule = notificationScheduleRepository.findById(memoId)
+        val previousNotificationId = previousSchedule?.notificationId
+
+        if (shouldCancel) {
+            logger.info(
+                "Canceling schedule for memo: $memoId (completed: ${memo.isCompleted}, deleted: ${memo.isDeleted}, past: ${reminderTime!! < Instant.now()})",
+            )
+            if (previousNotificationId != null) {
+                notificationService.deleteNotification(previousNotificationId)
+                logger.info("Deleted notification $previousNotificationId for memo $memoId due to cancel condition.")
+            }
             notificationScheduleRepository.delete(memoId)
         } else {
-            val notificationId = notificationService.sendNotification(memo, to)
-            if (notificationId != null) {
-                notificationScheduleRepository.save(id = memoId, notificationId = notificationId, reminderTime)
+            // Need to schedule or reschedule
+
+            // Check if there's an existing notification with the same reminder time
+            // If so, and the memo status hasn't changed, we can avoid unnecessary delete/recreate
+            if (previousNotificationId != null && previousSchedule.reminderTime == reminderTime) {
+                logger.info("Existing notification $previousNotificationId for memo $memoId has the same reminder time. Skipping update.")
+                return
+            }
+
+            // Delete old notification if it exists
+            if (previousNotificationId != null) {
+                // Delete the old one before sending the new one
+                notificationService.deleteNotification(previousNotificationId)
+                notificationScheduleRepository.delete(memoId) // Also delete the repository entry
+                logger.info("Deleted previous notification $previousNotificationId for memo $memoId before sending new one.")
+            }
+
+            // Send the new notification
+            val newNotificationId = notificationService.publishNotification(memo, to)
+            if (newNotificationId != null) {
+                notificationScheduleRepository.save(id = memoId, notificationId = newNotificationId, reminderTime!!)
+                logger.info("Scheduled new notification $newNotificationId for memo $memoId.")
+            } else {
+                logger.warn("Failed to send notification for memo $memoId, schedule not saved.")
             }
         }
     }

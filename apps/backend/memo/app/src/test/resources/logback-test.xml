@@ -8,8 +8,8 @@
     <root level="info">
         <appender-ref ref="STDOUT" />
     </root>
-    s
+
+
     <logger name="io.micronaut" level="INFO"/>
     <logger name="top.sunbath.api.memo" level="DEBUG"/>
-    <logger name="io.micronaut.security" level="INFO"/>
 </configuration> 

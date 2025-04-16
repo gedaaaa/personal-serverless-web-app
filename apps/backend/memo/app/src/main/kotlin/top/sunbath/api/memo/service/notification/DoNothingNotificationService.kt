@@ -16,11 +16,11 @@ import top.sunbath.shared.types.CurrentUser
 open class DoNothingNotificationService : NotificationService {
     private val logger = LoggerFactory.getLogger(DoNothingNotificationService::class.java)
 
-    override fun sendNotification(
+    override fun publishNotification(
         memo: Memo,
         to: CurrentUser,
     ): String? {
-        logger.info("Sending notification to [${to.email}] for memo [${memo.id}]")
+        logger.info("Publishing notification to [${to.email}] for memo [${memo.id}]")
         return "fake-notification-id"
     }
 

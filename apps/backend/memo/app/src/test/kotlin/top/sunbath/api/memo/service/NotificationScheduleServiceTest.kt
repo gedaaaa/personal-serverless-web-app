@@ -66,7 +66,7 @@ class NotificationScheduleServiceTest {
             }
 
         every { notificationScheduleRepository.findById(memoId) } returns null
-        every { notificationService.sendNotification(memo, testUserInfo) } returns newNotificationId
+        every { notificationService.publishNotification(memo, testUserInfo) } returns newNotificationId
         every { notificationScheduleRepository.save(memoId, newNotificationId, futureTime) } returns memoId
 
         // When
@@ -75,7 +75,7 @@ class NotificationScheduleServiceTest {
         // Then
         verify(exactly = 1) { notificationScheduleRepository.findById(memoId) }
         verify(exactly = 0) { notificationService.deleteNotification(any()) }
-        verify(exactly = 1) { notificationService.sendNotification(memo, testUserInfo) }
+        verify(exactly = 1) { notificationService.publishNotification(memo, testUserInfo) }
         verify(exactly = 1) { notificationScheduleRepository.save(memoId, newNotificationId, futureTime) }
     }
 
@@ -105,8 +105,9 @@ class NotificationScheduleServiceTest {
 
         every { notificationScheduleRepository.findById(memoId) } returns existingSchedule
         every { notificationService.deleteNotification(oldNotificationId) } just runs
-        every { notificationService.sendNotification(memo, testUserInfo) } returns newNotificationId
+        every { notificationService.publishNotification(memo, testUserInfo) } returns newNotificationId
         every { notificationScheduleRepository.save(memoId, newNotificationId, futureTime) } returns memoId
+        every { notificationScheduleRepository.delete(memoId) } just runs
 
         // When
         notificationScheduleService.handleNotificationSchedule(memo, testUserInfo)
@@ -114,8 +115,9 @@ class NotificationScheduleServiceTest {
         // Then
         verify(exactly = 1) { notificationScheduleRepository.findById(memoId) }
         verify(exactly = 1) { notificationService.deleteNotification(oldNotificationId) }
-        verify(exactly = 1) { notificationService.sendNotification(memo, testUserInfo) }
+        verify(exactly = 1) { notificationService.publishNotification(memo, testUserInfo) }
         verify(exactly = 1) { notificationScheduleRepository.save(memoId, newNotificationId, futureTime) }
+        verify(exactly = 1) { notificationScheduleRepository.delete(memoId) }
     }
 
     @Test
@@ -151,7 +153,7 @@ class NotificationScheduleServiceTest {
         // Then
         verify(exactly = 1) { notificationScheduleRepository.findById(memoId) }
         verify(exactly = 1) { notificationService.deleteNotification(oldNotificationId) }
-        verify(exactly = 0) { notificationService.sendNotification(any(), any()) }
+        verify(exactly = 0) { notificationService.publishNotification(any(), any()) }
         verify(exactly = 1) { notificationScheduleRepository.delete(memoId) }
         verify(exactly = 0) { notificationScheduleRepository.save(any(), any(), any()) }
     }
@@ -189,7 +191,7 @@ class NotificationScheduleServiceTest {
         // Then
         verify(exactly = 1) { notificationScheduleRepository.findById(memoId) }
         verify(exactly = 1) { notificationService.deleteNotification(oldNotificationId) }
-        verify(exactly = 0) { notificationService.sendNotification(any(), any()) }
+        verify(exactly = 0) { notificationService.publishNotification(any(), any()) }
         verify(exactly = 1) { notificationScheduleRepository.delete(memoId) }
         verify(exactly = 0) { notificationScheduleRepository.save(any(), any(), any()) }
     }
@@ -227,7 +229,7 @@ class NotificationScheduleServiceTest {
         // Then
         verify(exactly = 1) { notificationScheduleRepository.findById(memoId) }
         verify(exactly = 1) { notificationService.deleteNotification(oldNotificationId) }
-        verify(exactly = 0) { notificationService.sendNotification(any(), any()) }
+        verify(exactly = 0) { notificationService.publishNotification(any(), any()) }
         verify(exactly = 1) { notificationScheduleRepository.delete(memoId) }
         verify(exactly = 0) { notificationScheduleRepository.save(any(), any(), any()) }
     }
@@ -249,7 +251,7 @@ class NotificationScheduleServiceTest {
             }
 
         every { notificationScheduleRepository.findById(memoId) } returns null
-        every { notificationService.sendNotification(memo, testUserInfo) } throws RuntimeException("Failed to send notification")
+        every { notificationService.publishNotification(memo, testUserInfo) } throws RuntimeException("Failed to send notification")
 
         // When & Then
         assertThrows(RuntimeException::class.java) {
@@ -258,7 +260,7 @@ class NotificationScheduleServiceTest {
 
         verify(exactly = 1) { notificationScheduleRepository.findById(memoId) }
         verify(exactly = 0) { notificationService.deleteNotification(any()) }
-        verify(exactly = 1) { notificationService.sendNotification(memo, testUserInfo) }
+        verify(exactly = 1) { notificationService.publishNotification(memo, testUserInfo) }
         verify(exactly = 0) { notificationScheduleRepository.save(any(), any(), any()) }
     }
 
@@ -295,7 +297,7 @@ class NotificationScheduleServiceTest {
 
         verify(exactly = 1) { notificationScheduleRepository.findById(memoId) }
         verify(exactly = 1) { notificationService.deleteNotification(oldNotificationId) }
-        verify(exactly = 0) { notificationService.sendNotification(any(), any()) }
+        verify(exactly = 0) { notificationService.publishNotification(any(), any()) }
         verify(exactly = 0) { notificationScheduleRepository.save(any(), any(), any()) }
     }
 
@@ -317,9 +319,10 @@ class NotificationScheduleServiceTest {
             }
 
         every { notificationScheduleRepository.findById(memoId) } returns null
-        every { notificationService.sendNotification(memo, testUserInfo) } returns newNotificationId
+        every { notificationService.publishNotification(memo, testUserInfo) } returns newNotificationId
         every { notificationScheduleRepository.save(memoId, newNotificationId, futureTime) } throws
             RuntimeException("Failed to save notification schedule")
+        every { notificationScheduleRepository.delete(any()) } just runs
 
         // When & Then
         assertThrows(RuntimeException::class.java) {
@@ -328,7 +331,43 @@ class NotificationScheduleServiceTest {
 
         verify(exactly = 1) { notificationScheduleRepository.findById(memoId) }
         verify(exactly = 0) { notificationService.deleteNotification(any()) }
-        verify(exactly = 1) { notificationService.sendNotification(memo, testUserInfo) }
+        verify(exactly = 1) { notificationService.publishNotification(memo, testUserInfo) }
         verify(exactly = 1) { notificationScheduleRepository.save(memoId, newNotificationId, futureTime) }
+    }
+
+    @Test
+    fun `test handleNotificationSchedule skips update when reminderTime is unchanged`() {
+        // Given
+        val memoId = "test-memo-id"
+        val existingNotificationId = "existing-notification-id"
+        val futureTime = Instant.now().plusSeconds(3600)
+        val memo =
+            Memo().apply {
+                id = memoId
+                userId = testUserInfo.id
+                title = "Updated Title Only"
+                content = "Unchanged Content"
+                reminderTime = futureTime
+                isCompleted = false
+                isDeleted = false
+            }
+        val existingSchedule =
+            NotificationSchedule().apply {
+                id = memoId
+                notificationId = existingNotificationId
+                reminderTime = futureTime // Same reminder time as the memo
+            }
+
+        every { notificationScheduleRepository.findById(memoId) } returns existingSchedule
+
+        // When
+        notificationScheduleService.handleNotificationSchedule(memo, testUserInfo)
+
+        // Then
+        verify(exactly = 1) { notificationScheduleRepository.findById(memoId) }
+        verify(exactly = 0) { notificationService.deleteNotification(any()) }
+        verify(exactly = 0) { notificationService.publishNotification(any(), any()) }
+        verify(exactly = 0) { notificationScheduleRepository.save(any(), any(), any()) }
+        verify(exactly = 0) { notificationScheduleRepository.delete(any()) }
     }
 }

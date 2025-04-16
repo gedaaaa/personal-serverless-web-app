@@ -32,7 +32,7 @@ class Memo :
     }
 
     @get:NonNull
-    override var id: String? = null
+    override var id: String = ""
 
     @get:NonNull
     @get:Size(min = 0, max = 100)
@@ -93,11 +93,10 @@ class Memo :
     override fun getIndexValues(): Map<String, String> {
         val indexValues = mutableMapOf<String, String>()
 
-        // 为USER_FILTER_INDEX创建索引值
-        // 分区键：userId_isDeleted_isCompleted
+        // Create index values for USER_FILTER_INDEX
+        // Partition key: userId_isDeleted_isCompleted
         indexValues["USER_FILTER_PK"] = getUserIdStatusPkValue(userId, isDeleted, isCompleted)
-
-        // 排序键：reminderTime_createTime
+        // Sort key: reminderTime_createTime
         indexValues["USER_FILTER_SK"] = getReminderTimeSkValue(reminderTime, createdAt)
 
         return indexValues

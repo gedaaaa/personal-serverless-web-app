@@ -117,12 +117,11 @@ open class DefaultMemoRepository(
     ): Boolean {
         val existingMemo = findById(id) ?: return false
 
-        // Update only the non-null fields
-        title.let { existingMemo.title = it }
-        content.let { existingMemo.content = it }
-        isCompleted.let { existingMemo.isCompleted = it }
-        isDeleted.let { existingMemo.isDeleted = it }
-        reminderTime?.let { existingMemo.reminderTime = it }
+        existingMemo.title = title
+        existingMemo.content = content
+        existingMemo.isCompleted = isCompleted
+        existingMemo.isDeleted = isDeleted
+        existingMemo.reminderTime = reminderTime
 
         save(existingMemo)
         return true
@@ -240,7 +239,9 @@ open class DefaultMemoRepository(
         result[ATTRIBUTE_TITLE] = AttributeValue.builder().s(entity.title).build()
         result[ATTRIBUTE_CONTENT] = AttributeValue.builder().s(entity.content).build()
         result[ATTRIBUTE_USER_ID] = AttributeValue.builder().s(entity.userId).build()
-        result[ATTRIBUTE_REMINDER_TIME] = AttributeValue.builder().s(entity.reminderTime?.toString()).build()
+        entity.reminderTime?.let {
+            result[ATTRIBUTE_REMINDER_TIME] = AttributeValue.builder().s(it.toString()).build()
+        }
         result[ATTRIBUTE_IS_COMPLETED] = AttributeValue.builder().bool(entity.isCompleted).build()
         result[ATTRIBUTE_IS_DELETED] = AttributeValue.builder().bool(entity.isDeleted).build()
 

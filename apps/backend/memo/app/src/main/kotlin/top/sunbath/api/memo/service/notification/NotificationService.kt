@@ -5,13 +5,13 @@ import top.sunbath.shared.types.CurrentUser
 
 interface NotificationService {
     /**
-     * Send a notification to a user.
+     * Publish a notification that is about to happen to a user.
      *
-     * @param memo The memo to send the notification for.
-     * @param to The user to send the notification to.
+     * @param memo The memo to publish the notification for.
+     * @param to The user to publish the notification to.
      * @return The id of the notification.
      */
-    fun sendNotification(
+    fun publishNotification(
         memo: Memo,
         to: CurrentUser,
     ): String?

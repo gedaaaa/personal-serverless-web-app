@@ -2,6 +2,8 @@ package top.sunbath.api.memo.service
 
 import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
+import top.sunbath.api.memo.controller.request.GetMemoListRequestFilter
+import top.sunbath.api.memo.controller.request.GetMemoListRequestSort
 import top.sunbath.api.memo.model.Memo
 import top.sunbath.api.memo.repository.MemoListFilter
 import top.sunbath.api.memo.repository.MemoRepository
@@ -19,8 +21,16 @@ class MemoService(
     private val memoRepository: MemoRepository,
     private val notificationScheduleService: NotificationScheduleService,
 ) {
-    private val logger = LoggerFactory.getLogger(Memo::class.java)
+    private val logger = LoggerFactory.getLogger(MemoService::class.java)
 
+    /**
+     * Create a new memo.
+     * @param userInfo The current user.
+     * @param title The title of the memo.
+     * @param content The content of the memo.
+     * @param reminderTime The reminder time of the memo.
+     * @return The id of the memo.
+     */
     fun createMemo(
         userInfo: CurrentUser,
         title: String,
@@ -40,71 +50,117 @@ class MemoService(
         return memoId
     }
 
+    /**
+     * Get a memo by id.
+     * @param userInfo The current user.
+     * @param id The id of the memo.
+     * @return The memo.
+     */
     fun getMemoById(
         userInfo: CurrentUser,
         id: String,
     ): Memo? {
-        val memo = memoRepository.findById(id)
-        if (memo == null) {
-            return null
-        }
+        val memo = memoRepository.findById(id) ?: return null
         if (memo.userId != userInfo.id) {
+            logger.warn("User ${userInfo.id} attempted to access memo $id owned by ${memo.userId}")
             return null
         }
         return memo
     }
 
+    /**
+     * Get all memos with pagination.
+     * @param userInfo The current user.
+     * @param limit The limit of the memos.
+     * @param cursor The cursor of the memos.
+     * @param filter The filter of the memos.
+     * @param sort The sort of the memos.
+     * @return The memos.
+     */
     fun getAllMemosWithCursor(
         userInfo: CurrentUser,
         limit: Int,
         cursor: String?,
+        filter: GetMemoListRequestFilter?,
+        sort: GetMemoListRequestSort?,
     ): Pair<List<Memo>, String?> {
+        logger.info("getAllMemosWithCursor: filter: $filter, sort: $sort")
+        val repoFilter =
+            if (filter == null) {
+                MemoListFilter(
+                    userId = userInfo.id,
+                    isCompleted = false,
+                    isDeleted = false,
+                )
+            } else {
+                MemoListFilter(
+                    userId = userInfo.id,
+                    isCompleted = filter.isCompleted ?: false,
+                    isDeleted = filter.isDeleted ?: false,
+                )
+            }
+
+        val repoSort =
+            if (sort == null) {
+                MemoSort(
+                    sortOrder = MemoSortOrder.ASC,
+                    sortKey = MemoSortKey.REMINDER_TIME,
+                )
+            } else {
+                MemoSort(
+                    sortOrder = sort.sortOrder,
+                    sortKey = sort.sortKey,
+                )
+            }
+
         val memos =
             memoRepository.findAllWithCursor(
                 limit = limit,
                 lastEvaluatedId = cursor,
-                filter =
-                    MemoListFilter(
-                        userId = userInfo.id,
-                        isCompleted = false,
-                        isDeleted = false,
-                    ),
-                sort =
-                    MemoSort(
-                        sortOrder = MemoSortOrder.ASC,
-                        sortKey = MemoSortKey.REMINDER_TIME,
-                    ),
+                filter = repoFilter,
+                sort = repoSort,
             )
 
         return memos
     }
 
+    /**
+     * Update a memo.
+     * @param userInfo The current user.
+     * @param id The id of the memo.
+     * @param title The title of the memo.
+     * @param content The content of the memo.
+     * @param reminderTime The reminder time of the memo.
+     * @param isCompleted The completion status of the memo.
+     * @param isDeleted The deletion status of the memo.
+     * @return The success of the update.
+     */
     fun updateMemo(
         userInfo: CurrentUser,
         id: String,
-        title: String?,
-        content: String?,
+        title: String,
+        content: String,
         reminderTime: Instant?,
-        isCompleted: Boolean?,
+        isCompleted: Boolean,
         isDeleted: Boolean?,
     ): Boolean {
-        val existingMemo = memoRepository.findById(id)
-        if (existingMemo == null) {
-            return false
-        }
+        val originalMemo =
+            memoRepository.findById(id)
+                ?: return false
 
-        if (existingMemo.userId != userInfo.id) {
+        if (originalMemo.userId != userInfo.id) {
+            logger.warn("User ${userInfo.id} attempted to update memo $id owned by ${originalMemo.userId}")
             return false
         }
 
         val updateSuccess =
             memoRepository.update(
                 id = id,
-                title = title ?: existingMemo.title,
-                content = content ?: existingMemo.content,
-                reminderTime = reminderTime ?: existingMemo.reminderTime,
-                isCompleted = isCompleted ?: existingMemo.isCompleted,
-                isDeleted = isDeleted ?: existingMemo.isDeleted,
+                title = title,
+                content = content,
+                reminderTime = reminderTime,
+                isCompleted = isCompleted,
+                isDeleted = isDeleted ?: originalMemo.isDeleted,
             )
 
         if (updateSuccess) {
@@ -114,34 +170,54 @@ class MemoService(
         return updateSuccess
     }
 
+    /**
+     * Delete a memo.
+     * @param userInfo The current user.
+     * @param id The id of the memo.
+     * @return The success of the deletion.
+     */
     fun deleteMemo(
         userInfo: CurrentUser,
         id: String,
     ): Boolean {
-        val memo = memoRepository.findById(id)
-        if (memo == null) {
+        val memoToDelete =
+            memoRepository.findById(id)
+                ?: return true
+
+        if (memoToDelete.userId != userInfo.id) {
+            logger.warn("User ${userInfo.id} attempted to delete memo $id owned by ${memoToDelete.userId}. Skipping deletion.")
             return false
         }
-        if (memo.userId != userInfo.id) {
-            return false
+
+        if (memoToDelete.isDeleted) {
+            logger.info("Memo $id is already marked as deleted.")
+            return true
         }
+
         val updateSuccess =
             memoRepository.update(
                 id = id,
-                title = memo.title,
-                content = memo.content,
-                reminderTime = memo.reminderTime,
-                isCompleted = memo.isCompleted,
+                title = memoToDelete.title,
+                content = memoToDelete.content,
+                reminderTime = memoToDelete.reminderTime,
+                isCompleted = memoToDelete.isCompleted,
                 isDeleted = true,
             )
 
         if (updateSuccess) {
             handleNotificationSchedule(id, userInfo)
+        } else {
+            logger.error("Failed to mark memo $id as deleted in repository.")
         }
 
         return updateSuccess
     }
 
+    /**
+     * Handle the notification schedule.
+     * @param memoId The id of the memo.
+     * @param userInfo The current user.
+     */
     private fun handleNotificationSchedule(
         memoId: String,
         userInfo: CurrentUser,

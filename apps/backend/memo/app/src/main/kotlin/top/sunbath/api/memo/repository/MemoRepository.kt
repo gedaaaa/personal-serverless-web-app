@@ -1,10 +1,15 @@
 package top.sunbath.api.memo.repository
 
+import io.micronaut.core.annotation.Introspected
 import io.micronaut.core.annotation.NonNull
+import io.micronaut.core.annotation.Nullable
+import io.micronaut.serde.annotation.Serdeable
 import jakarta.validation.constraints.NotBlank
 import top.sunbath.api.memo.model.Memo
 import java.time.Instant
 
+@Introspected
+@Serdeable
 data class MemoListFilter(
     val userId: String,
     val isCompleted: Boolean,
@@ -22,8 +27,12 @@ enum class MemoSortKey(
     REMINDER_TIME("reminderTime"),
 }
 
+@Introspected
+@Serdeable
 data class MemoSort(
+    @field:Nullable
     val sortOrder: MemoSortOrder? = MemoSortOrder.ASC,
+    @field:Nullable
     val sortKey: MemoSortKey? = MemoSortKey.REMINDER_TIME,
 )
 

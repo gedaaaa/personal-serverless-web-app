@@ -38,11 +38,11 @@ public class AppStack extends Stack {
                 var dynamodbDistributedLocksTableName = "distributed_locks";
 
                 // Create Dead Letter Queue
-                var emailQueueDlq = Queue.Builder.create(this, serviceName + "-dlq").queueName("-dlq")
+                var emailQueueDlq = Queue.Builder.create(this, serviceName + "-dlq").queueName(serviceName + "-dlq")
                                 .retentionPeriod(Duration.days(14)).build();
 
                 // Create main queue with DLQ
-                var emailQueue = Queue.Builder.create(this, serviceName + "-queue").queueName("-queue")
+                var emailQueue = Queue.Builder.create(this, serviceName + "-queue").queueName(serviceName + "-queue")
                                 .retentionPeriod(Duration.days(14))
                                 // according to SQS docs, the visibility timeout should be at least 6 times
                                 // the maximum timeout of the lambda function

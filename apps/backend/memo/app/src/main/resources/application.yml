@@ -1,0 +1,42 @@
+#Fri Feb 28 04:15:00 CST 2025
+micronaut:
+  application:
+    name: memo
+  security:
+    enabled: true
+    authentication: bearer
+    endpoints:
+      login:
+        enabled: false
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: ${JWT_SECRET:pleaseChangeThisSecretForANewOne}
+
+endpoints:
+  health:
+    enabled: true
+    sensitive: false
+    details-visible: ANONYMOUS
+
+aws:
+  sqs:
+    queues:
+      email: 'email-queue'
+
+netty:
+  default:
+    allocator:
+      max-order: 3
+
+# DynamoDB configuration
+dynamodb:
+  table-name: 'memos'
+
+my-property:
+  custom-dynamodb-initialization:
+    enabled: true
+  current-user:
+    enabled: true

@@ -18,7 +18,8 @@ class DoNothingEmailService : EmailService {
         to: String,
         subject: String,
         html: String,
-    ) {
+    ): String {
         logger.info("Sending email to [$to] with subject [$subject] and html [$html]")
+        return "dev-email-id"
     }
 }

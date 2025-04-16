@@ -1,0 +1,59 @@
+{
+  "name": "memo-service",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/backend/memo/app/src",
+  "tags": [],
+  "root": "apps/backend/memo",
+  "dependencies": [{ "source": "libs/jvm-shared-lib", "target": "dependencies" }],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "./gradlew :apps:backend:memo:app:build",
+          "./gradlew :apps:backend:memo:infra:build"
+        ],
+        "parallel": false
+      }
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "export MICRONAUT_ENVIRONMENTS=dev && ./gradlew :apps:backend:memo:app:run --continuous"
+        ]
+      }
+    },
+    "deploy": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "./gradlew :apps:backend:memo:app:optimizedJitJarAll",
+          "cd apps/backend/memo/infra && cdk deploy --require-approval never"
+        ],
+        "parallel": false
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["./gradlew :apps:backend:memo:app:ktlintCheck"],
+        "parallel": false
+      }
+    },
+    "format": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["./gradlew :apps:backend:memo:app:ktlintFormat"],
+        "parallel": false
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["./gradlew :apps:backend:memo:app:test"]
+      }
+    }
+  }
+}

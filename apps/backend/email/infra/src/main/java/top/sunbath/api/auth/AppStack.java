@@ -38,16 +38,29 @@ public class AppStack extends Stack {
                 var dynamodbDistributedLocksTableName = "distributed_locks";
 
                 // Create Dead Letter Queue
-                var dlq = Queue.Builder.create(this, serviceName + "-dlq").queueName(serviceName + "-dlq")
+                var emailQueueDlq = Queue.Builder.create(this, serviceName + "-dlq").queueName("-dlq")
                                 .retentionPeriod(Duration.days(14)).build();
 
                 // Create main queue with DLQ
-                var queue = Queue.Builder.create(this, serviceName + "-queue").queueName(serviceName + "-queue")
+                var emailQueue = Queue.Builder.create(this, serviceName + "-queue").queueName("-queue")
                                 .retentionPeriod(Duration.days(14))
                                 // according to SQS docs, the visibility timeout should be at least 6 times
                                 // the maximum timeout of the lambda function
-                                .visibilityTimeout(Duration.seconds(30 * 6))
-                                .deadLetterQueue(DeadLetterQueue.builder().maxReceiveCount(3).queue(dlq).build())
+                                .visibilityTimeout(Duration.seconds(30 * 6)).deadLetterQueue(DeadLetterQueue.builder()
+                                                .maxReceiveCount(3).queue(emailQueueDlq).build())
+                                .build();
+
+                // Create Dead Letter Queue
+                var preventEmailJobQueueDlq = Queue.Builder.create(this, serviceName + "-cancel-dlq")
+                                .queueName("prevent-email-job-dlq").retentionPeriod(Duration.days(14)).build();
+
+                // Create prevent email job queue with DLQ
+                var preventEmailJobQueue = Queue.Builder.create(this, serviceName + "-cancel-queue")
+                                .queueName("prevent-email-job-queue").retentionPeriod(Duration.days(14))
+                                // according to SQS docs, the visibility timeout should be at least 6 times
+                                // the maximum timeout of the lambda function
+                                .visibilityTimeout(Duration.seconds(30 * 6)).deadLetterQueue(DeadLetterQueue.builder()
+                                                .maxReceiveCount(3).queue(preventEmailJobQueueDlq).build())
                                 .build();
 
                 Map<String, String> environmentVariables = new HashMap<>();
@@ -56,34 +69,54 @@ public class AppStack extends Stack {
                 // 设置 DynamoDB 表名
                 environmentVariables.put("DYNAMODB_TABLE_NAME", dynamodbSingleTableName);
                 // 设置 SQS 队列 URL
-                environmentVariables.put("SQS_QUEUE_URL", queue.getQueueUrl());
+                environmentVariables.put("SQS_QUEUE_URL", emailQueue.getQueueUrl());
 
-                var function = MicronautFunction.create(ApplicationType.DEFAULT, false, this, serviceName + "-function")
-                                .runtime(Runtime.JAVA_21).handler("top.sunbath.api.email.handler.FunctionHandler")
+                var emailFunction = MicronautFunction
+                                .create(ApplicationType.DEFAULT, false, this, serviceName + "-function")
+                                .runtime(Runtime.JAVA_21).handler("top.sunbath.api.email.handler.EmailFunctionHandler")
                                 .environment(environmentVariables).code(Code.fromAsset(functionPath()))
                                 .timeout(Duration.seconds(30)).memorySize(512).logRetention(RetentionDays.ONE_WEEK)
                                 .tracing(Tracing.ACTIVE).architecture(Architecture.X86_64)
                                 .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS).build();
 
+                var cancelEmailJobFunction = MicronautFunction
+                                .create(ApplicationType.DEFAULT, false, this, serviceName + "-cancel-function")
+                                .runtime(Runtime.JAVA_21)
+                                .handler("top.sunbath.api.email.handler.CancelEmailFunctionHandler")
+                                .environment(environmentVariables).code(Code.fromAsset(functionPath()))
+                                .timeout(Duration.seconds(30)).memorySize(512).logRetention(RetentionDays.ONE_WEEK)
+                                .build();
+
                 // Set reserved concurrent executions to 1
-                CfnFunction cfnFunction = (CfnFunction) function.getNode().getDefaultChild();
+                CfnFunction cfnFunction = (CfnFunction) emailFunction.getNode().getDefaultChild();
                 cfnFunction.setReservedConcurrentExecutions(1);
 
                 // Grant SQS permissions to Lambda
-                queue.grantConsumeMessages(function);
+                emailQueue.grantConsumeMessages(emailFunction);
                 // Grant DLQ send permissions to queue
                 PolicyStatement dlqAccessPolicy = PolicyStatement.Builder.create()
-                                .actions(Arrays.asList("sqs:SendMessage")).resources(Arrays.asList(dlq.getQueueArn()))
+                                .actions(Arrays.asList("sqs:SendMessage"))
+                                .resources(Arrays.asList(emailQueueDlq.getQueueArn()))
                                 .principals(Arrays.asList(new ServicePrincipal("lambda.amazonaws.com")))
-                                .conditions(Map.of("ArnEquals", Map.of("aws:SourceArn", queue.getQueueArn()))).build();
-                dlq.addToResourcePolicy(dlqAccessPolicy);
+                                .conditions(Map.of("ArnEquals", Map.of("aws:SourceArn", emailQueue.getQueueArn())))
+                                .build();
+                emailQueueDlq.addToResourcePolicy(dlqAccessPolicy);
+
+                PolicyStatement preventDlqAccessPolicy = PolicyStatement.Builder.create()
+                                .actions(Arrays.asList("sqs:SendMessage"))
+                                .resources(Arrays.asList(preventEmailJobQueueDlq.getQueueArn()))
+                                .principals(Arrays.asList(new ServicePrincipal("lambda.amazonaws.com")))
+                                .conditions(Map.of("ArnEquals",
+                                                Map.of("aws:SourceArn", preventEmailJobQueue.getQueueArn())))
+                                .build();
+                preventEmailJobQueueDlq.addToResourcePolicy(preventDlqAccessPolicy);
 
                 // Output queue information
                 CfnOutput.Builder.create(this, "QueueUrl").exportName(serviceName + "-queue-url")
-                                .value(queue.getQueueUrl()).build();
+                                .value(emailQueue.getQueueUrl()).build();
 
-                CfnOutput.Builder.create(this, "DlqUrl").exportName(serviceName + "-dlq-url").value(dlq.getQueueUrl())
-                                .build();
+                CfnOutput.Builder.create(this, "DlqUrl").exportName(serviceName + "-dlq-url")
+                                .value(emailQueueDlq.getQueueUrl()).build();
 
                 // 获取当前区域和账户 ID
                 String region = this.getRegion();
@@ -99,18 +132,34 @@ public class AppStack extends Stack {
                 var singleTable = Table.fromTableArn(this, "SingleTable", dynamodbSingleTableArn);
 
                 // 授予 Lambda 函数对 DynamoDB 表的读写权限
-                singleTable.grantReadWriteData(function);
-                distributedLocksTable.grantReadWriteData(function);
+                singleTable.grantReadWriteData(emailFunction);
+                distributedLocksTable.grantReadWriteData(emailFunction);
+                singleTable.grantReadWriteData(cancelEmailJobFunction);
+                distributedLocksTable.grantReadWriteData(cancelEmailJobFunction);
 
                 // 额外授予 Lambda 函数创建和管理索引的权限
-                function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
+                emailFunction.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
                                 .actions(Arrays.asList("dynamodb:UpdateTable", "dynamodb:DescribeTable",
                                                 "dynamodb:CreateTable"))
                                 .resources(Arrays.asList(singleTable.getTableArn(),
                                                 // index
                                                 singleTable.getTableArn() + "/*", distributedLocksArn))
                                 .build());
-                function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
+                cancelEmailJobFunction.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
+                                .actions(Arrays.asList("dynamodb:UpdateTable", "dynamodb:DescribeTable",
+                                                "dynamodb:CreateTable"))
+                                .resources(Arrays.asList(singleTable.getTableArn(),
+                                                // index
+                                                singleTable.getTableArn() + "/*", distributedLocksArn))
+                                .build());
+                emailFunction.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
+                                .actions(Arrays.asList("dynamodb:Query", "dynamodb:Scan", "dynamodb:GetItem",
+                                                "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"))
+                                .resources(Arrays.asList(singleTable.getTableArn(),
+                                                // index
+                                                singleTable.getTableArn() + "/*", distributedLocksArn))
+                                .build());
+                cancelEmailJobFunction.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
                                 .actions(Arrays.asList("dynamodb:Query", "dynamodb:Scan", "dynamodb:GetItem",
                                                 "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:DeleteItem"))
                                 .resources(Arrays.asList(singleTable.getTableArn(),
@@ -122,19 +171,29 @@ public class AppStack extends Stack {
                                 accountId);
 
                 // 添加 SSM Parameter Store 访问权限
-                function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
+                emailFunction.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
+                                .actions(Arrays.asList("ssm:GetParameter")).resources(Arrays.asList(ssmParameterArn))
+                                .build());
+                cancelEmailJobFunction.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
                                 .actions(Arrays.asList("ssm:GetParameter")).resources(Arrays.asList(ssmParameterArn))
                                 .build());
 
-                var currentVersion = function.getCurrentVersion();
-                var prodAlias = Alias.Builder.create(this, "ProdAlias").aliasName("Prod").version(currentVersion)
-                                .build();
+                var currentEmailFunctionVersion = emailFunction.getCurrentVersion();
+                var emailFunctionProdAlias = Alias.Builder.create(this, "ProdAlias").aliasName("Prod")
+                                .version(currentEmailFunctionVersion).build();
+                var currentCancelEmailJobFunctionVersion = cancelEmailJobFunction.getCurrentVersion();
+                var cancelEmailJobFunctionProdAlias = Alias.Builder.create(this, "CancelEmailJobProdAlias")
+                                .aliasName("Prod").version(currentCancelEmailJobFunctionVersion).build();
 
                 // Create SQS event source mapping
-                SqsEventSource sqsEventSource = SqsEventSource.Builder.create(queue)
+                SqsEventSource emailEventSource = SqsEventSource.Builder.create(emailQueue)
                                 // Process one message at a time due to rate limit
                                 .batchSize(1).build();
-                prodAlias.addEventSource(sqsEventSource);
+                emailFunctionProdAlias.addEventSource(emailEventSource);
+
+                SqsEventSource cancelEmailEventSource = SqsEventSource.Builder.create(preventEmailJobQueue).batchSize(1)
+                                .build();
+                cancelEmailJobFunctionProdAlias.addEventSource(cancelEmailEventSource);
 
                 // 输出 DynamoDB 表名
                 CfnOutput.Builder.create(this, "SingleTableName").exportName(serviceName + "-SingleTableName")

@@ -65,7 +65,6 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.jakarta.validation)
     implementation(libs.kotlin.stdlib)
-    implementation(libs.resend)
     runtimeOnly(libs.jackson.module.kotlin)
     runtimeOnly(libs.kotlin.reflect)
     runtimeOnly(libs.logback)

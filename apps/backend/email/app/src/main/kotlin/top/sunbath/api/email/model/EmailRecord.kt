@@ -73,7 +73,7 @@ class EmailRecord :
 
         // Add username index values - use the same constants as in DefaultEmailRecordRepository
         to?.let {
-            indexValues["TPO_PK"] = it
+            indexValues["TO_PK"] = it
             indexValues["TO_SK"] = id ?: ""
         }
 

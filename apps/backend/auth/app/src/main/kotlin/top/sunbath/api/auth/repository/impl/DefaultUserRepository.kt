@@ -215,7 +215,7 @@ open class DefaultUserRepository(
                 LOG.trace(response.toString())
             }
             result.addAll(parseInResponse(response))
-            beforeId = lastEvaluatedId(response, User::class.java).orElse(null)
+            beforeId = lastEvaluatedId(response, User::class.java)
         } while (beforeId != null)
         return result
     }
@@ -237,7 +237,7 @@ open class DefaultUserRepository(
         }
 
         val users = parseInResponse(response)
-        val nextCursor = lastEvaluatedId(response, User::class.java).orElse(null)
+        val nextCursor = lastEvaluatedId(response, User::class.java)
 
         return Pair(users, nextCursor)
     }

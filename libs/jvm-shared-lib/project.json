@@ -26,6 +26,13 @@
         "commands": ["./gradlew :libs:jvm-shared-lib:ktlintFormat"],
         "parallel": false
       }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["./gradlew :libs:jvm-shared-lib:test"],
+        "parallel": false
+      }
     }
   }
 }

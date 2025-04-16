@@ -1,0 +1,37 @@
+micronaut:
+  application:
+    name: memo
+  security:
+    enabled: true
+    authentication: bearer
+    endpoints:
+      login:
+        enabled: false
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: ${JWT_SECRET:pleaseChangeThisSecretForANewOne}
+test-resources:
+  containers:
+    dynamodb:
+      image-name: amazon/dynamodb-local
+      hostnames:
+        - dynamodb-local.host
+      exposed-ports:
+        - dynamodb-local.port: 8000
+
+endpoints:
+  health:
+    enabled: true
+    sensitive: false
+    details-visible: ANONYMOUS
+
+dynamodb:
+  table-name: 'memos-test'
+
+aws:
+  region: 'us-east-1'
+  access-key-id: 'fake-key-id'
+  secret-access-key: 'fake-access-key'

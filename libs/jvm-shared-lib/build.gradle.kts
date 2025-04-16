@@ -40,6 +40,8 @@ dependencies {
     // Micronaut Dependencies
     implementation(libs.micronaut.cache.core)
     implementation(libs.micronaut.inject)
+    implementation(libs.micronaut.security)
+    implementation(libs.micronaut.security.jwt)
     implementation(libs.micronaut.serde.api)
     implementation(libs.micronaut.serde.jackson)
 
@@ -51,4 +53,8 @@ dependencies {
     implementation(libs.jakarta.validation)
     implementation(libs.ksuid)
     runtimeOnly(libs.jackson.module.kotlin)
+
+    // Test Dependencies
+    testImplementation(libs.mockk)
+    testImplementation(libs.micronaut.test.junit5)
 }

@@ -61,6 +61,7 @@ class JwtServiceTest {
         assertEquals(user.id, claims["sub"])
         assertEquals(user.username, claims["username"])
         assertEquals(user.roles, claims["roles"])
+        assertEquals(user.email, claims["email"])
 
         verify(exactly = 1) { jwtTokenGenerator.generateToken(any()) }
     }

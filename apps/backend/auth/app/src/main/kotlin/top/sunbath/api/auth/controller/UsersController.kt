@@ -18,9 +18,9 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.Max
 import top.sunbath.api.auth.controller.request.CreateUserRequest
 import top.sunbath.api.auth.controller.request.UpdateUserRequest
-import top.sunbath.api.auth.controller.response.PagedUsersResponse
 import top.sunbath.api.auth.model.User
 import top.sunbath.api.auth.repository.UserRepository
+import top.sunbath.shared.types.PagedListResponse
 import java.net.URI
 
 /**
@@ -42,10 +42,10 @@ class UsersController(
     fun index(
         @QueryValue(defaultValue = "10") @Max(100) limit: Int,
         @QueryValue()@Nullable() cursor: String?,
-    ): PagedUsersResponse {
+    ): PagedListResponse<User> {
         val (users, nextCursor) = userRepository.findAllWithCursor(limit, cursor)
-        return PagedUsersResponse(
-            users = users,
+        return PagedListResponse(
+            items = users,
             nextCursor = nextCursor,
             hasMore = nextCursor != null,
         )

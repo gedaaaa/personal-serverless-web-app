@@ -119,7 +119,7 @@ public class AppStack extends Stack {
                                 .apiMappingKey(basePath).stage(httpApi.getDefaultStage()).build();
 
                 // 配置 SQS 队列权限
-                var queueNames = Arrays.asList("email-queue");
+                var queueNames = Arrays.asList("email-queue", "prevent-email-job-queue");
                 for (var queueName : queueNames) {
                         var queueArn = String.format("arn:aws:sqs:%s:%s:%s", region, accountId, queueName);
                         System.out.println("Queue ARN: " + queueArn);

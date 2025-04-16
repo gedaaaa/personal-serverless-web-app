@@ -23,7 +23,7 @@ dependencies {
 }
 
 application {
-    mainClass = "top.sunbath.api.auth.Main"
+    mainClass = "top.sunbath.api.memo.Main"
 }
 
 tasks.withType<Test> {

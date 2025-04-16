@@ -1,5 +1,5 @@
 {
-  "app": "../../../../gradlew :apps:backend:auth:infra:run",
+  "app": "../../../../gradlew :apps:backend:memo:infra:run",
   "watch": {
     "include": [
       "**"

@@ -1,4 +1,4 @@
-package top.sunbath.api.auth;
+package top.sunbath.api.memo;
 
 import io.micronaut.aws.cdk.function.MicronautFunction;
 import io.micronaut.aws.cdk.function.MicronautFunctionFile;
@@ -33,8 +33,8 @@ public class AppStack extends Stack {
         public AppStack(final Construct parent, final String id, final StackProps props) {
                 super(parent, id, props);
 
-                var serviceName = "auth";
-                var dynamodbSingleTableName = "auth-service-single-table";
+                var serviceName = "memo";
+                var dynamodbSingleTableName = "memo-service-single-table";
                 var dynamodbDistributedLocksTableName = "distributed_locks";
 
                 Map<String, String> environmentVariables = new HashMap<>();
@@ -84,14 +84,6 @@ public class AppStack extends Stack {
                                                 singleTable.getTableArn() + "/*", distributedLocksArn))
                                 .build());
 
-                String ssmParameterArn = String.format("arn:aws:ssm:%s:%s:parameter/auth/resend/api-key", region,
-                                accountId);
-
-                // 添加 SSM Parameter Store 访问权限
-                function.addToRolePolicy(PolicyStatement.Builder.create().effect(Effect.ALLOW)
-                                .actions(Arrays.asList("ssm:GetParameter")).resources(Arrays.asList(ssmParameterArn))
-                                .build());
-
                 var currentVersion = function.getCurrentVersion();
                 var prodAlias = Alias.Builder.create(this, "ProdAlias").aliasName("Prod").version(currentVersion)
                                 .build();
@@ -114,7 +106,7 @@ public class AppStack extends Stack {
 
                 // 配置自定义域名
                 var domainName = "api.sunbath.top";
-                var basePath = "auth";
+                var basePath = "memo";
                 var domainHostedZoneId = "ZL327KTPIQFUL";
                 var domainAlias = "d-she55i1zs4.execute-api.ap-southeast-1.amazonaws.com";
                 var url = "https://" + domainName + "/" + basePath;
@@ -143,7 +135,7 @@ public class AppStack extends Stack {
                 CfnOutput.Builder.create(this, "SingleTableName").exportName(serviceName + "-SingleTableName")
                                 .value(singleTable.getTableName()).build();
 
-                CfnOutput.Builder.create(this, "AuthApiUrl").exportName("AuthApiUrl").value(url).build();
+                CfnOutput.Builder.create(this, "MemoApiUrl").exportName("MemoApiUrl").value(url).build();
         }
 
         public static String functionPath() {

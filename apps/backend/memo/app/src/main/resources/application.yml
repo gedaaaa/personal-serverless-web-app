@@ -25,6 +25,7 @@ aws:
   sqs:
     queues:
       email: 'email-queue'
+      cancel-email: 'prevent-email-job-queue'
 
 netty:
   default:

@@ -1,52 +1,91 @@
 <script lang="ts">
   import type { Memo } from '../_services/memo-service';
   import { onMount } from 'svelte';
+  import memoStore from '../_stores/memoStore.svelte.ts';
+  import memoService, {
+    type UpdateMemoRequest,
+  } from '../_services/memo-service';
 
   // Component props
-  const { memo, onToggleComplete, onEdit, onDelete, onConfirmDelete } = $props<{
+  const {
+    memo,
+    loading = $bindable(false),
+    onEdit,
+    onDelete,
+  } = $props<{
     memo: Memo;
-    onToggleComplete: (id: string, completed: boolean) => void;
+    loading?: boolean;
     onEdit: (memo: Memo) => void;
-    onDelete: (id: string) => void;
-    onConfirmDelete: (memo: Memo) => void;
+    onDelete: (memo: Memo) => void;
   }>();
 
-  // 内容长度阈值，超过该长度将显示展开/折叠按钮
+  // --- Toggle Complete Logic ---
+  async function handleToggleComplete() {
+    const id = memo.id;
+    memoStore.setItemLoadingStatus(id, true);
+    try {
+      const updateData: UpdateMemoRequest = {
+        title: memo.title,
+        content: memo.content,
+        reminderTime: memo.reminderTime,
+        isCompleted: !memo.isCompleted,
+      };
+
+      const updatedMemo = await memoService.updateMemo(id, updateData);
+
+      // Update memo in the store list without full refetch
+      memoStore.updateMemoInList(id, updatedMemo);
+    } catch (err) {
+      // Use the store's error handling
+      memoStore.setError('Failed to update memo status. Please try again.');
+    } finally {
+      memoStore.setItemLoadingStatus(id, false);
+    }
+  }
+
+  // Threshold for content length
   const MAX_CONTENT_LENGTH = 100;
 
-  // 用于控制内容展开/折叠状态
+  // For controlling content expansion/collapse state
   let expanded = $state(false);
   let needsExpansion = $state(false);
   let contentElement: HTMLParagraphElement;
 
-  // 检查内容是否需要展开功能
-  onMount(() => {
-    if (memo.content.length > MAX_CONTENT_LENGTH) {
+  // Check if content needs expansion functionality
+  $effect(() => {
+    if (memo.content && memo.content.length > MAX_CONTENT_LENGTH) {
       needsExpansion = true;
+    } else {
+      needsExpansion = false;
+      expanded = false;
     }
   });
 
-  // 切换展开/折叠状态
+  // Toggle expansion/collapse state
   function toggleExpand() {
     expanded = !expanded;
-  }
-
-  // Handle toggle complete status
-  function handleToggleComplete() {
-    onToggleComplete(memo.id, !memo.isCompleted);
   }
 
   // Format date for display
   function formatDate(dateString?: string): string {
     if (!dateString) return 'No reminder set';
 
-    const date = new Date(dateString);
-    return date.toLocaleString();
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Invalid reminder date';
+      }
+      return date.toLocaleString();
+    } catch (e) {
+      return 'Error formatting date';
+    }
   }
 </script>
 
 <div
-  class="mb-4 overflow-hidden rounded-lg bg-white shadow-sm transition hover:shadow-md"
+  class="mb-4 overflow-hidden rounded-lg bg-white shadow-sm transition hover:shadow-md {loading
+    ? 'cursor-wait opacity-50'
+    : ''}"
 >
   <div class="relative p-5">
     <!-- Card Header -->
@@ -62,24 +101,29 @@
       <!-- Toggle complete button -->
       <button
         class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white transition-colors
-               {memo.isCompleted ? 'bg-purple-600 ' : 'bg-gray-200'}"
+               {memo.isCompleted ? 'bg-purple-600 ' : 'bg-gray-200'} {loading
+          ? 'cursor-wait'
+          : ''}"
         onclick={handleToggleComplete}
+        disabled={loading}
         aria-label={memo.isCompleted
           ? 'Mark as incomplete'
           : 'Mark as complete'}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-4 w-4"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fill-rule="evenodd"
-            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-            clip-rule="evenodd"
-          />
-        </svg>
+        {#if !loading}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        {/if}
       </button>
     </div>
 
@@ -98,8 +142,9 @@
 
       {#if needsExpansion}
         <button
-          class="mb-4 text-sm font-medium text-purple-600 hover:text-purple-700 focus:outline-none"
+          class="mb-4 text-sm font-medium text-purple-600 hover:text-purple-700 focus:outline-none disabled:cursor-not-allowed disabled:text-gray-400"
           onclick={toggleExpand}
+          disabled={loading}
           aria-label={expanded ? 'Show less' : 'Show more'}
         >
           {expanded ? 'Show less' : 'Show more'}
@@ -134,8 +179,9 @@
       <div class="flex space-x-2">
         <!-- Edit button -->
         <button
-          class="text-gray-500 hover:text-purple-600"
+          class="text-gray-500 hover:text-purple-600 disabled:cursor-not-allowed disabled:text-gray-400"
           onclick={() => onEdit(memo)}
+          disabled={loading}
           aria-label="Edit memo"
         >
           <svg
@@ -152,8 +198,9 @@
 
         <!-- Delete button -->
         <button
-          class="text-gray-500 hover:text-red-600"
-          onclick={() => onConfirmDelete(memo)}
+          class="text-gray-500 hover:text-red-600 disabled:cursor-not-allowed disabled:text-gray-400"
+          onclick={() => onDelete(memo)}
+          disabled={loading}
           aria-label="Delete memo"
         >
           <svg

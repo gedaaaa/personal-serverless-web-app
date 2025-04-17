@@ -29,7 +29,9 @@ export interface UpdateMemoRequest {
 
 export interface GetMemoListFilter {
   isCompleted?: boolean;
-  isDeleted?: boolean;
+
+  //   not in use
+  //   isDeleted?: boolean;
 }
 
 export enum MemoSortOrder {

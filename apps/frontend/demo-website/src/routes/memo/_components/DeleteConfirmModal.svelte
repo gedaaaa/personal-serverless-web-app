@@ -1,18 +1,58 @@
 <script lang="ts">
-  import type { Memo } from '../_services/memo-service';
+  import memoService, { type Memo } from '../_services/memo-service';
+  import memoStore from '../_stores/memoStore.svelte.ts';
 
   // Component props
   const {
     show = $bindable<boolean>(false),
     memo,
-    onConfirm,
-    onCancel,
+    onClose,
   } = $props<{
     show: boolean;
     memo?: Memo;
-    onConfirm: () => void;
-    onCancel: () => void;
+    onClose: () => void;
   }>();
+
+  let isDeleting = $state(false);
+
+  // Reset deleting state when modal opens
+  $effect(() => {
+    if (show) {
+      isDeleting = false;
+    }
+  });
+
+  async function handleDelete() {
+    if (!memo || isDeleting) return;
+
+    const memoId = memo.id;
+
+    isDeleting = true;
+    memoStore.setItemLoadingStatus(memoId, true);
+    memoStore.setError(undefined); // Clear previous errors
+
+    try {
+      await memoService.deleteMemo(memoId);
+      memoStore.removeMemoFromList(memoId); // Update store
+      onClose(); // Close modal on success
+    } catch (err) {
+      console.error('Failed to delete memo:', err);
+      memoStore.setError('Failed to delete memo. Please try again.');
+      // Do not close modal on error
+    } finally {
+      // Ensure loading status is cleared even if component closes before API returns
+      // Check if memo still exists in props before trying to clear its loading state
+      if (memo?.id === memoId) {
+        memoStore.setItemLoadingStatus(memoId, false);
+      }
+      isDeleting = false;
+    }
+  }
+
+  function handleCancel() {
+    if (isDeleting) return;
+    onClose();
+  }
 </script>
 
 {#if show && memo}
@@ -56,8 +96,9 @@
               </h3>
               <div class="mt-2">
                 <p class="text-sm text-gray-500">
-                  Are you sure you want to delete the memo "{memo.title}"? This
-                  action cannot be undone.
+                  Are you sure you want to delete the memo "<strong
+                    class="font-medium">{memo.title}</strong
+                  >"? This action cannot be undone.
                 </p>
               </div>
             </div>
@@ -66,15 +107,41 @@
         <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
           <button
             type="button"
-            onclick={onConfirm}
-            class="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+            onclick={handleDelete}
+            disabled={isDeleting}
+            class="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:ml-3 sm:w-auto sm:text-sm"
           >
-            Delete
+            {#if isDeleting}
+              <svg
+                class="mr-2 h-5 w-5 animate-spin text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Deleting...
+            {:else}
+              Delete
+            {/if}
           </button>
           <button
             type="button"
-            onclick={onCancel}
-            class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm"
+            onclick={handleCancel}
+            disabled={isDeleting}
+            class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:mt-0 sm:w-auto sm:text-sm"
           >
             Cancel
           </button>

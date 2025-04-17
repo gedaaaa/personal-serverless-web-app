@@ -16,7 +16,7 @@
       type="button"
       class="rounded-l-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900
              hover:bg-gray-100 hover:text-purple-700 focus:z-10 focus:text-purple-700 focus:outline-none
-             {filter.isCompleted === undefined
+             {filter?.isCompleted === undefined
         ? 'bg-purple-100 text-purple-700'
         : ''}"
       onclick={() => handleFilterChange(undefined)}
@@ -27,7 +27,7 @@
       type="button"
       class="border-b border-r border-t border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900
              hover:bg-gray-100 hover:text-purple-700 focus:z-10 focus:text-purple-700 focus:outline-none
-             {filter.isCompleted === false
+             {filter?.isCompleted === false
         ? 'bg-purple-100 text-purple-700'
         : ''}"
       onclick={() => handleFilterChange(false)}
@@ -38,7 +38,7 @@
       type="button"
       class="rounded-r-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900
              hover:bg-gray-100 hover:text-purple-700 focus:z-10 focus:text-purple-700 focus:outline-none
-             {filter.isCompleted === true
+             {filter?.isCompleted === true
         ? 'bg-purple-100 text-purple-700'
         : ''}"
       onclick={() => handleFilterChange(true)}

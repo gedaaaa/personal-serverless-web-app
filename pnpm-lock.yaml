@@ -8,18 +8,15 @@ importers:
 
   .:
     dependencies:
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       mermaid:
         specifier: ^11.6.0
         version: 11.6.0
       sst:
         specifier: 3.7.1
         version: 3.7.1
-      svelte-infinite:
-        specifier: ^0.5.0
-        version: 0.5.0(svelte@5.20.4)
-      svelte-infinite-loading:
-        specifier: ^1.4.0
-        version: 1.4.0
       svelte-kit-sst:
         specifier: 2.43.5
         version: 2.43.5
@@ -84,6 +81,9 @@ importers:
       '@testing-library/svelte':
         specifier: ^5.0.0
         version: 5.2.7(svelte@5.20.4)(vite@6.2.0(@types/node@22.13.5)(jiti@1.21.7)(yaml@2.7.0))(vitest@3.0.7)
+      '@types/lodash':
+        specifier: ^4.17.16
+        version: 4.17.16
       '@vitest/coverage-v8':
         specifier: ^3.0.7
         version: 3.0.7(vitest@3.0.7)
@@ -1550,6 +1550,9 @@ packages:
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
+
+  '@types/lodash@4.17.16':
+    resolution: {integrity: sha512-HX7Em5NYQAXKW+1T+FiuG27NGwzJfCX3s1GjOa7ujxZa52kjJLOr4FUxT+giF6Tgxv1e+/czV/iTtBw27WTU9g==}
 
   '@types/node@22.13.5':
     resolution: {integrity: sha512-+lTU0PxZXn0Dr1NBtC7Y8cR21AJr87dLLU953CWA6pMxxv/UDc7jYAY90upcrie1nRcD6XNG5HOYEDtgW5TxAg==}
@@ -3695,14 +3698,6 @@ packages:
       svelte:
         optional: true
 
-  svelte-infinite-loading@1.4.0:
-    resolution: {integrity: sha512-Jo+f/yr/HmZQuIiiKKzAHVFXdAUWHW2RBbrcQTil8JVk1sCm/riy7KTJVzjBgQvHasrFQYKF84zvtc9/Y4lFYg==}
-
-  svelte-infinite@0.5.0:
-    resolution: {integrity: sha512-3ZomRQcQzg8VWtnqO4MvPC0Jt3hvh1wmC47t64BcI+8UXTl0FJYVfB7ky4d1NJ3mf/KZZa+hcIZJPnV9cOt8gQ==}
-    peerDependencies:
-      svelte: ^5.0.0-0
-
   svelte-kit-sst@2.43.5:
     resolution: {integrity: sha512-tvWj/YiPCL3scFcHo/RSYZWtXIuX6g6Mib4MXmDw0JrOtZHzqOCG4kWstTbjnWH4i4XyLPPvxrgSkm35muj4uw==}
 
@@ -5681,6 +5676,8 @@ snapshots:
   '@types/geojson@7946.0.16': {}
 
   '@types/json-schema@7.0.15': {}
+
+  '@types/lodash@4.17.16': {}
 
   '@types/node@22.13.5':
     dependencies:
@@ -7894,12 +7891,6 @@ snapshots:
       postcss: 8.5.3
       postcss-scss: 4.0.9(postcss@8.5.3)
     optionalDependencies:
-      svelte: 5.20.4
-
-  svelte-infinite-loading@1.4.0: {}
-
-  svelte-infinite@0.5.0(svelte@5.20.4):
-    dependencies:
       svelte: 5.20.4
 
   svelte-kit-sst@2.43.5: {}

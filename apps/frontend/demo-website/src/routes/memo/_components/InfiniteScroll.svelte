@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import memoStore from '../_stores/memoStore.svelte.ts';
   import LoadingSpinner from './LoadingSpinner.svelte';
 

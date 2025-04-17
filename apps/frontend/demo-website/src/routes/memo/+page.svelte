@@ -1,10 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import memoService, {
-    type Memo,
-    type UpdateMemoRequest,
-    type GetMemoListFilter,
-  } from './_services/memo-service';
+  import { type Memo } from './_services/memo-service';
   import memoStore from './_stores/memoStore.svelte.ts';
   import MemoCard from './_components/MemoCard.svelte';
   import MemoModal from './_components/MemoModal.svelte';

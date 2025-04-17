@@ -48,7 +48,7 @@ export interface MemoSort {
   sortKey?: MemoSortKey;
 }
 
-export interface PagedMemosResponse extends PagedResponse<Memo> {}
+export type PagedMemosResponse = PagedResponse<Memo>;
 
 class MemoService {
   private apiClient: ApiClient = getDefaultClient();
@@ -89,9 +89,6 @@ class MemoService {
     if (filter) {
       if (filter.isCompleted !== undefined) {
         params.append('filter.isCompleted', filter.isCompleted.toString());
-      }
-      if (filter.isDeleted !== undefined) {
-        params.append('filter.isDeleted', filter.isDeleted.toString());
       }
     }
 

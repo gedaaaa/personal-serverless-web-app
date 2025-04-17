@@ -1,11 +1,4 @@
 <script lang="ts">
-  import type { Snippet } from 'svelte';
-
-  // type Props = {
-  // 	onAddClick: () => void;
-  //  children: Snippet;
-  // };
-  // const { onAddClick, children }: Props = $props();
   let { onAddClick }: { onAddClick: () => void } = $props();
 </script>
 

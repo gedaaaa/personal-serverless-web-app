@@ -28,7 +28,7 @@ const initialState: MemoStoreState = {
 
 // --- Store Creation ---
 function createMemoStore() {
-  const { subscribe, set, update } = writable<MemoStoreState>(initialState);
+  const { subscribe, update } = writable<MemoStoreState>(initialState);
 
   // --- Actions ---
   const fetchMemos = async (limit: number = 10) => {

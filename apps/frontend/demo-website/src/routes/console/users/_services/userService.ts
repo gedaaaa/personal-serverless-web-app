@@ -13,7 +13,7 @@ export interface User {
   fullName?: string;
 }
 
-export interface PagedUsersResponse extends PagedResponse<User> {}
+export type PagedUsersResponse = PagedResponse<User>;
 
 export interface UpdateUserRequest {
   email?: string;

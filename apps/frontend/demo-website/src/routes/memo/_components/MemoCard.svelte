@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Memo } from '../_services/memo-service';
-  import { onMount } from 'svelte';
   import memoStore from '../_stores/memoStore.svelte.ts';
   import memoService, {
     type UpdateMemoRequest,
@@ -35,7 +34,7 @@
 
       // Update memo in the store list without full refetch
       memoStore.updateMemoInList(id, updatedMemo);
-    } catch (err) {
+    } catch () {
       // Use the store's error handling
       memoStore.setError('Failed to update memo status. Please try again.');
     } finally {
@@ -76,7 +75,7 @@
         return 'Invalid reminder date';
       }
       return date.toLocaleString();
-    } catch (e) {
+    } catch () {
       return 'Error formatting date';
     }
   }

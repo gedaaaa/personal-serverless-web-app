@@ -14,6 +14,12 @@ importers:
       sst:
         specifier: 3.7.1
         version: 3.7.1
+      svelte-infinite:
+        specifier: ^0.5.0
+        version: 0.5.0(svelte@5.20.4)
+      svelte-infinite-loading:
+        specifier: ^1.4.0
+        version: 1.4.0
       svelte-kit-sst:
         specifier: 2.43.5
         version: 2.43.5
@@ -3688,6 +3694,14 @@ packages:
     peerDependenciesMeta:
       svelte:
         optional: true
+
+  svelte-infinite-loading@1.4.0:
+    resolution: {integrity: sha512-Jo+f/yr/HmZQuIiiKKzAHVFXdAUWHW2RBbrcQTil8JVk1sCm/riy7KTJVzjBgQvHasrFQYKF84zvtc9/Y4lFYg==}
+
+  svelte-infinite@0.5.0:
+    resolution: {integrity: sha512-3ZomRQcQzg8VWtnqO4MvPC0Jt3hvh1wmC47t64BcI+8UXTl0FJYVfB7ky4d1NJ3mf/KZZa+hcIZJPnV9cOt8gQ==}
+    peerDependencies:
+      svelte: ^5.0.0-0
 
   svelte-kit-sst@2.43.5:
     resolution: {integrity: sha512-tvWj/YiPCL3scFcHo/RSYZWtXIuX6g6Mib4MXmDw0JrOtZHzqOCG4kWstTbjnWH4i4XyLPPvxrgSkm35muj4uw==}
@@ -7880,6 +7894,12 @@ snapshots:
       postcss: 8.5.3
       postcss-scss: 4.0.9(postcss@8.5.3)
     optionalDependencies:
+      svelte: 5.20.4
+
+  svelte-infinite-loading@1.4.0: {}
+
+  svelte-infinite@0.5.0(svelte@5.20.4):
+    dependencies:
       svelte: 5.20.4
 
   svelte-kit-sst@2.43.5: {}

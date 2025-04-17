@@ -90,3 +90,8 @@
     onClose={closeModal}
   />
 </div>
+
+<!-- TODO: 
+  - refetch when click current filter
+  - newly added memo should be displayed at the top of the list before refetch
+  -->

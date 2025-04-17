@@ -82,7 +82,7 @@ function createMemoStore() {
           isFetchingList: false,
         };
       });
-    } catch (err) {
+    } catch {
       update((state) => ({
         ...state,
         error: 'Failed to load memos. Please try again.',

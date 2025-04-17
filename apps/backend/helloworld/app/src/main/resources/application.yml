@@ -2,3 +2,20 @@
 micronaut:
   application:
     name: helloworld
+  security:
+    enabled: true
+    authentication: bearer
+    endpoints:
+      login:
+        enabled: false
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: ${JWT_SECRET:pleaseChangeThisSecretForANewOne}
+endpoints:
+  health:
+    enabled: true
+    sensitive: false
+    details-visible: ANONYMOUS

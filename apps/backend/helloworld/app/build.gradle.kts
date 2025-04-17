@@ -38,16 +38,23 @@ dependencies {
 
     // KSP Annotation Processors
     ksp(libs.micronaut.http.validation)
+    ksp(libs.micronaut.security.annotations)
     ksp(libs.micronaut.serde.processor)
+    ksp(libs.micronaut.validation.processor)
 
     // Project Dependencies
     implementation(project(":libs:jvm-shared-lib"))
 
     // Micronaut Dependencies
-    compileOnly(libs.micronaut.http.client.jdk)
     implementation(libs.kotlin.stdlib)
+    implementation(libs.micronaut.security)
+    implementation(libs.micronaut.security.jwt)
+    implementation(libs.micronaut.validation)
     runtimeOnly(libs.micronaut.aws.lambda.events.serde)
+    runtimeOnly(libs.micronaut.http.client.jdk)
     runtimeOnly(libs.micronaut.kotlin.runtime)
+
+    // Other Third-Party Dependencies
     runtimeOnly(libs.jackson.module.kotlin)
     runtimeOnly(libs.kotlin.reflect)
     runtimeOnly(libs.logback)

@@ -17,22 +17,22 @@ class EmailRecord :
     Identified,
     Indexable {
     @get:NonNull
-    override var id: String? = null
+    override var id: String = ""
 
     @get:NonNull
-    var to: String? = null
+    var to: String = ""
 
     @get:NonNull
-    var from: String? = null
+    var from: String = ""
 
     @get:NonNull
-    var subject: String? = null
+    var subject: String = ""
 
     @get:NonNull
-    var html: String? = null
+    var html: String = ""
 
     @get:Nullable
-    var vendorResponse: String? = null
+    var vendorResponse: String = ""
 
     /**
      * Default constructor.
@@ -50,12 +50,12 @@ class EmailRecord :
      */
     @Creator
     constructor(
-        id: String?,
-        to: String?,
-        from: String?,
-        subject: String?,
-        html: String?,
-        vendorResponse: String?,
+        id: String,
+        to: String,
+        from: String,
+        subject: String,
+        html: String,
+        vendorResponse: String,
     ) {
         this.id = id
         this.to = to
@@ -74,7 +74,7 @@ class EmailRecord :
         // Add username index values - use the same constants as in DefaultEmailRecordRepository
         to?.let {
             indexValues["TO_PK"] = it
-            indexValues["TO_SK"] = id ?: ""
+            indexValues["TO_SK"] = id
         }
 
         return indexValues

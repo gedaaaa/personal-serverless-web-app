@@ -15,7 +15,7 @@ vi.mock('$lib/auth', () => ({
 
 describe('AuthService', () => {
   // Test data
-  const AUTH_API_PREFIX = '/auth';
+  const AUTH_API_PREFIX = '/auth/v1';
   const mockToken = 'test-jwt-token';
   const mockUserId = 'user-123';
 

@@ -3,10 +3,6 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "gateway:start": "local-env/scripts/api-gateway.sh",
-    "api:reload": "./gradlew shadowJar",
-    "dev-dependency": "local-env/scripts/dev-dependencies.sh",
-    "clean-test-resources": "find ./ -type d -name \".micronaut\" -exec rm -rf {} +",
     "prepare": "husky"
   },
   "private": true,

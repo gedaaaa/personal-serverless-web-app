@@ -9,7 +9,7 @@
     try {
       const api = getDefaultClient();
       const response = await api.get<{ message: string }>(
-        '/hello-world/greeting',
+        '/hello-world/v1/greeting',
       );
       greeting = response.message;
     } catch {

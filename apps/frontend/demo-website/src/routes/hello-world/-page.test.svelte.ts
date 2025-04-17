@@ -80,7 +80,7 @@ describe('HelloWorldPage Component', () => {
     await fireEvent.click(sayHelloButton);
 
     // Check API call
-    expect(mockApiClient.get).toHaveBeenCalledWith('/hello-world/greeting');
+    expect(mockApiClient.get).toHaveBeenCalledWith('/hello-world/v1/greeting');
 
     // Check updated UI
     await waitFor(() => {

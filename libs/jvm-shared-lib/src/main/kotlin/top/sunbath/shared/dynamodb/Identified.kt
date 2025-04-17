@@ -10,5 +10,5 @@ interface Identified {
      * The entity ID
      */
     @get:NonNull
-    val id: String?
+    val id: String
 }

@@ -34,7 +34,7 @@
 
       // Update memo in the store list without full refetch
       memoStore.updateMemoInList(id, updatedMemo);
-    } catch () {
+    } catch {
       // Use the store's error handling
       memoStore.setError('Failed to update memo status. Please try again.');
     } finally {
@@ -75,7 +75,7 @@
         return 'Invalid reminder date';
       }
       return date.toLocaleString();
-    } catch () {
+    } catch {
       return 'Error formatting date';
     }
   }

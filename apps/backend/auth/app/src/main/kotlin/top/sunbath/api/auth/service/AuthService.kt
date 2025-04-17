@@ -103,7 +103,7 @@ class AuthService(
                 ?: throw HttpStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
 
         // Verify password
-        if (!verifyPassword(request.password, user.password ?: "")) {
+        if (!verifyPassword(request.password, user.password)) {
             throw HttpStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
         }
 
@@ -170,7 +170,7 @@ class AuthService(
         // Mark email as verified
         user.markEmailAsVerified()
         userRepository.update(
-            id = user.id!!,
+            id = user.id,
             email = user.email,
             password = user.password,
             roles = user.roles,
@@ -216,7 +216,7 @@ class AuthService(
         // Update user with new token
         user.updateVerificationToken(verificationToken, VERIFICATION_TOKEN_EXPIRES_IN_HOURS * 3600)
         userRepository.update(
-            id = user.id!!,
+            id = user.id,
             email = user.email,
             password = user.password,
             roles = user.roles,

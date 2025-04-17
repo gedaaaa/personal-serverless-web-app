@@ -15,7 +15,7 @@ class PreventEmailJob :
     Identified,
     Indexable {
     @get:NonNull
-    override var id: String? = null
+    override var id: String = ""
 
     @get:NonNull
     var createdAt: Instant? = Instant.now()

@@ -338,7 +338,7 @@ class AuthServiceTest {
         every { userRepository.findByVerificationToken(token) } returns user
         every {
             userRepository.update(
-                id = user.id!!,
+                id = user.id,
                 email = user.email,
                 password = user.password,
                 roles = user.roles,
@@ -358,7 +358,7 @@ class AuthServiceTest {
         verify(exactly = 1) { userRepository.findByVerificationToken(token) }
         verify(exactly = 1) {
             userRepository.update(
-                id = user.id!!,
+                id = user.id,
                 email = user.email,
                 password = user.password,
                 roles = user.roles,
@@ -436,7 +436,7 @@ class AuthServiceTest {
         every { userRepository.findByEmail(email) } returns user
         every {
             userRepository.update(
-                id = user.id!!,
+                id = user.id,
                 email = user.email,
                 password = user.password,
                 roles = user.roles,
@@ -450,7 +450,7 @@ class AuthServiceTest {
         every {
             emailService.sendVerificationEmail(
                 to = email,
-                username = user.username!!,
+                username = user.username,
                 verificationToken = any(),
                 expiresAt = any(),
             )
@@ -464,7 +464,7 @@ class AuthServiceTest {
         verify(exactly = 1) { userRepository.findByEmail(email) }
         verify(exactly = 1) {
             userRepository.update(
-                id = user.id!!,
+                id = user.id,
                 email = user.email,
                 password = user.password,
                 roles = user.roles,
@@ -478,7 +478,7 @@ class AuthServiceTest {
         verify(exactly = 1) {
             emailService.sendVerificationEmail(
                 to = email,
-                username = user.username!!,
+                username = user.username,
                 verificationToken = any(),
                 expiresAt = any(),
             )

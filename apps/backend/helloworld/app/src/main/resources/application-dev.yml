@@ -1,8 +1,9 @@
 #Fri Jan 31 20:10:03 CST 2025
 micronaut:
   server:
-    #    set context path for development.
-    #    because sam only simulates api gateway v1 and will pass mapped basepath to lambda.
-    #    production uses api gateway v2, http api ($default) lambda integration, api mappings,
-    #    which will not pass mapped path key to lambda.
+    port: 8080
+    # Set development environment context path
+    # Because sam only simulates API Gateway v1 and passes the mapped base path to Lambda
+    # Production environment uses API Gateway v2, HTTP API ($default) Lambda integration, API mapping
+    # This does not pass the mapped path key to Lambda
     context-path: hello-world

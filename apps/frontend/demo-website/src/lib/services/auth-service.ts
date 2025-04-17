@@ -3,7 +3,7 @@ import { getDefaultClient } from '$lib/api/client';
 import { login as authLogin } from '$lib/auth';
 
 // Auth API path prefix
-const AUTH_API_PREFIX = '/auth';
+const AUTH_API_PREFIX = '/auth/v1';
 
 export interface LoginRequest {
   username: string;

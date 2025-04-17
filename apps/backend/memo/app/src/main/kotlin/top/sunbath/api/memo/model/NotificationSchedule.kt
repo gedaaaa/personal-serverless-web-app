@@ -18,7 +18,7 @@ class NotificationSchedule :
     Identified,
     Indexable {
     @get:NonNull
-    override var id: String? = null
+    override var id: String = ""
 
     @get:NonNull
     var notificationId: String = ""

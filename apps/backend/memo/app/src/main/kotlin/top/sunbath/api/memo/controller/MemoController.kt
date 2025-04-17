@@ -27,7 +27,7 @@ import java.net.URI
  * Controller for Memo CRUD operations.
  */
 @Validated
-@Controller("/items")
+@Controller("/v1/memos")
 @Secured("ROLE_USER")
 class MemoController(
     private val memoService: MemoService,

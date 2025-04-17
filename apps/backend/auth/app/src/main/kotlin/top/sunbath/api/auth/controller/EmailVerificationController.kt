@@ -17,7 +17,7 @@ import top.sunbath.api.auth.service.AuthService
  * Controller for email verification operations.
  */
 @Validated
-@Controller("/email-verification")
+@Controller("/v1/email-verification")
 @Secured(SecurityRule.IS_ANONYMOUS)
 class EmailVerificationController(
     private val authService: AuthService,

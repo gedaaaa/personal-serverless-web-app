@@ -1,17 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { userListStore } from '../store';
+import { userListStore, type UserListStoreState } from '../store';
 import { userService } from '../../../_services/userService';
 import type {
   User,
   UpdateUserRequest,
   PagedUsersResponse,
 } from '../../../_services/userService';
-
-// Define store state type
-type UserListStoreState = {
-  users: User[];
-  error: string | null;
-};
 
 // Mock userService
 vi.mock('../../../_services/userService', () => ({
@@ -48,7 +42,7 @@ describe('userListStore', () => {
     it('should load users successfully', async () => {
       // Setup mock
       const mockResponse: PagedUsersResponse = {
-        users: mockUsers,
+        items: mockUsers,
         nextCursor: null,
         hasMore: false,
       };
@@ -85,7 +79,7 @@ describe('userListStore', () => {
         storeState = state as UserListStoreState;
       });
 
-      expect(storeState?.error).toBe('加载用户列表失败');
+      expect(storeState?.error).toBe('Failed to load users');
     });
   });
 
@@ -176,7 +170,7 @@ describe('userListStore', () => {
         storeState = state as UserListStoreState;
       });
 
-      expect(storeState?.error).toBe('删除用户失败');
+      expect(storeState?.error).toBe('Failed to delete user');
     });
   });
 });

@@ -77,7 +77,7 @@ describe('Hello World Page', () => {
     await tick();
 
     // Check that API was called with correct path
-    expect(mockApiClient.get).toHaveBeenCalledWith('/hello-world/greeting');
+    expect(mockApiClient.get).toHaveBeenCalledWith('/hello-world/v1/greeting');
 
     // Check that greeting is displayed
     await waitFor(() => {

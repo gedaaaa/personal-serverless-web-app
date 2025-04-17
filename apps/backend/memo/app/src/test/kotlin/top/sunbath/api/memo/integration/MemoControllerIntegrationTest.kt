@@ -44,7 +44,7 @@ import java.time.temporal.ChronoUnit
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MemoControllerIntegrationTest {
     @Inject
-    @Client("/items")
+    @Client("/v1/memos")
     lateinit var client: HttpClient
 
     @Inject

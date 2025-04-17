@@ -17,7 +17,7 @@ import top.sunbath.api.auth.service.AuthService
  * Controller for authentication operations.
  */
 @Validated
-@Controller("/")
+@Controller("/v1")
 @Secured(SecurityRule.IS_ANONYMOUS)
 class AuthController(
     private val authService: AuthService,

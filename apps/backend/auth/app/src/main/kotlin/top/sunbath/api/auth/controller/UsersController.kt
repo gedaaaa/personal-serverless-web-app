@@ -27,7 +27,7 @@ import java.net.URI
  * Controller for User CRUD operations.
  */
 @Validated
-@Controller("/users")
+@Controller("/v1/users")
 @Secured("ROLE_ADMIN")
 class UsersController(
     private val userRepository: UserRepository,

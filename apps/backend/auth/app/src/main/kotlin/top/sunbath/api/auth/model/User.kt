@@ -18,16 +18,16 @@ class User :
     Identified,
     Indexable {
     @get:NonNull
-    override var id: String? = null
+    override var id: String = ""
 
     @get:NonNull
-    var username: String? = null
+    var username: String = ""
 
     @get:NonNull
-    var email: String? = null
+    var email: String = ""
 
     @get:NonNull
-    var password: String? = null
+    var password: String = ""
 
     @get:NonNull
     var roles: Set<String> = setOf("ROLE_USER")
@@ -97,21 +97,21 @@ class User :
         val indexValues = mutableMapOf<String, String>()
 
         // Add username index values - use the same constants as in DefaultUserRepository
-        username?.let {
+        username.let {
             indexValues["USERNAME_PK"] = it
-            indexValues["USERNAME_SK"] = id ?: ""
+            indexValues["USERNAME_SK"] = id
         }
 
         // Add email index values
-        email?.let {
+        email.let {
             indexValues["EMAIL_PK"] = it
-            indexValues["EMAIL_SK"] = id ?: ""
+            indexValues["EMAIL_SK"] = id
         }
 
         // Add verification token index if exists
         emailVerificationToken?.let {
             indexValues["VERIFICATION_TOKEN_PK"] = it
-            indexValues["VERIFICATION_TOKEN_SK"] = id ?: ""
+            indexValues["VERIFICATION_TOKEN_SK"] = id
         }
 
         return indexValues

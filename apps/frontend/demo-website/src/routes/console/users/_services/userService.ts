@@ -2,7 +2,7 @@ import { ApiClient } from '$lib/api';
 import { getDefaultClient } from '$lib/api/client';
 
 // Auth API path prefix
-const AUTH_API_PREFIX = '/auth';
+const AUTH_API_PREFIX = '/auth/v1';
 
 export interface User {
   id: string;
@@ -13,7 +13,7 @@ export interface User {
 }
 
 export interface PagedUsersResponse {
-  users: User[];
+  items: User[];
   nextCursor: string | null;
   hasMore: boolean;
 }
@@ -28,7 +28,7 @@ export interface UpdateUserRequest {
 /**
  * Service for handling user operations
  */
-class UserServiceImpl {
+class UserService {
   private apiClient: ApiClient = getDefaultClient();
 
   /**
@@ -75,4 +75,4 @@ class UserServiceImpl {
 }
 
 // 导出单例实例
-export const userService = new UserServiceImpl();
+export const userService = new UserService();

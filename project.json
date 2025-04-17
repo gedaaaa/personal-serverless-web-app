@@ -1,0 +1,37 @@
+{
+  "name": "root",
+  "targets": {
+    "gateway-start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "nx run dev-dependency",
+          "nx run api-reload",
+          "local-env/scripts/api-gateway.sh"
+        ],
+        "parallel": false
+      }
+    },
+    "api-reload": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["./gradlew shadowJar"],
+        "parallel": false
+      }
+    },
+    "dev-dependency": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["local-env/scripts/dev-dependencies.sh"],
+        "parallel": false
+      }
+    },
+    "clean-test-resources-records": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["find ./ -type d -name \".micronaut\" -exec rm -rf {} +"],
+        "parallel": false
+      }
+    }
+  }
+}

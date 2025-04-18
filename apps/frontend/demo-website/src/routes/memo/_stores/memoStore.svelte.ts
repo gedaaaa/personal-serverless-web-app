@@ -36,7 +36,6 @@ export async function fetchMemos(limit: number = 10) {
     return;
   }
 
-  // 使用新的对象进行赋值，而不是修改当前对象
   store.isFetchingList = true;
   store.error = undefined;
 
@@ -55,7 +54,6 @@ export async function fetchMemos(limit: number = 10) {
 
     const newMemos = response.items ?? [];
 
-    // 使用新数组，而不是修改现有数组
     store.memos = currentCursor ? [...store.memos, ...newMemos] : newMemos;
     store.listCursor = response.nextCursor;
     store.hasMore = response.hasMore;
@@ -123,15 +121,14 @@ export function setError(message: string | undefined) {
  * @param isLoading - The loading status.
  */
 export function setItemLoadingStatus(id: string, isLoading: boolean) {
-  // 创建一个新对象以保持响应性
   store.itemLoadingStatus = { ...store.itemLoadingStatus, [id]: isLoading };
 }
 
 /**
  * Tries to fetch the next memo.
  */
-export function tryFetchNextMemo() {
-  if (!_.isNil(store.listCursor)) return;
-  store.listCursor = store.memos[store.memos.length - 1].id;
-  fetchMemos(1);
+export async function tryFetchNextMemo() {
+  const lastMemo = store.memos[store.memos.length - 1];
+  store.listCursor = lastMemo ? lastMemo.id : undefined;
+  await fetchMemos(1);
 }

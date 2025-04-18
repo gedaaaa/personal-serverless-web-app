@@ -263,39 +263,66 @@ describe('memoStore', () => {
   });
 
   describe('tryFetchNextMemo', () => {
-    it('should not fetch if cursor is already set', () => {
-      // Setup initial state with cursor
-      memoStore.store.listCursor = 'some-cursor';
-
-      // Try to fetch next memo
-      memoStore.tryFetchNextMemo();
-
-      // Verify getMemos was not called
-      expect(memoService.getMemos).not.toHaveBeenCalled();
-    });
-
-    it('should fetch next memo if no cursor and memos exist', async () => {
+    it('should fetch next one memo', async () => {
       // Setup initial state
       memoStore.store.memos = [...mockMemos];
       memoStore.store.listCursor = undefined;
 
       // Setup mock
       const mockResponse = {
-        items: [],
+        items: [
+          {
+            title: 'Test Memo 3',
+            id: '3',
+            userId: 'user1',
+            content: 'Content 3',
+            createdAt: '2023-01-03T00:00:00Z',
+            isCompleted: false,
+          },
+        ],
         nextCursor: undefined,
         hasMore: false,
       };
+
       vi.mocked(memoService.getMemos).mockResolvedValue(mockResponse);
 
       // Try to fetch next memo
-      memoStore.tryFetchNextMemo();
+      await memoStore.tryFetchNextMemo();
 
-      // Verify cursor was set to last memo id
-      expect(memoStore.store.listCursor).toBe('2');
       // Verify getMemos was called with limit 1
       expect(memoService.getMemos).toHaveBeenCalledWith(1, '2', {
         isCompleted: false,
       });
+
+      // Verify fetched one more memo
+      expect(memoStore.store.memos.length).toBe(3);
+    });
+
+    // Should fetch even current memos is empty.
+    // This is some bug that we already fixed.
+    it('should fetch even current memos is empty', async () => {
+      // Setup initial state
+      memoStore.store.memos = [];
+      memoStore.store.listCursor = undefined;
+
+      // Setup mock
+      const mockResponse = {
+        items: [mockMemos[1]],
+        nextCursor: 'next-cursor',
+        hasMore: true,
+      };
+      vi.mocked(memoService.getMemos).mockResolvedValue(mockResponse);
+
+      // Try to fetch next memo
+      await memoStore.tryFetchNextMemo();
+
+      // Verify getMemos was called with limit 1
+      expect(memoService.getMemos).toHaveBeenCalledWith(1, undefined, {
+        isCompleted: false,
+      });
+
+      // Verify fetched one more memo
+      expect(memoStore.store.memos.length).toBe(1);
     });
   });
 });

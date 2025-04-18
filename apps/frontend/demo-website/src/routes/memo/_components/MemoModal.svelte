@@ -95,6 +95,7 @@
         // Create new memo
         await memoService.createMemo(requestData as CreateMemoRequest);
 
+        // Fetch next memo after creation
         tryFetchNextMemo();
       }
       onClose(); // Call onClose on success

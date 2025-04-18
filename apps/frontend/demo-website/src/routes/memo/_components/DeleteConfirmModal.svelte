@@ -22,6 +22,9 @@
     }
   });
 
+  /**
+   * Handles the deletion of current memo.
+   */
   async function handleDelete() {
     if (!memo || isDeleting) return;
 

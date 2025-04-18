@@ -1,6 +1,8 @@
 <script lang="ts">
-  const { size = 'md' }: { size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' } =
-    $props();
+  const {
+    size = 'md',
+    class: className = '',
+  }: { size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'; class?: string } = $props();
 
   const sizeClass = {
     sm: 'h-5 w-5 border-2 border-purple-600',
@@ -11,7 +13,7 @@
   }[size];
 </script>
 
-<div class="flex items-center justify-center">
+<div class="flex items-center justify-center {className}">
   <div
     class={`animate-spin rounded-full border-solid border-t-transparent ${sizeClass}`}
   ></div>

@@ -9,6 +9,7 @@
 
   // --- Lifecycle ---
   onMount(() => {
+    // Create an IntersectionObserver to detect when the sentinel element is visible
     observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
@@ -61,11 +62,4 @@
     <!-- You might want to add a check here to only show this if there are already items loaded -->
     <p class="py-4 text-center text-gray-500">No more memos found.</p>
   {/if}
-
-  <!-- Consider adding: Message when no items match filter (might need memo count from store) -->
-  <!-- {#if !$hasMore && $memos.length === 0 && !$isFetchingList} -->
-  <!--   <p class="py-4 text-center text-gray-500"> -->
-  <!--     No memos match the current filter. -->
-  <!--   </p> -->
-  <!-- {/if} -->
 </div>

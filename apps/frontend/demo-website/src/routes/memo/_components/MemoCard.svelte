@@ -18,7 +18,9 @@
     onDelete: (memo: Memo) => void;
   }>();
 
-  // --- Toggle Complete Logic ---
+  /**
+   * Handles the toggling of the complete status of a memo.
+   */
   async function handleToggleComplete() {
     const id = memo.id;
     memoStore.setItemLoadingStatus(id, true);

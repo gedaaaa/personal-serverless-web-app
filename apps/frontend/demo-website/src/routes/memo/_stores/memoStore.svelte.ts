@@ -30,7 +30,10 @@ const initialState: MemoStoreState = {
 function createMemoStore() {
   const { subscribe, update } = writable<MemoStoreState>(initialState);
 
-  // --- Actions ---
+  /**
+   * Fetches memos.
+   * @param limit - The limit of the memos.
+   */
   const fetchMemos = async (limit: number = 10) => {
     let currentCursor: string | undefined;
     let currentFilter: GetMemoListFilter = { isCompleted: false };
@@ -90,6 +93,10 @@ function createMemoStore() {
     }
   };
 
+  /**
+   * Applies a filter to the memos.
+   * @param newFilter - The new filter.
+   */
   const applyFilter = (newFilter: GetMemoListFilter) => {
     update((state) => ({
       ...state,
@@ -104,6 +111,11 @@ function createMemoStore() {
     fetchMemos();
   };
 
+  /**
+   * Updates a memo in the list.
+   * @param id - The id of the memo.
+   * @param updatedData - The updated data.
+   */
   const updateMemoInList = (id: string, updatedData: Partial<Memo>) => {
     update((state) => {
       return {
@@ -122,6 +134,10 @@ function createMemoStore() {
     });
   };
 
+  /**
+   * Removes a memo from the list.
+   * @param id - The id of the memo.
+   */
   const removeMemoFromList = (id: string) => {
     update((state) => ({
       ...state,
@@ -129,11 +145,20 @@ function createMemoStore() {
     }));
   };
 
+  /**
+   * Sets the error.
+   * @param message - The message.
+   */
   const setError = (message: string | undefined) => {
     update((state) => ({ ...state, error: message }));
     // Consider adding automatic clear timeout here if needed later
   };
 
+  /**
+   * Sets the item loading status.
+   * @param id - The id of the item.
+   * @param isLoading - The loading status.
+   */
   const setItemLoadingStatus = (id: string, isLoading: boolean) => {
     update((state) => ({
       ...state,
@@ -141,6 +166,9 @@ function createMemoStore() {
     }));
   };
 
+  /**
+   * Tries to fetch the next memo.
+   */
   const tryFetchNextMemo = () => {
     update((state) => {
       if (!_.isNil(state.listCursor)) return state;

@@ -50,25 +50,56 @@ export interface MemoSort {
 
 export type PagedMemosResponse = PagedResponse<Memo>;
 
+/**
+ * Memo service.
+ */
 class MemoService {
   private apiClient: ApiClient = getDefaultClient();
 
+  /**
+   * Get a memo by id.
+   * @param id - The id of the memo.
+   * @returns The memo.
+   */
   async getMemo(id: string): Promise<Memo> {
     return this.apiClient.get<Memo>(`${AUTH_API_PREFIX}/memos/${id}`);
   }
 
+  /**
+   * Create a memo.
+   * @param request - The request to create the memo.
+   * @returns The memo.
+   */
   async createMemo(request: CreateMemoRequest): Promise<Memo> {
     return this.apiClient.post(`${AUTH_API_PREFIX}/memos`, request);
   }
 
+  /**
+   * Update a memo.
+   * @param id - The id of the memo.
+   * @param request - The request to update the memo.
+   * @returns The memo.
+   */
   async updateMemo(id: string, request: UpdateMemoRequest): Promise<Memo> {
     return this.apiClient.put<Memo>(`${AUTH_API_PREFIX}/memos/${id}`, request);
   }
 
+  /**
+   * Delete a memo.
+   * @param id - The id of the memo.
+   */
   async deleteMemo(id: string): Promise<void> {
     return this.apiClient.delete(`${AUTH_API_PREFIX}/memos/${id}`);
   }
 
+  /**
+   * Get memos.
+   * @param limit - The limit of the memos.
+   * @param cursor - The cursor of the memos.
+   * @param filter - The filter of the memos.
+   * @param sort - The sort of the memos.
+   * @returns The memos.
+   */
   async getMemos(
     limit: number = 10,
     cursor?: string,

@@ -79,6 +79,28 @@
       return 'Error formatting date';
     }
   }
+
+  function getDateClass(dateString?: string): string {
+    if (!dateString) return 'text-gray-400';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'text-gray-400';
+    }
+
+    const now = new Date();
+    if (date.getTime() <= now.getTime()) {
+      return 'text-red-500';
+    }
+
+    if (date.getTime() <= now.getTime() + 1000 * 60 * 60) {
+      return 'text-orange-500';
+    }
+    if (date.getTime() <= now.getTime() + 1000 * 60 * 60 * 24) {
+      return 'text-amber-500';
+    }
+
+    return 'text-lime-500';
+  }
 </script>
 
 <div
@@ -155,7 +177,11 @@
 
     <!-- Card Footer -->
     <div class="flex items-center justify-between">
-      <span class="text-sm text-gray-500">
+      <span
+        class="inline-flex items-center text-sm {getDateClass(
+          memo.reminderTime,
+        )}"
+      >
         {#if memo.reminderTime}
           <svg
             xmlns="http://www.w3.org/2000/svg"

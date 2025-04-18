@@ -1,7 +1,6 @@
 <script lang="ts">
-  const { size = 'md' } = $props<{
-    size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-  }>();
+  const { size = 'md' }: { size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' } =
+    $props();
 
   const sizeClass = {
     sm: 'h-5 w-5 border-2 border-purple-600',

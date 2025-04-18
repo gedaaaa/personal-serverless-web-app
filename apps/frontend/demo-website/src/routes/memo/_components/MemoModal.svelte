@@ -5,7 +5,7 @@
     type CreateMemoRequest,
     type UpdateMemoRequest,
   } from '../_services/memo-service';
-  import memoStore from '../_stores/memoStore.svelte';
+  import memoStore from '../_stores/memoStore.svelte.ts';
 
   // Component props
   const {

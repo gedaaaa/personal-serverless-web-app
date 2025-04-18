@@ -331,7 +331,7 @@ class MemoControllerIntegrationTest {
             val response =
                 client.toBlocking().exchange(
                     HttpRequest.POST("/", createRequest).bearerAuth(generateJwtToken(testUser)),
-                    Void::class.java,
+                    MemoResponse::class.java,
                 )
 
             // Assert Response
@@ -339,6 +339,10 @@ class MemoControllerIntegrationTest {
             val locationHeader = response.header("Location")
             assertNotNull(locationHeader)
             val memoId = locationHeader!!.substringAfterLast('/')
+
+            val memoResponse = response.body()
+            assertNotNull(memoResponse)
+            assertEquals(memoId, memoResponse.id)
 
             // Assert Mock Verification
             verify(exactly = 1) {

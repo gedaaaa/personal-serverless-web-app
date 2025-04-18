@@ -36,7 +36,7 @@ class MemoService(
         title: String,
         content: String,
         reminderTime: Instant?,
-    ): String {
+    ): Memo {
         val memoId =
             memoRepository.save(
                 userId = userInfo.id,
@@ -47,7 +47,8 @@ class MemoService(
 
         handleNotificationSchedule(memoId, userInfo)
 
-        return memoId
+        return memoRepository.findById(memoId)
+            ?: throw RuntimeException("Failed to load newly created memo $memoId")
     }
 
     /**
@@ -104,7 +105,7 @@ class MemoService(
             if (sort == null) {
                 MemoSort(
                     sortOrder = MemoSortOrder.ASC,
-                    sortKey = MemoSortKey.REMINDER_TIME,
+                    sortKey = MemoSortKey.CREATED_AT,
                 )
             } else {
                 MemoSort(

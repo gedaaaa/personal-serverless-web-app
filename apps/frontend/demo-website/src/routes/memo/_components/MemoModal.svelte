@@ -1,10 +1,11 @@
 <script lang="ts">
+  import _ from 'lodash';
   import memoService, {
     type Memo,
     type CreateMemoRequest,
     type UpdateMemoRequest,
   } from '../_services/memo-service';
-  import memoStore from '../_stores/memoStore.svelte.ts';
+  import memoStore from '../_stores/memoStore.svelte';
 
   // Component props
   const {
@@ -23,6 +24,8 @@
   let reminderTime = $state('');
   let isCompleted = $state(false);
   let isSaving = $state(false);
+
+  const { tryFetchNextMemo } = memoStore;
 
   // Reset form when memo or show status changes
   $effect(() => {
@@ -45,11 +48,9 @@
                 .toISOString()
                 .slice(0, 16);
             } else {
-              console.warn('Invalid reminderTime received:', memo.reminderTime);
               reminderTime = ''; // Set to empty if invalid
             }
-          } catch (e) {
-            console.error('Error processing reminderTime:', e);
+          } catch {
             reminderTime = ''; // Set to empty on error
           }
         } else {
@@ -93,14 +94,14 @@
         memoStore.updateMemoInList(memo.id, requestData); // Update store directly
       } else {
         // Create new memo
-        await memoService.createMemo(requestData as CreateMemoRequest);
-        // Refresh the list from the store to see the new memo
-        // This is simpler than trying to insert it manually
-        await memoStore.fetchMemos(); // Re-fetch the first page
+        const created = await memoService.createMemo(
+          requestData as CreateMemoRequest,
+        );
+
+        tryFetchNextMemo();
       }
       onClose(); // Call onClose on success
-    } catch (err) {
-      console.error('Failed to save memo:', err);
+    } catch {
       const errorMsg = memo
         ? 'Failed to update memo. Please try again.'
         : 'Failed to create memo. Please try again.';

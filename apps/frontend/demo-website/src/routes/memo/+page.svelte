@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { type Memo } from './_services/memo-service';
-  import memoStore from './_stores/memoStore.svelte.ts';
+  import memoStore from './_stores/memoStore.svelte';
   import MemoCard from './_components/MemoCard.svelte';
   import MemoModal from './_components/MemoModal.svelte';
-  import MemoFilter from './_components/MemoFilter.svelte';
+  import MemoTab from './_components/MemoTab.svelte';
   import DeleteConfirmModal from './_components/DeleteConfirmModal.svelte';
   import AddMemoButton from './_components/AddMemoButton.svelte';
   import InfiniteScroll from './_components/InfiniteScroll.svelte';
@@ -40,11 +40,8 @@
     <AddMemoButton onAddClick={() => openModal('create')} />
   </div>
 
-  <!-- Filter -->
-  <MemoFilter
-    filter={$memoStore.filter}
-    onFilterChange={memoStore.applyFilter}
-  />
+  <!-- Tab -->
+  <MemoTab onTabChange={memoStore.applyFilter} />
 
   <!-- Error message from store -->
   {#if $memoStore.error}
@@ -90,8 +87,3 @@
     onClose={closeModal}
   />
 </div>
-
-<!-- TODO: 
-  - refetch when click current filter
-  - newly added memo should be displayed at the top of the list before refetch
-  -->

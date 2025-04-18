@@ -28,7 +28,7 @@ export interface UpdateMemoRequest {
 }
 
 export interface GetMemoListFilter {
-  isCompleted?: boolean;
+  isCompleted: boolean;
 
   //   not in use
   //   isDeleted?: boolean;
@@ -40,7 +40,7 @@ export enum MemoSortOrder {
 }
 
 export enum MemoSortKey {
-  REMINDER_TIME = 'REMINDER_TIME',
+  CREATED_AT = 'CREATED_AT',
 }
 
 export interface MemoSort {
@@ -57,7 +57,7 @@ class MemoService {
     return this.apiClient.get<Memo>(`${AUTH_API_PREFIX}/memos/${id}`);
   }
 
-  async createMemo(request: CreateMemoRequest): Promise<void> {
+  async createMemo(request: CreateMemoRequest): Promise<Memo> {
     return this.apiClient.post(`${AUTH_API_PREFIX}/memos`, request);
   }
 

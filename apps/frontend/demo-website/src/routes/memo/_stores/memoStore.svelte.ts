@@ -19,7 +19,7 @@ interface MemoStoreState {
 const initialState: MemoStoreState = {
   memos: [],
   error: undefined,
-  filter: {},
+  filter: { isCompleted: false },
   isFetchingList: false,
   hasMore: true,
   listCursor: undefined,
@@ -33,7 +33,7 @@ function createMemoStore() {
   // --- Actions ---
   const fetchMemos = async (limit: number = 10) => {
     let currentCursor: string | undefined;
-    let currentFilter: GetMemoListFilter = {};
+    let currentFilter: GetMemoListFilter = { isCompleted: false };
     let isCurrentlyFetching = false;
     let currentlyHasMore = true;
 
@@ -44,15 +44,15 @@ function createMemoStore() {
       isCurrentlyFetching = state.isFetchingList;
       currentlyHasMore = state.hasMore;
 
-      // Avoid concurrent fetches or fetching when no more data
-      if (isCurrentlyFetching || !currentlyHasMore) {
+      // Avoid concurrent fetches
+      if (isCurrentlyFetching) {
         return state; // No change needed
       }
       return { ...state, isFetchingList: true, error: undefined };
     });
 
     // If update decided not to fetch, exit early
-    if (isCurrentlyFetching || !currentlyHasMore) {
+    if (isCurrentlyFetching) {
       return;
     }
 
@@ -70,6 +70,7 @@ function createMemoStore() {
         }
 
         const newMemos = response.items ?? [];
+
         const fetchedMemos = currentCursor
           ? [...state.memos, ...newMemos]
           : newMemos;
@@ -87,27 +88,20 @@ function createMemoStore() {
         ...state,
         error: 'Failed to load memos. Please try again.',
         isFetchingList: false, // Ensure fetching state is reset on error
-        // Optional: Reset hasMore/cursor on certain errors? For now, keep them.
       }));
     }
   };
 
   const applyFilter = (newFilter: GetMemoListFilter) => {
-    update((state) => {
-      // Only proceed if the filter actually changed
-      if (JSON.stringify(state.filter) === JSON.stringify(newFilter)) {
-        return state;
-      }
-      return {
-        ...state,
-        filter: newFilter,
-        memos: [], // Clear existing memos
-        listCursor: undefined, // Reset cursor for new filter
-        hasMore: true, // Assume there's data for the new filter
-        isFetchingList: false, // Reset fetching state before triggering new fetch
-        error: undefined,
-      };
-    });
+    update((state) => ({
+      ...state,
+      filter: newFilter,
+      memos: [], // Clear existing memos
+      listCursor: undefined, // Reset cursor for new filter
+      hasMore: true, // Assume there's data for the new filter
+      isFetchingList: false, // Reset fetching state before triggering new fetch
+      error: undefined,
+    }));
     // Fetch immediately after applying the filter
     fetchMemos();
   };
@@ -149,6 +143,18 @@ function createMemoStore() {
     }));
   };
 
+  const tryFetchNextMemo = () => {
+    update((state) => {
+      if (!_.isNil(state.listCursor)) return state;
+      return { ...state, listCursor: state.memos[state.memos.length - 1].id };
+    });
+    fetchMemos(1);
+  };
+
+  const updateCursor = (cursor: string | undefined) => {
+    update((state) => ({ ...state, listCursor: cursor }));
+  };
+
   // --- Return Store API ---
   return {
     subscribe,
@@ -158,8 +164,7 @@ function createMemoStore() {
     removeMemoFromList,
     setError,
     setItemLoadingStatus,
-    // Expose reset if needed later, but currently handled by applyFilter
-    // reset: () => set(initialState),
+    tryFetchNextMemo,
   };
 }
 

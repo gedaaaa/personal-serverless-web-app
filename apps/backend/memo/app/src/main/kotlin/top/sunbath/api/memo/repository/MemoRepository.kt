@@ -24,7 +24,7 @@ enum class MemoSortOrder {
 enum class MemoSortKey(
     val value: String,
 ) {
-    REMINDER_TIME("reminderTime"),
+    CREATED_AT("createdAt"),
 }
 
 @Introspected
@@ -33,7 +33,7 @@ data class MemoSort(
     @field:Nullable
     val sortOrder: MemoSortOrder? = MemoSortOrder.ASC,
     @field:Nullable
-    val sortKey: MemoSortKey? = MemoSortKey.REMINDER_TIME,
+    val sortKey: MemoSortKey? = MemoSortKey.CREATED_AT,
 )
 
 /**

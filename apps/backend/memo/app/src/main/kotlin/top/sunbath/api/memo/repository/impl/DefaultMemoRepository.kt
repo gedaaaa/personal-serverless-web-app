@@ -43,15 +43,17 @@ open class DefaultMemoRepository(
         private const val ATTRIBUTE_USER_ID = "userId"
         private const val ATTRIBUTE_IS_COMPLETED = "isCompleted"
         private const val ATTRIBUTE_IS_DELETED = "isDeleted"
+        private const val ATTRIBUTE_CREATED_AT = "createdAt"
+        private const val ATTRIBUTE_UPDATED_AT = "updatedAt"
 
         // Define index constants for USER_FILTER_INDEX
-        private const val PK_USER_STATUS_SK_REMIDER_TIME_INDEX = "P_USER_STATUS_S_REMIDER_TIME_INDEX"
+        private const val PK_USER_STATUS_SK_REMIDER_TIME_INDEX = "P_USER_STATUS_S_TIME_INDEX"
         private const val PK_USER_STATUS = "USER_FILTER_PK" // 分区键：USER_ID#userId_IS_DELETED#isDeleted_IS_COMPLETED#isCompleted
-        private const val SK_REMIDER_TIME = "USER_FILTER_SK" // 排序键：REMINDER_TIME#reminderTime_CREATED_AT#createdAt
+        private const val SK_TIME = "USER_FILTER_SK" // 排序键：CREATED_AT#createdAt#REMINDER_TIME#reminderTime
 
         // Register indexes
         init {
-            DynamoRepository.registerIndex(IndexDefinition(PK_USER_STATUS_SK_REMIDER_TIME_INDEX, PK_USER_STATUS, SK_REMIDER_TIME))
+            DynamoRepository.registerIndex(IndexDefinition(PK_USER_STATUS_SK_REMIDER_TIME_INDEX, PK_USER_STATUS, SK_TIME))
         }
     }
 
@@ -79,6 +81,8 @@ open class DefaultMemoRepository(
                 userId = userId,
                 isCompleted = false,
                 isDeleted = false,
+                createdAt = Instant.now(),
+                updatedAt = Instant.now(),
             ),
         )
         return id
@@ -122,6 +126,7 @@ open class DefaultMemoRepository(
         existingMemo.isCompleted = isCompleted
         existingMemo.isDeleted = isDeleted
         existingMemo.reminderTime = reminderTime
+        existingMemo.updatedAt = Instant.now()
 
         save(existingMemo)
         return true
@@ -183,12 +188,12 @@ open class DefaultMemoRepository(
                 .expressionAttributeNames(
                     mapOf(
                         "#pk" to PK_USER_STATUS,
-                        "#sk" to SK_REMIDER_TIME,
+                        "#sk" to SK_TIME,
                     ),
                 ).expressionAttributeValues(
                     mapOf(
                         ":pk" to AttributeValue.builder().s(userFilterPkValue).build(),
-                        ":sk" to AttributeValue.builder().s(lastItem[SK_REMIDER_TIME]!!.s()).build(),
+                        ":sk" to AttributeValue.builder().s(lastItem[SK_TIME]!!.s()).build(),
                     ),
                 )
         }
@@ -228,6 +233,8 @@ open class DefaultMemoRepository(
             reminderTime = item[ATTRIBUTE_REMINDER_TIME]?.s()?.let { Instant.parse(it) },
             isCompleted = item[ATTRIBUTE_IS_COMPLETED]?.bool() ?: false,
             isDeleted = item[ATTRIBUTE_IS_DELETED]?.bool() ?: false,
+            createdAt = item[ATTRIBUTE_CREATED_AT]?.s()?.let { Instant.parse(it) } ?: Instant.now(),
+            updatedAt = item[ATTRIBUTE_UPDATED_AT]?.s()?.let { Instant.parse(it) } ?: Instant.now(),
         )
 
     @NonNull
@@ -244,6 +251,8 @@ open class DefaultMemoRepository(
         }
         result[ATTRIBUTE_IS_COMPLETED] = AttributeValue.builder().bool(entity.isCompleted).build()
         result[ATTRIBUTE_IS_DELETED] = AttributeValue.builder().bool(entity.isDeleted).build()
+        result[ATTRIBUTE_CREATED_AT] = AttributeValue.builder().s(entity.createdAt.toString()).build()
+        result[ATTRIBUTE_UPDATED_AT] = AttributeValue.builder().s(entity.updatedAt.toString()).build()
 
         return result
     }

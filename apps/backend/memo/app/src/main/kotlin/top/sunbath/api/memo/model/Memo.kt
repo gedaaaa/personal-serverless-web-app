@@ -25,10 +25,10 @@ class Memo :
             isCompleted: Boolean,
         ): String = "CLS#${Memo::class.simpleName}_USER_ID#${userId}_IS_DELETED#{$isDeleted}_IS_COMPLETED#$isCompleted"
 
-        fun getReminderTimeSkValue(
-            reminderTime: Instant?,
+        fun getTimeSkValue(
             createdAt: Instant,
-        ): String = "REMINDER_TIME#${reminderTime?.toString() ?: "9999-12-31T23:59:59.999Z"}_CREATED_AT#$createdAt"
+            reminderTime: Instant?,
+        ): String = "CREATED_AT#${createdAt}_REMINDER_TIME#${reminderTime?.toString() ?: "9999-12-31T23:59:59.999Z"}"
     }
 
     @get:NonNull
@@ -77,6 +77,8 @@ class Memo :
         userId: String,
         isCompleted: Boolean,
         isDeleted: Boolean,
+        createdAt: Instant,
+        updatedAt: Instant,
     ) {
         this.id = id
         this.title = title
@@ -85,6 +87,8 @@ class Memo :
         this.userId = userId
         this.isCompleted = isCompleted
         this.isDeleted = isDeleted
+        this.createdAt = createdAt
+        this.updatedAt = updatedAt
     }
 
     /**
@@ -96,8 +100,8 @@ class Memo :
         // Create index values for USER_FILTER_INDEX
         // Partition key: userId_isDeleted_isCompleted
         indexValues["USER_FILTER_PK"] = getUserIdStatusPkValue(userId, isDeleted, isCompleted)
-        // Sort key: reminderTime_createTime
-        indexValues["USER_FILTER_SK"] = getReminderTimeSkValue(reminderTime, createdAt)
+        // Sort key: createdAt_reminderTime
+        indexValues["USER_FILTER_SK"] = getTimeSkValue(createdAt, reminderTime)
 
         return indexValues
     }

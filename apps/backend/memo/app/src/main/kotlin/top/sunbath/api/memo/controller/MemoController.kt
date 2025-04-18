@@ -97,8 +97,8 @@ class MemoController(
     fun save(
         userInfo: CurrentUser,
         @Body @Valid request: CreateMemoRequest,
-    ): HttpResponse<Void> {
-        val id =
+    ): HttpResponse<MemoResponse> {
+        val memo =
             memoService.createMemo(
                 userInfo = userInfo,
                 title = request.title,
@@ -107,10 +107,10 @@ class MemoController(
             )
         val uri: URI =
             UriBuilder
-                .of("/memos")
-                .path(id)
+                .of("/v1/memos")
+                .path(memo.id)
                 .build()
-        return HttpResponse.created(uri)
+        return HttpResponse.created(MemoResponse.fromMemo(memo), uri)
     }
 
     /**

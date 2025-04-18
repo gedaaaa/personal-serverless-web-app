@@ -17,6 +17,7 @@ object TestMemoFactory {
         isCompleted: Boolean = false,
         isDeleted: Boolean = false,
     ): Memo {
+        val now = Instant.now()
         val memo =
             Memo(
                 id = id,
@@ -26,12 +27,9 @@ object TestMemoFactory {
                 reminderTime = reminderTime,
                 isCompleted = isCompleted,
                 isDeleted = isDeleted,
+                createdAt = now,
+                updatedAt = now,
             )
-
-        // 这些属性不在构造函数中，需要单独设置
-        val now = Instant.now()
-        memo.createdAt = now
-        memo.updatedAt = now
 
         return memo
     }

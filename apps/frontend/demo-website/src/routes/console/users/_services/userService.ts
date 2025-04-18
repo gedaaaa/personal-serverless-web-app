@@ -1,5 +1,6 @@
 import { ApiClient } from '$lib/api';
 import { getDefaultClient } from '$lib/api/client';
+import type PagedResponse from '$lib/types/PagedResponse';
 
 // Auth API path prefix
 const AUTH_API_PREFIX = '/auth/v1';
@@ -12,11 +13,7 @@ export interface User {
   fullName?: string;
 }
 
-export interface PagedUsersResponse {
-  items: User[];
-  nextCursor: string | null;
-  hasMore: boolean;
-}
+export type PagedUsersResponse = PagedResponse<User>;
 
 export interface UpdateUserRequest {
   email?: string;

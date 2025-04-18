@@ -48,7 +48,7 @@ describe('userService', () => {
             roles: ['ROLE_USER'],
           },
         ] as User[],
-        nextCursor: null,
+        nextCursor: undefined,
         hasMore: false,
       };
 
@@ -73,7 +73,7 @@ describe('userService', () => {
             roles: ['ROLE_USER'],
           },
         ] as User[],
-        nextCursor: null,
+        nextCursor: undefined,
         hasMore: false,
       };
 

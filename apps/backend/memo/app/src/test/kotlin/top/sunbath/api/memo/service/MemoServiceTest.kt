@@ -74,11 +74,11 @@ class MemoServiceTest {
         val result = memoService.createMemo(testUserInfo, title, content, reminderTime)
 
         // Then
-        assertEquals(memoId, result)
+        assertEquals(memoId, result.id)
 
         // Verify
         verify(exactly = 1) { memoRepository.save(testUserInfo.id, title, content, reminderTime) }
-        verify(exactly = 1) { memoRepository.findById(memoId) }
+        verify(exactly = 2) { memoRepository.findById(memoId) }
         verify(exactly = 1) { notificationScheduleService.handleNotificationSchedule(any(), testUserInfo) }
     }
 
@@ -106,11 +106,11 @@ class MemoServiceTest {
         val result = memoService.createMemo(testUserInfo, title, content, reminderTime)
 
         // Then
-        assertEquals(memoId, result)
+        assertEquals(memoId, result.id)
 
         // Verify
         verify(exactly = 1) { memoRepository.save(testUserInfo.id, title, content, reminderTime) }
-        verify(exactly = 1) { memoRepository.findById(memoId) }
+        verify(exactly = 2) { memoRepository.findById(memoId) }
         verify(exactly = 1) { notificationScheduleService.handleNotificationSchedule(any(), testUserInfo) }
     }
 
@@ -234,7 +234,7 @@ class MemoServiceTest {
                 sort =
                     match<MemoSort> {
                         it.sortOrder == MemoSortOrder.ASC &&
-                            it.sortKey == MemoSortKey.REMINDER_TIME
+                            it.sortKey == MemoSortKey.CREATED_AT
                     },
             )
         }
@@ -644,11 +644,12 @@ class MemoServiceTest {
         val result = memoService.createMemo(testUserInfo, "New Memo", "New Content", null)
 
         // Then
-        assertEquals(memoId, result)
+        assertEquals(memoId, result.id)
 
         // Verify
         verify(exactly = 1) { memoRepository.save(testUserInfo.id, "New Memo", "New Content", null) }
-        verify(exactly = 1) { memoRepository.findById(memoId) }
+        // 1 for createMemo, 1 for handleNotificationSchedule
+        verify(exactly = 2) { memoRepository.findById(memoId) }
         verify(exactly = 1) { notificationScheduleService.handleNotificationSchedule(any(), testUserInfo) }
     }
 
@@ -672,11 +673,11 @@ class MemoServiceTest {
         val result = memoService.createMemo(testUserInfo, "New Memo", "New Content", null)
 
         // Then - operation should complete despite the exception
-        assertEquals(memoId, result)
+        assertEquals(memoId, result.id)
 
         // Verify
         verify(exactly = 1) { memoRepository.save(testUserInfo.id, "New Memo", "New Content", null) }
-        verify(exactly = 1) { memoRepository.findById(memoId) }
+        verify(exactly = 2) { memoRepository.findById(memoId) }
         verify(exactly = 1) { notificationScheduleService.handleNotificationSchedule(any(), testUserInfo) }
     }
 }

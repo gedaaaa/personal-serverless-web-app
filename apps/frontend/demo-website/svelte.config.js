@@ -50,7 +50,7 @@ const config = {
     // runes: true,
     compatibility: {
       // Gradually migrate to Svelte 5 by enabling both legacy and runes mode
-      componentApi: 5,
+      componentApi: 4,
     },
   },
 };

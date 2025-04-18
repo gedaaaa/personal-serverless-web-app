@@ -4,7 +4,7 @@
     setItemLoadingStatus,
     updateMemoInList,
     setError,
-  } from '../_stores/memoStore.svelte.ts';
+  } from '../_stores/memoStore.svelte';
   import memoService, {
     type UpdateMemoRequest,
   } from '../_services/memo-service';

@@ -4,7 +4,7 @@
     setError,
     setItemLoadingStatus,
     removeMemoFromList,
-  } from '../_stores/memoStore.svelte.ts';
+  } from '../_stores/memoStore.svelte';
 
   // Component props
   const {

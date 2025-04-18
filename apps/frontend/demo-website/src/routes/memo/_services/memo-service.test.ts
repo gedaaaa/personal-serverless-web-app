@@ -11,12 +11,6 @@ import type {
 import { MemoSortOrder, MemoSortKey } from './memo-service';
 import { getDefaultClient } from '$lib/api/client';
 
-// Declare mock functions first
-const mockGet = vi.fn();
-const mockPost = vi.fn();
-const mockPut = vi.fn();
-const mockDelete = vi.fn();
-
 // 模拟 ApiClient
 vi.mock('$lib/api/client', () => {
   const mockClient = {

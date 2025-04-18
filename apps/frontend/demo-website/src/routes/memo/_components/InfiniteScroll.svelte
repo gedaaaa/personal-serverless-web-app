@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { store, fetchMemos } from '../_stores/memoStore.svelte.ts';
+  import { store, fetchMemos } from '../_stores/memoStore.svelte';
   import LoadingSpinner from './LoadingSpinner.svelte';
 
   // --- State ---

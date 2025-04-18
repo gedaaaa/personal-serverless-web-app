@@ -9,7 +9,7 @@
     setError,
     updateMemoInList,
     tryFetchNextMemo,
-  } from '../_stores/memoStore.svelte.ts';
+  } from '../_stores/memoStore.svelte';
 
   // Component props
   const {

@@ -10,8 +10,7 @@
     "sourceMap": true,
     "strict": true,
     "moduleResolution": "bundler",
-    "typeRoots": ["./node_modules/@types", "./src/types"],
-    "allowImportingTsExtensions": true
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
   "references": [
     {

@@ -35,14 +35,12 @@ function createMemoStore() {
     let currentCursor: string | undefined;
     let currentFilter: GetMemoListFilter = { isCompleted: false };
     let isCurrentlyFetching = false;
-    let currentlyHasMore = true;
 
     // Access current state values directly from the store
     update((state) => {
       currentCursor = state.listCursor;
       currentFilter = state.filter;
       isCurrentlyFetching = state.isFetchingList;
-      currentlyHasMore = state.hasMore;
 
       // Avoid concurrent fetches
       if (isCurrentlyFetching) {
@@ -149,10 +147,6 @@ function createMemoStore() {
       return { ...state, listCursor: state.memos[state.memos.length - 1].id };
     });
     fetchMemos(1);
-  };
-
-  const updateCursor = (cursor: string | undefined) => {
-    update((state) => ({ ...state, listCursor: cursor }));
   };
 
   // --- Return Store API ---

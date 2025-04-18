@@ -1,5 +1,4 @@
 <script lang="ts">
-  import _ from 'lodash';
   import memoService, {
     type Memo,
     type CreateMemoRequest,
@@ -94,9 +93,7 @@
         memoStore.updateMemoInList(memo.id, requestData); // Update store directly
       } else {
         // Create new memo
-        const created = await memoService.createMemo(
-          requestData as CreateMemoRequest,
-        );
+        await memoService.createMemo(requestData as CreateMemoRequest);
 
         tryFetchNextMemo();
       }

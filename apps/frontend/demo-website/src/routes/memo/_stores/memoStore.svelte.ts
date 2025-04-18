@@ -127,8 +127,8 @@ export function setItemLoadingStatus(id: string, isLoading: boolean) {
 /**
  * Tries to fetch the next memo.
  */
-export function tryFetchNextMemo() {
+export async function tryFetchNextMemo() {
   const lastMemo = store.memos[store.memos.length - 1];
   store.listCursor = lastMemo ? lastMemo.id : undefined;
-  fetchMemos(1);
+  await fetchMemos(1);
 }

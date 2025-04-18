@@ -1,6 +1,10 @@
 <script lang="ts">
   import memoService, { type Memo } from '../_services/memo-service';
-  import memoStore from '../_stores/memoStore.svelte.ts';
+  import {
+    setError,
+    setItemLoadingStatus,
+    removeMemoFromList,
+  } from '../_stores/memoStore.svelte.ts';
 
   // Component props
   const {
@@ -31,22 +35,22 @@
     const memoId = memo.id;
 
     isDeleting = true;
-    memoStore.setItemLoadingStatus(memoId, true);
-    memoStore.setError(undefined); // Clear previous errors
+    setItemLoadingStatus(memoId, true);
+    setError(undefined); // Clear previous errors
 
     try {
       await memoService.deleteMemo(memoId);
-      memoStore.removeMemoFromList(memoId); // Update store
+      removeMemoFromList(memoId); // Update store
       onClose(); // Close modal on success
     } catch (err) {
       console.error('Failed to delete memo:', err);
-      memoStore.setError('Failed to delete memo. Please try again.');
+      setError('Failed to delete memo. Please try again.');
       // Do not close modal on error
     } finally {
       // Ensure loading status is cleared even if component closes before API returns
       // Check if memo still exists in props before trying to clear its loading state
       if (memo?.id === memoId) {
-        memoStore.setItemLoadingStatus(memoId, false);
+        setItemLoadingStatus(memoId, false);
       }
       isDeleting = false;
     }

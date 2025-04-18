@@ -4,7 +4,12 @@
     type CreateMemoRequest,
     type UpdateMemoRequest,
   } from '../_services/memo-service';
-  import memoStore from '../_stores/memoStore.svelte.ts';
+  import {
+    setItemLoadingStatus,
+    setError,
+    updateMemoInList,
+    tryFetchNextMemo,
+  } from '../_stores/memoStore.svelte.ts';
 
   // Component props
   const {
@@ -23,8 +28,6 @@
   let reminderTime = $state('');
   let isCompleted = $state(false);
   let isSaving = $state(false);
-
-  const { tryFetchNextMemo } = memoStore;
 
   // Reset form when memo or show status changes
   $effect(() => {
@@ -73,8 +76,8 @@
     isSaving = true;
     // Use a temporary ID for loading status during creation if needed
     const loadingId = memo?.id ?? 'creating';
-    memoStore.setItemLoadingStatus(loadingId, true);
-    memoStore.setError(undefined); // Clear previous errors
+    setItemLoadingStatus(loadingId, true);
+    setError(undefined); // Clear previous errors
 
     const requestData: CreateMemoRequest | UpdateMemoRequest = {
       title: title.trim() || 'No Title',
@@ -90,7 +93,7 @@
       if (memo) {
         // Update existing memo
         await memoService.updateMemo(memo.id, requestData as UpdateMemoRequest);
-        memoStore.updateMemoInList(memo.id, requestData); // Update store directly
+        updateMemoInList(memo.id, requestData); // Update store directly
       } else {
         // Create new memo
         await memoService.createMemo(requestData as CreateMemoRequest);
@@ -103,11 +106,11 @@
       const errorMsg = memo
         ? 'Failed to update memo. Please try again.'
         : 'Failed to create memo. Please try again.';
-      memoStore.setError(errorMsg); // Set error in the store
+      setError(errorMsg); // Set error in the store
       // Do not call onClose() on error, let the user see the error and retry/cancel
     } finally {
       isSaving = false;
-      memoStore.setItemLoadingStatus(loadingId, false);
+      setItemLoadingStatus(loadingId, false);
     }
   }
 

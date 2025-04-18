@@ -1,7 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { type Memo } from './_services/memo-service';
-  import memoStore from './_stores/memoStore.svelte.ts';
+  import {
+    store,
+    fetchMemos,
+    applyFilter,
+  } from './_stores/memoStore.svelte.ts';
   import MemoCard from './_components/MemoCard.svelte';
   import MemoModal from './_components/MemoModal.svelte';
   import MemoTab from './_components/MemoTab.svelte';
@@ -26,8 +30,8 @@
 
   // --- Initial Data Fetch ---
   onMount(() => {
-    // Fetch initial data using the store action
-    memoStore.fetchMemos();
+    // Fetch initial data using the store function
+    fetchMemos();
   });
 </script>
 
@@ -41,28 +45,28 @@
   </div>
 
   <!-- Tab -->
-  <MemoTab onTabChange={memoStore.applyFilter} />
+  <MemoTab onTabChange={applyFilter} />
 
   <!-- Error message from store -->
-  {#if $memoStore.error}
+  {#if store.error}
     <div class="mb-4 rounded-md bg-red-50 p-4 text-red-600">
-      {$memoStore.error}
+      {store.error}
       <!-- Consider adding a close button that calls memoStore.setError(undefined) -->
     </div>
   {/if}
 
   <!-- Memo list -->
   <div class="space-y-4">
-    {#each $memoStore.memos as memo (memo.id)}
+    {#each store.memos as memo (memo.id)}
       <!-- Pass loading status from store -->
       <div
-        class="transition-opacity {$memoStore.itemLoadingStatus[memo.id]
+        class="transition-opacity {store.itemLoadingStatus[memo.id]
           ? 'opacity-50'
           : ''}"
       >
         <MemoCard
           {memo}
-          loading={$memoStore.itemLoadingStatus[memo.id] ?? false}
+          loading={store.itemLoadingStatus[memo.id] ?? false}
           onEdit={() => openModal('edit', memo)}
           onDelete={() => openModal('delete', memo)}
         />

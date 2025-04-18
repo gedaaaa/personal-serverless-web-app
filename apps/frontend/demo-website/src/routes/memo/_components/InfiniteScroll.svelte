@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import memoStore from '../_stores/memoStore.svelte.ts';
+  import { store, fetchMemos } from '../_stores/memoStore.svelte.ts';
   import LoadingSpinner from './LoadingSpinner.svelte';
 
   // --- State ---
@@ -14,12 +14,8 @@
       (entries) => {
         const entry = entries[0];
         // Use store values directly in the callback
-        if (
-          entry.isIntersecting &&
-          $memoStore.hasMore &&
-          !$memoStore.isFetchingList
-        ) {
-          memoStore.fetchMemos(); // Call store action
+        if (entry.isIntersecting && store.hasMore && !store.isFetchingList) {
+          fetchMemos(); // Call store function
         }
       },
       {
@@ -53,12 +49,12 @@
   <div bind:this={sentinelElement} class="h-1"></div>
 
   <!-- Loading indicator for list loads -->
-  {#if $memoStore.isFetchingList}
+  {#if store.isFetchingList}
     <LoadingSpinner class="py-4" size="md" />
   {/if}
 
   <!-- Message when no more items -->
-  {#if !$memoStore.hasMore}
+  {#if !store.hasMore}
     <!-- You might want to add a check here to only show this if there are already items loaded -->
     <p class="py-4 text-center text-gray-500">No more memos found.</p>
   {/if}

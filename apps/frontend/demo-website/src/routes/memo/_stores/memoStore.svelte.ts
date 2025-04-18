@@ -1,11 +1,10 @@
-import { writable } from 'svelte/store';
 import memoService, {
   type Memo,
   type GetMemoListFilter,
 } from '../_services/memo-service';
 import _ from 'lodash';
 
-interface MemoStoreState {
+export const store: {
   memos: Memo[];
   error: string | undefined;
   filter: GetMemoListFilter;
@@ -13,10 +12,7 @@ interface MemoStoreState {
   hasMore: boolean;
   listCursor: string | undefined;
   itemLoadingStatus: Record<string, boolean>;
-}
-
-// --- Initial State ---
-const initialState: MemoStoreState = {
+} = $state({
   memos: [],
   error: undefined,
   filter: { isCompleted: false },
@@ -24,172 +20,118 @@ const initialState: MemoStoreState = {
   hasMore: true,
   listCursor: undefined,
   itemLoadingStatus: {},
-};
+});
 
-// --- Store Creation ---
-function createMemoStore() {
-  const { subscribe, update } = writable<MemoStoreState>(initialState);
+/**
+ * Fetches memos.
+ * @param limit - The limit of the memos.
+ */
+export async function fetchMemos(limit: number = 10) {
+  // Store values in local variables to use in closure
+  const currentCursor = store.listCursor;
+  const currentFilter = { ...store.filter };
 
-  /**
-   * Fetches memos.
-   * @param limit - The limit of the memos.
-   */
-  const fetchMemos = async (limit: number = 10) => {
-    let currentCursor: string | undefined;
-    let currentFilter: GetMemoListFilter = { isCompleted: false };
-    let isCurrentlyFetching = false;
+  // Avoid concurrent fetches
+  if (store.isFetchingList) {
+    return;
+  }
 
-    // Access current state values directly from the store
-    update((state) => {
-      currentCursor = state.listCursor;
-      currentFilter = state.filter;
-      isCurrentlyFetching = state.isFetchingList;
+  // 使用新的对象进行赋值，而不是修改当前对象
+  store.isFetchingList = true;
+  store.error = undefined;
 
-      // Avoid concurrent fetches
-      if (isCurrentlyFetching) {
-        return state; // No change needed
-      }
-      return { ...state, isFetchingList: true, error: undefined };
-    });
+  try {
+    const response = await memoService.getMemos(
+      limit,
+      currentCursor,
+      currentFilter,
+    );
 
-    // If update decided not to fetch, exit early
-    if (isCurrentlyFetching) {
+    // Check if filter has changed since request started - if so, discard results
+    if (JSON.stringify(store.filter) !== JSON.stringify(currentFilter)) {
+      // Keep fetching true if a new fetch was likely triggered by applyFilter
       return;
     }
 
-    try {
-      const response = await memoService.getMemos(
-        limit,
-        currentCursor,
-        currentFilter,
-      );
-      update((state) => {
-        // Check if filter has changed since request started - if so, discard results
-        if (JSON.stringify(state.filter) !== JSON.stringify(currentFilter)) {
-          // Keep fetching true if a new fetch was likely triggered by applyFilter
-          return state;
-        }
+    const newMemos = response.items ?? [];
 
-        const newMemos = response.items ?? [];
-
-        const fetchedMemos = currentCursor
-          ? [...state.memos, ...newMemos]
-          : newMemos;
-
-        return {
-          ...state,
-          memos: fetchedMemos,
-          listCursor: response.nextCursor,
-          hasMore: response.hasMore,
-          isFetchingList: false,
-        };
-      });
-    } catch {
-      update((state) => ({
-        ...state,
-        error: 'Failed to load memos. Please try again.',
-        isFetchingList: false, // Ensure fetching state is reset on error
-      }));
-    }
-  };
-
-  /**
-   * Applies a filter to the memos.
-   * @param newFilter - The new filter.
-   */
-  const applyFilter = (newFilter: GetMemoListFilter) => {
-    update((state) => ({
-      ...state,
-      filter: newFilter,
-      memos: [], // Clear existing memos
-      listCursor: undefined, // Reset cursor for new filter
-      hasMore: true, // Assume there's data for the new filter
-      isFetchingList: false, // Reset fetching state before triggering new fetch
-      error: undefined,
-    }));
-    // Fetch immediately after applying the filter
-    fetchMemos();
-  };
-
-  /**
-   * Updates a memo in the list.
-   * @param id - The id of the memo.
-   * @param updatedData - The updated data.
-   */
-  const updateMemoInList = (id: string, updatedData: Partial<Memo>) => {
-    update((state) => {
-      return {
-        ...state,
-        memos: _.chain(state.memos)
-          .map((memo) => (memo.id === id ? { ...memo, ...updatedData } : memo))
-          .filter(
-            (memo) =>
-              // If no filter is applied, show all memos
-              _.isEmpty(state.filter) ||
-              // If a filter is applied, only show memos that match the filter
-              state.filter.isCompleted === memo.isCompleted,
-          )
-          .value(),
-      };
-    });
-  };
-
-  /**
-   * Removes a memo from the list.
-   * @param id - The id of the memo.
-   */
-  const removeMemoFromList = (id: string) => {
-    update((state) => ({
-      ...state,
-      memos: state.memos.filter((memo) => memo.id !== id),
-    }));
-  };
-
-  /**
-   * Sets the error.
-   * @param message - The message.
-   */
-  const setError = (message: string | undefined) => {
-    update((state) => ({ ...state, error: message }));
-    // Consider adding automatic clear timeout here if needed later
-  };
-
-  /**
-   * Sets the item loading status.
-   * @param id - The id of the item.
-   * @param isLoading - The loading status.
-   */
-  const setItemLoadingStatus = (id: string, isLoading: boolean) => {
-    update((state) => ({
-      ...state,
-      itemLoadingStatus: { ...state.itemLoadingStatus, [id]: isLoading },
-    }));
-  };
-
-  /**
-   * Tries to fetch the next memo.
-   */
-  const tryFetchNextMemo = () => {
-    update((state) => {
-      if (!_.isNil(state.listCursor)) return state;
-      return { ...state, listCursor: state.memos[state.memos.length - 1].id };
-    });
-    fetchMemos(1);
-  };
-
-  // --- Return Store API ---
-  return {
-    subscribe,
-    fetchMemos,
-    applyFilter,
-    updateMemoInList,
-    removeMemoFromList,
-    setError,
-    setItemLoadingStatus,
-    tryFetchNextMemo,
-  };
+    // 使用新数组，而不是修改现有数组
+    store.memos = currentCursor ? [...store.memos, ...newMemos] : newMemos;
+    store.listCursor = response.nextCursor;
+    store.hasMore = response.hasMore;
+    store.isFetchingList = false;
+  } catch {
+    store.error = 'Failed to load memos. Please try again.';
+    store.isFetchingList = false; // Ensure fetching state is reset on error
+  }
 }
 
-// --- Export Store Instance ---
-const memoStore = createMemoStore();
-export default memoStore;
+/**
+ * Applies a filter to the memos.
+ * @param newFilter - The new filter.
+ */
+export function applyFilter(newFilter: GetMemoListFilter) {
+  store.filter = newFilter;
+  store.memos = []; // Clear existing memos
+  store.listCursor = undefined; // Reset cursor for new filter
+  store.hasMore = true; // Assume there's data for the new filter
+  store.isFetchingList = false; // Reset fetching state before triggering new fetch
+  store.error = undefined;
+
+  // Fetch immediately after applying the filter
+  fetchMemos();
+}
+
+/**
+ * Updates a memo in the list.
+ * @param id - The id of the memo.
+ * @param updatedData - The updated data.
+ */
+export function updateMemoInList(id: string, updatedData: Partial<Memo>) {
+  store.memos = _.chain(store.memos)
+    .map((memo) => (memo.id === id ? { ...memo, ...updatedData } : memo))
+    .filter(
+      (memo) =>
+        // If no filter is applied, show all memos
+        _.isEmpty(store.filter) ||
+        // If a filter is applied, only show memos that match the filter
+        store.filter.isCompleted === memo.isCompleted,
+    )
+    .value();
+}
+
+/**
+ * Removes a memo from the list.
+ * @param id - The id of the memo.
+ */
+export function removeMemoFromList(id: string) {
+  store.memos = store.memos.filter((memo) => memo.id !== id);
+}
+
+/**
+ * Sets the error.
+ * @param message - The message.
+ */
+export function setError(message: string | undefined) {
+  store.error = message;
+  // Consider adding automatic clear timeout here if needed later
+}
+
+/**
+ * Sets the item loading status.
+ * @param id - The id of the item.
+ * @param isLoading - The loading status.
+ */
+export function setItemLoadingStatus(id: string, isLoading: boolean) {
+  // 创建一个新对象以保持响应性
+  store.itemLoadingStatus = { ...store.itemLoadingStatus, [id]: isLoading };
+}
+
+/**
+ * Tries to fetch the next memo.
+ */
+export function tryFetchNextMemo() {
+  if (!_.isNil(store.listCursor)) return;
+  store.listCursor = store.memos[store.memos.length - 1].id;
+  fetchMemos(1);
+}

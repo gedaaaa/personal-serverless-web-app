@@ -1,6 +1,10 @@
 <script lang="ts">
   import type { Memo } from '../_services/memo-service';
-  import memoStore from '../_stores/memoStore.svelte.ts';
+  import {
+    setItemLoadingStatus,
+    updateMemoInList,
+    setError,
+  } from '../_stores/memoStore.svelte.ts';
   import memoService, {
     type UpdateMemoRequest,
   } from '../_services/memo-service';
@@ -23,7 +27,7 @@
    */
   async function handleToggleComplete() {
     const id = memo.id;
-    memoStore.setItemLoadingStatus(id, true);
+    setItemLoadingStatus(id, true);
     try {
       const updateData: UpdateMemoRequest = {
         title: memo.title,
@@ -35,12 +39,12 @@
       const updatedMemo = await memoService.updateMemo(id, updateData);
 
       // Update memo in the store list without full refetch
-      memoStore.updateMemoInList(id, updatedMemo);
+      updateMemoInList(id, updatedMemo);
     } catch {
       // Use the store's error handling
-      memoStore.setError('Failed to update memo status. Please try again.');
+      setError('Failed to update memo status. Please try again.');
     } finally {
-      memoStore.setItemLoadingStatus(id, false);
+      setItemLoadingStatus(id, false);
     }
   }
 

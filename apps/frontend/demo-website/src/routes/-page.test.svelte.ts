@@ -213,15 +213,18 @@ describe('Login/Register Page', () => {
       const submitButton = screen.getByRole('button', { name: 'Sign In' });
       await fireEvent.click(submitButton);
 
-      // Wait for promises to resolve
+      // Give more explicit time for the promise rejection to be handled
+      await new Promise((resolve) => setTimeout(resolve, 0));
       await tick();
-
-      // Check that error message is displayed
-      await waitFor(() => {
-        expect(screen.getByTestId('error-message')).toBeTruthy();
-      });
-      expect(screen.getByTestId('error-message').textContent).toBe(
-        'Login failed. Please check your credentials.',
+      await waitFor(
+        () => {
+          const errorElement = screen.queryByTestId('error-message');
+          expect(errorElement).not.toBeNull();
+          expect(errorElement?.textContent).toBe(
+            'Login failed. Please check your credentials.',
+          );
+        },
+        { timeout: 1000 },
       );
     });
   });
@@ -397,12 +400,20 @@ describe('Login/Register Page', () => {
       });
       await fireEvent.click(submitButton);
 
-      // Wait for error message to appear
-      await waitFor(() => {
-        expect(screen.getByTestId('error-message')).toBeTruthy();
-      });
-      expect(screen.getByTestId('error-message').textContent).toBe(
-        'Registration failed. Please try again.',
+      // Give more explicit time for the promise rejection to be handled
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await tick();
+
+      // Use a more robust waiting strategy
+      await waitFor(
+        () => {
+          const errorElement = screen.queryByTestId('error-message');
+          expect(errorElement).not.toBeNull();
+          expect(errorElement?.textContent).toBe(
+            'Registration failed. Please try again.',
+          );
+        },
+        { timeout: 1000 },
       );
     });
   });

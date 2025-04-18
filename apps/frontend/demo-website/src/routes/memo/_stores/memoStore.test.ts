@@ -4,7 +4,7 @@ import memoService from '../_services/memo-service';
 import type { Memo, GetMemoListFilter } from '../_services/memo-service';
 
 // Mock memoService
-vi.mock('../../_services/memo-service', () => ({
+vi.mock('../_services/memo-service', () => ({
   default: {
     getMemos: vi.fn(),
     updateMemo: vi.fn(),
@@ -176,16 +176,17 @@ describe('memoStore', () => {
     it('should update memo in list', () => {
       // Setup initial state
       memoStore.store.memos = [...mockMemos];
-      memoStore.store.filter = { isCompleted: false };
+      memoStore.store.filter = { isCompleted: true };
 
       // Update memo
       const updatedData = {
         title: 'Updated Title',
         content: 'Updated Content',
+        isCompleted: true,
       };
       memoStore.updateMemoInList('1', updatedData);
 
-      // Verify store state
+      // Verify store state (only first memo should be updated and present due to filter)
       expect(memoStore.store.memos[0].title).toBe('Updated Title');
       expect(memoStore.store.memos[0].content).toBe('Updated Content');
       expect(memoStore.store.memos[1]).toEqual(mockMemos[1]); // Second memo unchanged

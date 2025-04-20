@@ -21,20 +21,13 @@ import top.sunbath.shared.types.SqsMessage
  */
 @Introspected
 open class EmailFunctionHandler : MicronautRequestHandler<SQSEvent, String>() {
-    private var delegate: EmailFunctionExecutor? = null
-
-    override fun getApplicationContext(): ApplicationContext {
-        val ctx = super.getApplicationContext()
-        // Initialize the delegate with Lambda Context
-        delegate = EmailFunctionExecutor(ctx)
-        return ctx
-    }
+    private var functionEexecutorDelegate: EmailFunctionExecutor? = null
 
     override fun execute(input: SQSEvent): String {
-        if (delegate == null) {
-            throw IllegalStateException("Delegate not initialized")
+        if (functionEexecutorDelegate == null) {
+            functionEexecutorDelegate = EmailFunctionExecutor(super.getApplicationContext())
         }
-        delegate?.execute(input)
+        functionEexecutorDelegate?.execute(input)
         return "Executed"
     }
 }

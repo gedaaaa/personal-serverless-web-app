@@ -18,18 +18,15 @@ import top.sunbath.shared.types.SqsMessage
  */
 @Introspected
 open class CancelEmailFunctionHandler : MicronautRequestHandler<SQSEvent, String>() {
-    protected var delegate: CancelEmailFunctionExecutor? = null
+    private var functionExecutorDelegate: CancelEmailFunctionExecutor? = null
 
-    protected lateinit var preventEmailJobRepository: PreventEmailJobRepository
-
-    override fun getApplicationContext(): ApplicationContext {
-        val ctx = super.getApplicationContext()
-        preventEmailJobRepository = ctx.getBean(PreventEmailJobRepository::class.java)
-        delegate = CancelEmailFunctionExecutor(ctx)
-        return ctx
+    override fun execute(input: SQSEvent): String {
+        if (functionExecutorDelegate == null) {
+            functionExecutorDelegate = CancelEmailFunctionExecutor(super.getApplicationContext())
+        }
+        functionExecutorDelegate?.execute(input)
+        return "Executed"
     }
-
-    override fun execute(input: SQSEvent): String = delegate?.execute(input) ?: "Failed to initialize delegate"
 }
 
 /**

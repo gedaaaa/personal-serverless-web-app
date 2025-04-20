@@ -5,25 +5,58 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.micronaut.context.ApplicationContext
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.function.aws.MicronautRequestHandler
+import io.micronaut.function.executor.AbstractFunctionExecutor
 import org.slf4j.LoggerFactory
 import top.sunbath.api.email.repository.PreventEmailJobRepository
 import top.sunbath.api.email.service.EmailService
 import top.sunbath.shared.types.EmailData
 import top.sunbath.shared.types.SqsMessage
 
+/**
+ * This handler is used to send emails.
+ *
+ * In the Lambda environment, this handler is not managed by the Micronaut container,
+ *  but instead achieves dependency injection through the MicronautRequestHandler base class creating and managing the ApplicationContext.
+ *
+ */
 @Introspected
-open class EmailFunctionHandler : MicronautRequestHandler<SQSEvent, List<String>>() {
-    protected val log = LoggerFactory.getLogger(this::class.java)
-    protected val objectMapper = ObjectMapper()
-
-    protected lateinit var emailService: EmailService
-    protected lateinit var preventEmailJobRepository: PreventEmailJobRepository
+open class EmailFunctionHandler : MicronautRequestHandler<SQSEvent, String>() {
+    private var delegate: EmailFunctionExecutor? = null
 
     override fun getApplicationContext(): ApplicationContext {
         val ctx = super.getApplicationContext()
-        emailService = ctx.getBean(EmailService::class.java)
-        preventEmailJobRepository = ctx.getBean(PreventEmailJobRepository::class.java)
+        // Initialize the delegate with Lambda Context
+        delegate = EmailFunctionExecutor(ctx)
         return ctx
+    }
+
+    override fun execute(input: SQSEvent): String {
+        if (delegate == null) {
+            throw IllegalStateException("Delegate not initialized")
+        }
+        delegate?.execute(input)
+        return "Executed"
+    }
+}
+
+/**
+ * Delegate executor class for the EmailFunctionHandler.
+ * Separates the framework handling (Lambda integration) from business logic execution,
+ *  so when we test the executor, we can control the application context.
+ */
+@Introspected
+open class EmailFunctionExecutor(
+    private val applicationContext: ApplicationContext,
+) : AbstractFunctionExecutor<SQSEvent, List<String>, ApplicationContext>() {
+    protected var emailService: EmailService
+    protected var preventEmailJobRepository: PreventEmailJobRepository
+
+    protected val log = LoggerFactory.getLogger(this::class.java)
+    protected val objectMapper = ObjectMapper()
+
+    init {
+        emailService = applicationContext.getBean(EmailService::class.java)
+        preventEmailJobRepository = applicationContext.getBean(PreventEmailJobRepository::class.java)
     }
 
     override fun execute(input: SQSEvent): List<String> {

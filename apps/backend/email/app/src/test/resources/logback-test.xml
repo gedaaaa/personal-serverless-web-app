@@ -12,5 +12,5 @@
 
     <logger name="io.micronaut" level="INFO"/>
     <logger name="top.sunbath.api.email" level="DEBUG"/>
-    <logger name="io.micronaut.context" level="DEBUG"/>
+    <!-- <logger name="io.micronaut.context" level="DEBUG"/> -->
 </configuration> 

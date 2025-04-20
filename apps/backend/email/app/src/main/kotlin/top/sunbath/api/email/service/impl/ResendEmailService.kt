@@ -6,8 +6,6 @@ import com.resend.services.emails.model.CreateEmailOptions
 import io.micronaut.context.annotation.Requires
 import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
-import top.sunbath.api.email.config.ResendApiKeyProvider
-import top.sunbath.api.email.config.ResendConfiguration
 import top.sunbath.api.email.repository.EmailRecordRepository
 import top.sunbath.api.email.service.EmailService
 
@@ -17,8 +15,6 @@ import top.sunbath.api.email.service.EmailService
 @Singleton
 @Requires(env = ["production", "test"])
 class ResendEmailService(
-    private val resendConfiguration: ResendConfiguration,
-    private val resendApiKeyProvider: ResendApiKeyProvider,
     private val emailRecordRepository: EmailRecordRepository,
     private val resend: Resend,
 ) : EmailService {
@@ -30,10 +26,6 @@ class ResendEmailService(
         subject: String,
         html: String,
     ): String {
-        if (!resendConfiguration.enabled) {
-            throw IllegalStateException("Resend service is not enabled")
-        }
-
         val objectMapper = ObjectMapper()
 
         logger.info("Sending email from $from to $to with subject $subject, content: $html")

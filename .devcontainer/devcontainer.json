@@ -25,7 +25,9 @@
   },
 
   "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:/home/node/.local/bin"
+    "PATH": "${containerEnv:PATH}:/home/vscode/.local/bin",
+    "AWS_CONFIG_FILE": "/home/vscode/.aws/config",
+    "AWS_SHARED_CREDENTIALS_FILE": "/home/vscode/.aws/credentials"
   },
 
   "customizations": {
@@ -57,5 +59,9 @@
 
   "forwardPorts": [3000, 5173, 4200, 8080],
   "postCreateCommand": "pnpm install",
-  "remoteUser": "root"
+  "remoteUser": "vscode",
+  "containerEnv": {
+    "UID": "${localEnv:UID:-1000}",
+    "GID": "${localEnv:GID:-1000}"
+  }
 }

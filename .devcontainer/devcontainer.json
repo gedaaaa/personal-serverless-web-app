@@ -38,8 +38,10 @@
         "ms-azuretools.vscode-docker",
         "nrwl.angular-console",
         "vscjava.vscode-java-pack",
+        "fwcd.kotlin",
         "amazonwebservices.aws-toolkit-vscode",
-        "ThreadHeap.serverless-ide-vscode"
+        "ThreadHeap.serverless-ide-vscode",
+        "njzy.stats-bar"
       ],
       "settings": {
         "editor.formatOnSave": true,

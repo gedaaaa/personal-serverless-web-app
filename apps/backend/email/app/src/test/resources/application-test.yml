@@ -1,8 +1,6 @@
 micronaut:
   application:
     name: email
-  server:
-    port: -1
   security:
     enabled: false
 
@@ -22,17 +20,9 @@ endpoints:
     details-visible: ANONYMOUS
 
 dynamodb:
-  table-name: test-table
+  table-name: 'email-test'
 
 aws:
   region: 'us-east-1'
   access-key-id: 'fake-key-id'
   secret-access-key: 'fake-access-key'
-
-resend:
-  enabled: true
-  api-key: test-api-key
-
-my-property:
-  ssm-provider:
-    enabled: false

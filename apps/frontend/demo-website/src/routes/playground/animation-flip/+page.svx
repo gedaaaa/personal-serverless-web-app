@@ -1,0 +1,153 @@
+<script lang="ts">
+  import _ from 'lodash';
+  import { flip } from 'svelte/animate';
+  import { quintOut } from 'svelte/easing';
+  import BuiltInFlip from './_components/BuiltInFlip.svelte';
+  import ManuallyFlip from './_components/ManuallyFlip.svelte';
+</script>
+
+# Demo of FLIP animations
+## Introduction to FLIP animations
+
+FLIP animations are a technique proposed by Paul Lewis in 2014 for creating smooth element transitions. The acronym FLIP represents the four-phase process:
+
+- **F**irst: Record the initial state of the element
+- **L**ast: Capture the final state of the element
+- **I**nvert: Calculate and apply inverse transformation
+- **P**lay: Animate to the target state
+
+This technique solves animation challenges when element positions depend on dynamic layouts, particularly when final positions are computationally expensive to determine.
+
+## How does it work?
+
+Here is a simplified manual implementation of FLIP animations:
+
+<ManuallyFlip />
+
+The core implementation steps are:
+
+1. **Record Initial State**  
+   Capture element positions using `getBoundingClientRect()`:
+
+```ts
+const fromMap = {};
+function first() {
+  items.forEach((item) => {
+      const el = elementRefs[item];
+    if (el) {
+        fromMap[item] = el.getBoundingClientRect();
+    }
+  });
+}
+```
+
+2. **Capture Final State**  
+   Re-measure after DOM changes:
+
+```ts
+function last() {
+  items.forEach((item) => {
+      const el = elementRefs[item];
+    if (el) {
+        toMap[item] = el.getBoundingClientRect();
+    }
+  });
+}
+```
+
+3. **Calculate Inverse Transformation**  
+Apply the position changes invertly so it keeps in the initial position.
+
+```ts
+function invert() {
+    for (const item of items) {
+      const el = elementRefs[item];
+      if (el) {
+        const invertTransform = calculateInvertTransform(
+          fromMap[item],
+          toMap[item],
+        );
+        // Remove the transition to make it immediate
+        el.style.transition = '';
+        el.style.transform = invertTransform;
+      }
+    }
+  }
+// simplified version, assumes the item's size does not change
+function calculateInvertTransform(from: DOMRect, to: DOMRect) {
+    const invertX = from.left - to.left;
+    const invertY = from.top - to.top;
+    return `translate(${invertX}px, ${invertY}px)`;
+}
+```
+
+4. **Execute Animation**  
+   Restore natural position with transition:
+
+```ts
+function play() {
+    for (const item of items) {
+      const el = elementRefs[item];
+      if (el) {
+        el.style.transform = '';
+        el.style.transition = 'transform 0.75s ease-in-out';
+      }
+    }
+```
+
+To make it work, we need to call these functions in the correct order, with a little bit trick.
+
+```ts
+function shuffle() {
+    // record the initial state
+    first();
+    // shuffle the items
+    items = _.shuffle(items);
+    // record the final state
+    last();
+    // invert the element's position
+    invert();
+    // play the animation
+    requestAnimationFrame(play);
+}
+```
+
+The tricky part is about the browser's rendering pipeline: 
+
+- when we call `last()` to record the final state, the element's position is already changed. 
+
+- But since the synchronous code is not finished, the browser does not have chance to really render the new positions.
+
+  - Q: How are we able to know the new position when if the browser did not render it yet?
+
+  - A: becasue we called `getBoundingClientRect()` in `last()`, which will force the browser to re-calculate the layout (reflow) but not really render it.
+
+- Then in `invert()`, the item is placed back to initial postion, which to end user, just like the item never moved.
+
+- Then we call `play()` in RAF, so the browser have some chance to render the inverted postion, and when the `play()` actually execute, the animation plays.
+
+
+## If You are using Svelte
+
+Svelte has a built-in animation system that makes it easier to create FLIP animations. 
+It has support for size changes, and has more configuration options like `delay`, `easing`, etc.
+
+Just import `flip` from `svelte/animate` and use it as a directive.
+
+```svelte
+<div animate:flip={{ 
+  duration: 750,
+  easing: quintOut,
+  delay: 0
+}}>
+  <!-- Dynamic content -->
+</div>
+```
+
+<BuiltInFlip />
+
+**Key Advantages**:
+- Automatic handling of element size changes
+- Configurable easing functions
+- Integrated with Svelte's transition system
+- Better performance through optimized batched updates

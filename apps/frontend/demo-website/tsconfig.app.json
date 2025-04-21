@@ -8,6 +8,6 @@
     "noEmit": false
   },
 
-  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte"],
+  "include": ["src/**/*.ts", "src/**/*.js", "src/**/*.svelte", "src/**/*.svx"],
   "exclude": ["**/*.spec.ts", "**/*_spec.ts"]
 }

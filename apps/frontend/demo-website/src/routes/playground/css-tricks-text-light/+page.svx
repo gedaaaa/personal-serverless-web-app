@@ -1,0 +1,121 @@
+<script lang="ts">
+  let text = 'Hello, world!';
+</script>
+
+<div class="rounded-md bg-gray-900 p-4">
+  {#each text.toUpperCase() as character, idx (idx)}
+    {@const delay = idx * 0.2}
+    <span class="character mx-4 text-4xl font-bold text-purple-600 animate-[colorChange_2.4s_ease-in-out_infinite_alternate]"
+    style="--delay: {delay}s"
+    >{character}</span>
+  {/each}
+</div>
+
+This is a demonstration of using CSS animation techniques to create sequential character highlighting effects, simulating a scanning light pattern.
+
+Let's break down the implementation step by step.
+
+## Step 1: Text Structure Preparation
+
+```svelte
+<script lang="ts">
+  let text = 'Hello, world!';
+</script>
+
+<div class="rounded-md bg-gray-900 p-4">
+  {#each text.toUpperCase() as character, idx (idx)}
+    <span class="mx-4 text-4xl font-bold text-purple-600"
+    >{character}</span>
+  {/each}
+</div>
+```
+
+Each character is wrapped in an individual span element to enable per-character animations.
+
+<div class="rounded-md bg-gray-900 p-4">
+  {#each text.toUpperCase() as character, idx (idx)}
+    <span class="mx-4 text-4xl font-bold text-purple-600"
+    >{character}</span>
+  {/each}
+</div>
+
+## Step 2: Base Animation Setup
+
+```svelte
+<div class="rounded-md bg-gray-900 p-4">
+  {#each text.toUpperCase() as character, idx (idx)}
+    <span class="character mx-4 text-4xl font-bold text-purple-600"
+    >{character}</span>
+  {/each}
+</div>
+
+<style>
+  .character {
+    animation: colorChange 2.4s ease-in-out infinite alternate;
+  }
+
+  @keyframes colorChange {
+    to {
+      color: #F3F4F6;
+    }
+  }
+</style>
+```
+This creates a synchronized color transition effect across all characters.
+
+<div class="rounded-md bg-gray-900 p-4">
+  {#each text.toUpperCase() as character, idx (idx)}
+    <span class="character mx-4 text-4xl font-bold text-purple-600 animate-[colorChange_2.4s_ease-in-out_infinite_alternate]"
+    >{character}</span>
+  {/each}
+</div>
+
+## Step 3: Staggered Animation Timing
+
+```svelte
+<div class="rounded-md bg-gray-900 p-4">
+  {#each text.toUpperCase() as character, idx (idx)}
+    {@const delay = idx * 0.2}
+    <span class="character mx-4 text-4xl font-bold text-purple-600"
+    style="--delay: {delay}s"
+    >{character}</span>
+  {/each}
+</div>
+
+<style>
+  .character {
+    animation: colorChange 2.4s ease-in-out infinite alternate;
+    animation-delay: var(--delay, 0s);
+  }
+
+  @keyframes colorChange {
+    to {
+      color: #F3F4F6;
+    }
+  }
+</style>
+```
+We implement progressive animation delays using CSS custom properties, creating a wave-like effect.
+
+<div class="rounded-md bg-gray-900 p-4">
+  {#each text.toUpperCase() as character, idx (idx)}
+    {@const delay = idx * 0.2}
+    <span class="character mx-4 text-4xl font-bold text-purple-600"
+    style="--delay: {delay}s"
+    >{character}</span>
+  {/each}
+</div>
+
+
+<style>
+  .character {
+    animation: colorChange 2.4s ease-in-out infinite alternate;
+    animation-delay: var(--delay, 0s);
+  }
+
+  @keyframes colorChange {
+    to {
+      color: #F3F4F6;
+    }
+  }
+</style>

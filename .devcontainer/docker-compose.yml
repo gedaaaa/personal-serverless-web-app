@@ -12,7 +12,6 @@ services:
       - ~/.ssh:/home/vscode/.ssh:cached # SSH 密钥和配置
       - ~/.config/gh:/home/vscode/.config/gh:cached # GitHub CLI 配置
       - ~/.aws:/home/vscode/.aws:cached # AWS 凭证和配置
-      - ~/.docker:/home/vscode/.docker:cached # Docker 配置和凭证
 
       # 编辑器和IDE配置
       - ~/.cursor-server:/home/vscode/.cursor-server:cached

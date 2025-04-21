@@ -8,6 +8,8 @@
   import DeleteConfirmModal from './_components/DeleteConfirmModal.svelte';
   import AddMemoButton from './_components/AddMemoButton.svelte';
   import InfiniteScroll from './_components/InfiniteScroll.svelte';
+  import { flip } from 'svelte/animate';
+  import { quintOut } from 'svelte/easing';
 
   // --- Local State for Modal Management ---
   let openModalType: 'create' | 'edit' | 'delete' | undefined =
@@ -56,9 +58,11 @@
     {#each store.memos as memo (memo.id)}
       <!-- Pass loading status from store -->
       <div
-        class="transition-opacity {store.itemLoadingStatus[memo.id]
+        class="transition-opacity will-change-transform {store
+          .itemLoadingStatus[memo.id]
           ? 'opacity-50'
           : ''}"
+        animate:flip={{ duration: 750, easing: quintOut }}
       >
         <MemoCard
           {memo}

@@ -1,0 +1,118 @@
+<script lang="ts">
+  import MovingSnake from './_component/MovingSnake';
+</script>
+
+# Animation - Kinematic Snake Simulation
+<MovingSnake />
+
+## Description
+
+This is a simple simulation of a snake moving on a 2D plane.
+
+## How it Works
+
+### Core Data Structure
+The snake is represented as an array of nodes, where each node contains:
+- `x`: X-coordinate in 2D space
+- `y`: Y-coordinate in 2D space
+Nodes are rendered using SVG `<circle>` elements and connected with `<line>` elements.
+
+### Kinematic Motion System
+The movement algorithm follows these steps each frame:
+1. **Head Guidance**: The leading node receives movement input
+2. **Cascade Propagation**: Subsequent nodes follow their predecessors by:
+   - Calculating direction vectors between consecutive nodes
+   - Maintaining fixed inter-node distances
+3. **Position Update**: Each node's coordinates are recalculated using:
+   ```
+   node[i].position = node[i-1].position + direction_vector * node_distance
+   ```
+
+### Pathfinding Mechanism
+An invisible waypoint (referred to as "bait") drives the navigation:
+- **Waypoint Behavior**:
+  - Moves in zig-zag patterns within viewport boundaries
+  - Triggers random repositioning upon boundary collision
+- **Head Movement**:
+  - Head node moves towards the current waypoint with a small distance delta each frame
+
+### Motion Optimization
+Two key constraints ensure natural movement:
+1. **Body Flexion Limit**:
+   - Prevents unrealistic bending angles between nodes
+2. **Head Turning Rate Limit**:
+   - Constrains instantaneous directional changes
+   
+Proximity-based relaxation (when head is close to the waypoint):
+- Temporarily disables constraints to facilitate target acquisition
+- Gradual constraint restoration after waypoint capture
+
+This animation system implements the kinematic principles demonstrated in 
+[this video](https://www.youtube.com/watch?v=qlfh_rv6khY), specifically 
+modeling:
+
+- Vertebrate spinal movement through cascading node propagation
+- Dynamic constraint relaxation during target acquisition
+- Motion stabilization using flexion angle limits
+
+### Svelte Animation Architecture
+The implementation demonstrates reactive animation control:
+
+```ts
+// store.ts
+export const state = {
+  isAnimationRunning: false,  // Master animation toggle
+  // ... other state properties
+};
+
+// animation logic.ts
+let animationFrameId: number | null = null;
+
+export function manageAnimationLoop() {
+  $effect(() => {
+    if (!state.isAnimationRunning) {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      return;
+    }
+    
+    const frameHandler = () => {
+      updatePositions();  // Core kinematic calculations
+      animationFrameId = requestAnimationFrame(frameHandler);
+    };
+    
+    animationFrameId = requestAnimationFrame(frameHandler);
+    
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  });
+}
+// view.svelte
+onMount(() => {
+  state.isAnimationRunning = true;
+});
+
+manageAnimationLoop();
+
+onDestroy(() => {
+  state.isAnimationRunning = false;
+});
+```
+
+Key implementation notes:
+1. **Lifecycle Management**:
+   - `onMount()` activates animation
+   - `onDestroy()` ensures resource cleanup
+2. **Reactive Control**:
+   - The `$effect` block automatically manages animation state changes
+3. **Frame Budgeting**:
+   - Uses browser-native `requestAnimationFrame` for optimal rendering
+
+
+
+
+
+
+
+
+

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import _ from 'lodash';
   import { onDestroy, onMount } from 'svelte';
   import { SVG_VIEW_BOX_X, SVG_VIEW_BOX_Y } from './constants';
   import { state } from './store.svelte';
@@ -26,6 +25,7 @@
       viewBox={`0 0 ${SVG_VIEW_BOX_X} ${SVG_VIEW_BOX_Y}`}
     >
       <g style="transform: translateZ(0)">
+        <!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -->
         {#each { length: state.snakeDots.length } as _, i}
           {@const reversedIndex = state.snakeDots.length - 1 - i}
           {@const dot = state.snakeDots[reversedIndex]}

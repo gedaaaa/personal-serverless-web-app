@@ -5,7 +5,7 @@
 This repository serves two primary objectives:
 
 1. **Rapid Prototyping Platform**: Create a web application framework for quickly implementing personal utilities, blog systems, and experimental concepts
-2. **Technology Exploration**: Experiment with modern languages and frameworks beyond those used in professional work environments
+2. **Technology Exploration**: Use languages and frameworks that I haven't tryed/worked before
 
 ### Key Constraints
 

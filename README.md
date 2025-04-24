@@ -1,8 +1,26 @@
-# Personal Serverless Web App
+# Personal Serverless Web
 
-This is a monorepo for a personal serverless web application, built with NX, Svelte5/SvelteKit, and Micronaut.
+## Project Goals
 
-For a personal web application, AWS Lambda is our preferred runtime as its free tier is expected to cover all associated costs. Additionally, when selecting other cloud services, we prioritize utilizing free-tier offerings or cost-effective pay-as-you-go pricing models to minimize expenses.
+This repository serves two primary objectives:
+
+1. **Rapid Prototyping Platform**: Create a web application framework for quickly implementing personal utilities, blog systems, and experimental concepts
+2. **Technology Exploration**: Use languages and frameworks that I haven't tryed/worked before
+
+### Key Constraints
+
+- **Cost Optimization**: Maintain near-zero operational costs (current average: $0.01/month for storage)
+- **Serverless Architecture**: Leverage cloud free-tier services exclusively
+
+## Technical Stack
+
+| Category     | Technologies                           |
+| ------------ | -------------------------------------- |
+| **Frontend** | Svelte 5/SvelteKit with SST deployment |
+| **Backend**  | Kotlin/Micronaut microservices         |
+| **Cloud**    | AWS Lambda (Free Tier)                 |
+| **CDN**      | Cloudflare Free Plan                   |
+| **Infra**    | AWS CDK for IaC                        |
 
 ## Architecture Overview
 
@@ -54,7 +72,7 @@ pnpm nx run <service-name>:dev
 
 ```bash
 # Start all backend services using SAM
-pnpm start:backend
+pnpm nx run root:gateway-start
 ```
 
 ### Testing
@@ -71,3 +89,4 @@ pnpm nx run <project-name>:test
 pnpm nx run <service-name>:deploy
 ```
 
+Live demo: [https://sunbath.top](https://sunbath.top)

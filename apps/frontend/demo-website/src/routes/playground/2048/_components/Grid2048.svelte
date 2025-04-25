@@ -19,29 +19,35 @@
       case 0:
         return 'bg-gray-200 text-transparent border-transparent';
       case 2:
-        return 'bg-blue-200 text-blue-400';
+        return 'bg-red-200 text-gray-600';
       case 4:
-        return 'bg-green-200 text-green-400';
+        return 'bg-orange-200 text-red-600';
       case 8:
-        return 'bg-yellow-200 text-yellow-400';
+        return 'bg-yellow-200 text-orange-600';
       case 16:
-        return 'bg-orange-200 text-orange-400';
+        return 'bg-lime-200 text-yellow-600';
       case 32:
-        return 'bg-red-200 text-red-400';
+        return 'bg-green-200 text-lime-600';
       case 64:
-        return 'bg-purple-200 text-purple-400';
+        return 'bg-cyan-200 text-green-600';
       case 128:
-        return 'bg-pink-200 text-pink-400';
+        return 'bg-blue-200 text-cyan-600';
       case 256:
-        return 'bg-brown-200 text-brown-400';
+        return 'bg-violet-200 text-blue-600';
       case 512:
-        return 'bg-gray-200 text-gray-400';
+        return 'bg-purple-200 text-violet-600';
       case 1024:
-        return 'bg-gray-400 text-gray-600';
+        return 'bg-purple-400 text-purple-100';
       case 2048:
-        return 'bg-gray-600 text-gray-100';
+        return 'bg-purple-600 text-white';
+      case 4096:
+        return 'bg-purple-800 text-white';
+      case 8192:
+        return 'bg-purple-900 text-white';
+      case 16384:
+        return 'bg-purple-950 text-white';
       default:
-        return 'bg-gray-200 text-gray-400';
+        return 'bg-rose-900 text-black';
     }
   }
 
@@ -66,11 +72,11 @@
 <div class="flex h-full w-full flex-col items-center justify-center">
   <div class="flex flex-row items-center justify-center gap-4">
     {#if state.isGameWon}
-      YOU WIN!
+      <div class="text-2xl font-bold text-purple-600">YOU WIN!</div>
     {/if}
     <button
       disabled={state.isMoving}
-      class="rounded-md bg-blue-500 px-4 py-2 text-white"
+      class="rounded-md bg-purple-600 px-4 py-2 text-white"
       onclick={reset}
     >
       Reset
@@ -89,7 +95,7 @@
         animate:flip={{ duration: CELL_MOVE_DURATION }}
         class="flex h-10 w-10 items-center justify-center rounded-md {colorClass}"
       >
-        <div>{cell.value}</div>
+        <div class="break-all text-center leading-none">{cell.value}</div>
       </div>
     {/each}
   </div>

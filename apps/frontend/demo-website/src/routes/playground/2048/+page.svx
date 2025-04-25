@@ -8,7 +8,7 @@ This implementation explores recreating the classic 2048 puzzle game using Svelt
 
 The major chanllenge I met is in handling tile movement mechanics across four directions while not having repeated code.
 
-~~At least above lines managed to squeeze the panel into thumb's reach on mobile~~
+~~Mission accomplished: panel now in natural thumb zone 📱~~
 
 <Grid2048 />
 

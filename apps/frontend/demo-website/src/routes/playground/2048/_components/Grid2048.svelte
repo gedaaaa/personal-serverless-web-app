@@ -61,7 +61,7 @@
   }
 </script>
 
-<svelte:window on:keydown={handleKeyDown} />
+<svelte:window onkeydown={handleKeyDown} />
 
 <div class="flex h-full w-full flex-col items-center justify-center">
   <div class="flex flex-row items-center justify-center gap-4">

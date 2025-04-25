@@ -1,0 +1,71 @@
+<script lang="ts">
+  import Grid2048 from './_components/Grid/Grid2048.svelte';
+</script>
+
+# This is a 2048 game
+
+This implementation explores recreating the classic 2048 puzzle game using Svelte's reactive. 
+
+The major chanllenge I met is in handling tile movement mechanics across four directions while not having repeated code.
+
+~~Mission accomplished: panel now in natural thumb zone 📱~~
+
+<Grid2048 />
+
+The core move logic is like this: 
+
+```ts
+function moveAllCellsTo(direction: Direction) {
+  // Determine movement axis and processing order
+  const isVertical = direction === 'up' || direction === 'down';
+  const reverseProcessing = direction === 'down' || direction === 'right';
+
+  // Process each row/column based on movement direction
+  for (let outerIndex = 0; outerIndex < 4; outerIndex++) {
+    // Track last checked position to prevent multiple checks towards empty cell
+    let lastCheckedPosition = // ...next item of current;
+    
+    // Process cells in movement direction order
+    for (let innerIndex = reverseProcessing ? 3 : 0;
+         reverseProcessing ? innerIndex >= 0 : innerIndex < 4;
+         reverseProcessing ? innerIndex-- : innerIndex++) {
+      
+      // Find next movable tile in current line
+      // Start from the last checked position since any tile before is checked, they are empty.
+      for (let scanPosition = lastCheckedPosition) {
+        // get the current tile, we use the two index we have, 
+        // and the direction to determine which index is col and which is row
+        const currentTile = ...;
+        const targetTile = ...;
+
+        // update the last checked position to the next item
+        lastCheckedPosition++;
+
+        // Skip empty tiles during scanning
+        if (targetTile.value === 0) continue;
+
+        // Merge matching tiles that haven't been merged, break since we already have a merged
+        if (currentTile.value === targetTile.value && currentTile.lastMergedStep < currentStep) {
+          currentTile.value *= 2;
+          targetTile.reset();
+          break;
+        }
+
+        // current one is empty, move the target one to current one, continue checking the next item
+        if (currentTile.value === 0) {
+          currentTile.value = targetTile.value;
+          targetTile.reset();
+          continue;
+        }
+
+        // Handle blocked movement, break so we start checking for the newly moved tile
+        if (currentTile.value !== targetTile.value) {
+          nextTile.value = targetTile.value;
+          targetTile.reset();
+          break;
+        }
+      }
+    }
+  }
+}
+```

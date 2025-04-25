@@ -19,7 +19,7 @@
       case 0:
         return 'bg-gray-200 text-transparent border-transparent';
       case 2:
-        return 'bg-red-200 text-gray-600';
+        return 'bg-red-200 text-white';
       case 4:
         return 'bg-orange-200 text-red-600';
       case 8:

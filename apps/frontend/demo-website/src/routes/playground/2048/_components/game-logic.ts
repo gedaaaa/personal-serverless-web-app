@@ -175,6 +175,9 @@ function moveAllCellsTo(direction: Direction) {
             value: 0,
             id: state.increaseId++,
           };
+          if (currentCellValue >= 2048) {
+            state.isGameWon = true;
+          }
           moved = true;
           break checkCell;
         }

@@ -1,14 +1,14 @@
 <script lang="ts">
-  import Grid2048 from './_components/Grid2048.svelte';
+  import Grid2048 from './_components/Grid/Grid2048.svelte';
 </script>
 
 # This is a 2048 game
 
-This implementation explores recreating the classic 2048 puzzle game using Svelte's reactive, this is definetely not a hard problem. 
+This implementation explores recreating the classic 2048 puzzle game using Svelte's reactive. 
 
-The core challenge lies in handling tile movement mechanics across four directions while not having repeated code.
+The major chanllenge I met is in handling tile movement mechanics across four directions while not having repeated code.
 
-~~Above sentences should made the game panel in a handful position on mobile devices now.~~
+~~At least above lines managed to squeeze the panel into thumb's reach on mobile~~
 
 <Grid2048 />
 

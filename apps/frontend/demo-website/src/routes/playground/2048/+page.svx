@@ -1,0 +1,5 @@
+<script lang="ts">
+  import Grid2048 from './_components/Grid2048.svelte';
+</script>
+
+<Grid2048 />

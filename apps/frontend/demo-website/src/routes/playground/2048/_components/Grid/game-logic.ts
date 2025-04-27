@@ -99,7 +99,7 @@ export async function fillRandomEmptyCellInOppositeSide(direction: Direction) {
  * @param direction - The direction to move the cells to
  * @returns - Whether the cells were moved
  */
-function moveAllCellsTo(direction: Direction) {
+export function moveAllCellsTo(direction: Direction) {
   // decide if the direction is vertical or horizontal
   const isVertical = direction === 'up' || direction === 'down';
   // decide if the direction is reverse

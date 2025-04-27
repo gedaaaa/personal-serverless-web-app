@@ -5,26 +5,29 @@ let touchStartY = 0;
 const SWIPE_THRESHOLD = 50; // Minimum distance for a swipe
 
 export function handleKeyDown(event: KeyboardEvent) {
-  event.preventDefault();
   switch (event.key) {
     case 'ArrowUp':
     case 'w':
     case 'W':
+      event.preventDefault();
       move('up');
       break;
     case 'ArrowDown':
     case 's':
     case 'S':
+      event.preventDefault();
       move('down');
       break;
     case 'ArrowLeft':
     case 'a':
     case 'A':
+      event.preventDefault();
       move('left');
       break;
     case 'ArrowRight':
     case 'd':
     case 'D':
+      event.preventDefault();
       move('right');
       break;
   }

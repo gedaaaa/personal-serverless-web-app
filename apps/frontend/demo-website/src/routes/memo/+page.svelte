@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { type Memo } from './_services/memo-service';
-  import { store, fetchMemos, applyFilter } from './_stores/memoStore.svelte';
+  import { store, applyFilter } from './_stores/memoStore.svelte';
   import MemoCard from './_components/MemoCard.svelte';
   import MemoModal from './_components/MemoModal.svelte';
   import MemoTab from './_components/MemoTab.svelte';

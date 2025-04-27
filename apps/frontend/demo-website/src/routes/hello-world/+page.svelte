@@ -1,6 +1,14 @@
 <script lang="ts">
   import { getDefaultClient } from '$lib/api/client';
   import { auth, logout } from '$lib/auth';
+  import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
+
+  onMount(() => {
+    if (!$auth.isAuthenticated) {
+      goto('/login?location=/hello-world');
+    }
+  });
 
   let error = $state<string | null>(null);
   let greeting = $state<string | undefined>(undefined);
@@ -19,7 +27,7 @@
 
   const handleLogout = () => {
     // Logout and redirect to home page
-    logout('/');
+    logout('/login');
   };
 </script>
 

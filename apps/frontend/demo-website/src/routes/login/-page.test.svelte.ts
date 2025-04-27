@@ -16,6 +16,12 @@ vi.mock('$app/navigation', () => ({
   goto: vi.fn(),
 }));
 
+vi.mock('$app/state', () => ({
+  page: {
+    url: new URL('http://localhost/login?location=/some-location'),
+  },
+}));
+
 vi.mock('$lib/auth', () => ({
   auth: {
     subscribe: vi.fn((callback) => {
@@ -89,7 +95,7 @@ describe('Login/Register Page', () => {
       render(Page as any);
 
       // Check that goto was called with correct path
-      expect(navigation.goto).toHaveBeenCalledWith('/hello-world');
+      expect(navigation.goto).toHaveBeenCalledWith('/some-location');
     });
   });
 
@@ -192,7 +198,7 @@ describe('Login/Register Page', () => {
       await tick();
 
       // Check that goto was called with correct path
-      expect(navigation.goto).toHaveBeenCalledWith('/hello-world');
+      expect(navigation.goto).toHaveBeenCalledWith('/some-location');
     });
 
     it('should display error message when login fails', async () => {

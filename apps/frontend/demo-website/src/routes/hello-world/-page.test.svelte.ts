@@ -116,6 +116,6 @@ describe('HelloWorldPage Component', () => {
     await fireEvent.click(logoutButton);
 
     // Check logout function was called
-    expect(authModule.logout).toHaveBeenCalledWith('/');
+    expect(authModule.logout).toHaveBeenCalledWith('/login');
   });
 });

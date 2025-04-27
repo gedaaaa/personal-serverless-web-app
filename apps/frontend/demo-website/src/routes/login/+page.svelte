@@ -3,6 +3,8 @@
   import { goto } from '$app/navigation';
   import { auth } from '$lib/auth';
   import { AuthService } from '$lib/services/auth-service';
+  import { page } from '$app/state';
+  import _ from 'lodash';
 
   // Form state
   let isLogin = $state(true);
@@ -15,10 +17,20 @@
 
   const authService = new AuthService();
 
+  // get location from url
+  const searchParamLocation = page.url.searchParams.get('location');
+
+  const location =
+    _.isString(searchParamLocation) && searchParamLocation.startsWith('/')
+      ? searchParamLocation
+      : _.isString(searchParamLocation)
+        ? `/${searchParamLocation}`
+        : '/';
+
   onMount(() => {
-    // If user is already logged in, redirect to hello-world
+    // If user is already logged in, redirect to location from search param
     if ($auth.isAuthenticated) {
-      goto('/hello-world');
+      goto(location);
     }
   });
 
@@ -36,7 +48,7 @@
       if (isLogin) {
         // Handle login
         await authService.login({ username, password });
-        goto('/hello-world');
+        goto(location);
       } else {
         // Handle registration
         // Validate email format

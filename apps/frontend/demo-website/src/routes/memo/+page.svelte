@@ -10,6 +10,8 @@
   import InfiniteScroll from './_components/InfiniteScroll.svelte';
   import { flip } from 'svelte/animate';
   import { quintOut } from 'svelte/easing';
+  import { goto } from '$app/navigation';
+  import { auth } from '$lib/auth';
 
   // --- Local State for Modal Management ---
   let openModalType: 'create' | 'edit' | 'delete' | undefined =
@@ -28,8 +30,9 @@
 
   // --- Initial Data Fetch ---
   onMount(() => {
-    // Fetch initial data using the store function
-    fetchMemos();
+    if (!$auth.isAuthenticated) {
+      goto('/login?location=/memo');
+    }
   });
 </script>
 

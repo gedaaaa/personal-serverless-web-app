@@ -1,4 +1,4 @@
-name: Deploy Stage on PR Merge
+name: Deploy on PR Merge
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  deploy-stage:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,7 +27,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '22'
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -46,4 +46,4 @@ jobs:
           NX_BASE: ${{ github.event.before }}
           NX_HEAD: ${{ github.sha }}
         run: |
-          ./gradlew clean && pnpm nx affected --target=deploy --configuration=stage
+          ./gradlew clean && pnpm nx affected --target=deploy

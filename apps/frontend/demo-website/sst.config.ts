@@ -13,13 +13,6 @@ export default $config({
   async run() {
     new sst.aws.SvelteKit('DemoWebsite', {
       buildCommand: 'nx run demo-website:build',
-      domain: {
-        name: 'sunbath.top',
-        dns: sst.cloudflare.dns({
-          zone: '678cdfc9ae2d55f9a3097c96528f5754',
-        }),
-      },
-      redirects: ['www.sunbath.top'],
       server: {
         memory: '256 MB',
       },

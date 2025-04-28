@@ -1,11 +1,5 @@
 <script lang="ts">
-  import { auth, logout } from '$lib/auth';
-
   let { children } = $props();
-
-  const handleLogout = () => {
-    logout('/');
-  };
 </script>
 
 <div class="min-h-screen bg-gray-50">

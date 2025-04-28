@@ -13,6 +13,7 @@ export default $config({
   async run() {
     new sst.aws.SvelteKit('DemoWebsite', {
       buildCommand: 'nx run demo-website:build',
+      // Intentionall not set domain here, since we are using cloudflare dns and will manually dns cname record in cloudflare
       server: {
         memory: '256 MB',
       },

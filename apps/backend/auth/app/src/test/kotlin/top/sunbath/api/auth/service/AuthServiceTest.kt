@@ -6,19 +6,24 @@ import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import top.sunbath.api.auth.controller.request.CreateUserRequest
 import top.sunbath.api.auth.controller.request.LoginRequest
+import top.sunbath.api.auth.controller.request.MigratePasswordRequest
+import top.sunbath.api.auth.model.PasswordType
 import top.sunbath.api.auth.model.User
 import top.sunbath.api.auth.repository.UserRepository
 import top.sunbath.api.auth.service.email.EmailService
+import top.sunbath.api.auth.service.outcome.LoginOutcome
 import java.time.Instant
 import java.util.UUID
 
@@ -38,8 +43,38 @@ class AuthServiceTest {
 
     private lateinit var authService: AuthService
 
+    // Test Data Constants
+    private val v1Username = uniqueUsername("v1user")
+    private val v1UserId = "v1_user_id_${UUID.randomUUID().toString().substring(0, 4)}"
+    private val v1FrontendHash = "v1_frontend_hashed_password"
+    private val v1BackendHash = "\$2a\$12\$${UUID.randomUUID()}" // Placeholder for BCrypt hash
+    private val v2FrontendHash = "v2_frontend_hashed_password"
+    private val v2BackendHash = "\$2a\$12\$${UUID.randomUUID()}" // Placeholder for BCrypt hash
+    private val validMigrationToken = "valid_migration_token_${UUID.randomUUID()}"
+    private val invalidMigrationToken = "invalid_migration_token_${UUID.randomUUID()}"
+    private val validJwtToken = "valid.jwt.token"
+
     // 生成唯一用户名的辅助函数
     private fun uniqueUsername(prefix: String): String = "${prefix}_${UUID.randomUUID().toString().substring(0, 8)}"
+
+    // Helper to create V1 user mock
+    private fun createV1UserMock(
+        migrationToken: String? = null,
+        migrationTokenExpiresAt: Instant? = null,
+    ): User =
+        spyk(
+            User(
+                id = v1UserId,
+                username = v1Username,
+                email = "$v1Username@example.com",
+                password = v1BackendHash, // Store backend hash
+                passwordType = PasswordType.V1,
+                emailVerified = true,
+                migrationToken = migrationToken,
+                migrationTokenExpiresAt = migrationTokenExpiresAt,
+            ),
+            recordPrivateCalls = true,
+        )
 
     @BeforeEach
     fun setup() {
@@ -51,6 +86,18 @@ class AuthServiceTest {
                 AuthService(userRepository, jwtService, emailService),
                 recordPrivateCalls = true,
             )
+
+        // Mock hashing and verification used internally by AuthService
+        // We mock these on the spy object itself
+        every { authService["hashPassword"](v1FrontendHash) } returns v1BackendHash // Needed if register uses it directly
+        every { authService["hashPassword"](v2FrontendHash) } returns v2BackendHash
+        every { authService["verifyPassword"](v1FrontendHash, v1BackendHash) } returns true
+        every { authService["verifyPassword"](neq(v1FrontendHash), v1BackendHash) } returns false // For incorrect password test
+        // Assume V2 verification works similarly if needed for other tests
+        every { authService["verifyPassword"](v2FrontendHash, v2BackendHash) } returns true
+
+        // Mock token generation used internally by AuthService
+        every { authService["generateMigrationToken"]() } returns validMigrationToken
     }
 
     @Test
@@ -207,6 +254,7 @@ class AuthServiceTest {
                 username = username,
                 email = "login@example.com",
                 password = hashedPassword,
+                passwordType = PasswordType.V2,
                 emailVerified = true,
             )
         val token = "jwt.token.example"
@@ -225,7 +273,8 @@ class AuthServiceTest {
 
         // Then
         assertNotNull(result)
-        assertEquals(token, result)
+        assertTrue(result is LoginOutcome.Success)
+        assertEquals(token, (result as LoginOutcome.Success).token)
 
         verify(exactly = 1) { userRepository.findByUsername(username) }
         verify(exactly = 1) { jwtService.generateToken(user) }
@@ -243,6 +292,7 @@ class AuthServiceTest {
                 username = username,
                 email = "unverified@example.com",
                 password = hashedPassword,
+                passwordType = PasswordType.V2,
                 emailVerified = false,
             )
         val request = LoginRequest(username, password)
@@ -289,22 +339,21 @@ class AuthServiceTest {
     fun `test login with invalid password`() {
         // Given
         val username = uniqueUsername("passworduser")
-        val password = "WrongPassword"
-        val hashedPassword = "hashed_password"
+        val password = "WrongPassword" // This is Frontend Hash for V2
+        val hashedPassword = "hashed_password" // This is Backend Hash for V2
         val user =
             User(
                 id = "user_id",
                 username = username,
                 email = "password@example.com",
                 password = hashedPassword,
+                passwordType = PasswordType.V2, // Explicitly V2
                 emailVerified = true,
             )
         val request = LoginRequest(username, password)
 
-        // 模拟 AuthService 内部对 BCrypt 的调用
-        every {
-            authService["verifyPassword"](password, hashedPassword)
-        } returns false
+        // Use the spy's internal method mock setup in @BeforeEach
+        every { authService["verifyPassword"](password, hashedPassword) } returns false // Explicitly mock failure for THIS test case
 
         every { userRepository.findByUsername(username) } returns user
 
@@ -317,6 +366,8 @@ class AuthServiceTest {
         assertEquals("Invalid credentials", exception.message)
 
         verify(exactly = 1) { userRepository.findByUsername(username) }
+        // Verify internal call
+        verify(exactly = 1) { authService["verifyPassword"](password, hashedPassword) }
         verify(exactly = 0) { jwtService.generateToken(any()) }
     }
 
@@ -560,5 +611,228 @@ class AuthServiceTest {
         verify(exactly = 1) { userRepository.findByEmail(email) }
         verify(exactly = 0) { userRepository.update(any(), any(), any(), any(), any(), any(), any(), any(), any()) }
         verify(exactly = 0) { emailService.sendVerificationEmail(any(), any(), any(), any()) }
+    }
+
+    // --- V1 Password Migration Tests ---
+
+    @Test
+    fun `test login with v1 password triggers migration`() {
+        // Given
+        val user = createV1UserMock() // V1 user, no token initially
+        val request = LoginRequest(v1Username, v1FrontendHash)
+        val migrationTokenSlot = slot<String>()
+        val expiresAtSlot = slot<Instant>()
+
+        every { userRepository.findByUsername(v1Username) } returns user
+        // Capture arguments passed to updatePasswordSettings
+        every {
+            userRepository.updatePasswordSettings(
+                id = eq(v1UserId),
+                password = null, // Expect null as per AuthService logic
+                passwordType = null, // Expect null as per AuthService logic
+                migrationToken = capture(migrationTokenSlot),
+                migrationTokenExpiresAt = capture(expiresAtSlot),
+            )
+        } returns true
+
+        // When
+        val result = authService.login(request)
+
+        // Then
+        assertTrue(result is LoginOutcome.MigrationRequired)
+        assertEquals(validMigrationToken, (result as LoginOutcome.MigrationRequired).migrationToken)
+
+        verify(exactly = 1) { userRepository.findByUsername(v1Username) }
+        verify(exactly = 1) { authService["generateMigrationToken"]() }
+        verify(exactly = 1) {
+            userRepository.updatePasswordSettings(
+                v1UserId,
+                null,
+                null,
+                validMigrationToken,
+                expiresAtSlot.captured,
+            )
+        }
+        assertNotNull(expiresAtSlot.captured)
+    }
+
+    @Test
+    fun `test migrate password successful`() {
+        // Given
+        val user =
+            createV1UserMock(
+                migrationToken = validMigrationToken,
+                migrationTokenExpiresAt = Instant.now().plusSeconds(60),
+            )
+        val request =
+            MigratePasswordRequest(
+                username = v1Username,
+                originalPassword = v1FrontendHash,
+                desiredPassword = v2FrontendHash,
+                migrationToken = validMigrationToken,
+            )
+        val updatedPassword = v2BackendHash
+        val updatedType = PasswordType.V2
+        val clearedToken = null
+        val clearedExpiresAt = null
+
+        every { userRepository.findByUsername(v1Username) } returns user
+        every {
+            userRepository.updatePasswordSettings(
+                id = eq(v1UserId),
+                password = updatedPassword,
+                passwordType = updatedType,
+                migrationToken = clearedToken,
+                migrationTokenExpiresAt = clearedExpiresAt,
+            )
+        } returns true
+        every { jwtService.generateToken(user) } returns validJwtToken // Use the same user object
+
+        // When
+        val result = authService.migratePassword(request)
+
+        // Then
+        assertEquals(validJwtToken, result)
+
+        verify(exactly = 1) { userRepository.findByUsername(v1Username) }
+        verify(exactly = 1) { user.isMigrationTokenValid(validMigrationToken) }
+        verify(exactly = 1) { authService["verifyPassword"](v1FrontendHash, v1BackendHash) }
+        verify(exactly = 1) { authService["hashPassword"](v2FrontendHash) }
+        verify(exactly = 1) {
+            userRepository.updatePasswordSettings(
+                v1UserId,
+                updatedPassword,
+                updatedType,
+                clearedToken,
+                clearedExpiresAt,
+            )
+        }
+
+        verify(exactly = 1) { jwtService.generateToken(user) }
+    }
+
+    @Test
+    fun `test migrate password with invalid token`() {
+        // Given
+        val user =
+            createV1UserMock(
+                migrationToken = validMigrationToken, // User has a valid token stored
+                migrationTokenExpiresAt = Instant.now().plusSeconds(60),
+            )
+        // But the request uses an invalid one
+        val request =
+            MigratePasswordRequest(
+                username = v1Username,
+                originalPassword = v1FrontendHash,
+                desiredPassword = v2FrontendHash,
+                migrationToken = invalidMigrationToken,
+            )
+
+        every { userRepository.findByUsername(v1Username) } returns user
+        // Mock that the user's validation fails for the invalid token
+        every { user.isMigrationTokenValid(invalidMigrationToken) } returns false
+
+        // When/Then
+        val exception =
+            assertThrows<HttpStatusException> {
+                authService.migratePassword(request)
+            }
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+        assertEquals("Invalid or expired migration token", exception.message)
+
+        verify(exactly = 1) { userRepository.findByUsername(v1Username) }
+        verify(exactly = 1) { user.isMigrationTokenValid(invalidMigrationToken) }
+        verify(exactly = 0) { authService["verifyPassword"](any<String>(), any<String>()) }
+        verify(exactly = 0) { userRepository.updatePasswordSettings(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `test migrate password with expired token`() {
+        // Given
+        val user =
+            createV1UserMock(
+                migrationToken = validMigrationToken,
+                migrationTokenExpiresAt = Instant.now().minusSeconds(60), // Token is expired
+            )
+        val request =
+            MigratePasswordRequest(
+                username = v1Username,
+                originalPassword = v1FrontendHash,
+                desiredPassword = v2FrontendHash,
+                migrationToken = validMigrationToken,
+            )
+
+        every { userRepository.findByUsername(v1Username) } returns user
+        // Mock that the user's validation fails (due to expiration check inside isMigrationTokenValid)
+        every { user.isMigrationTokenValid(validMigrationToken) } returns false
+
+        // When/Then
+        val exception =
+            assertThrows<HttpStatusException> {
+                authService.migratePassword(request)
+            }
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+        assertEquals("Invalid or expired migration token", exception.message)
+
+        verify(exactly = 1) { userRepository.findByUsername(v1Username) }
+        verify(exactly = 1) { user.isMigrationTokenValid(validMigrationToken) }
+        verify(exactly = 0) { authService["verifyPassword"](any<String>(), any<String>()) }
+        verify(exactly = 0) { userRepository.updatePasswordSettings(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `test migrate password with incorrect original password`() {
+        // Given
+        val incorrectFrontendHash = "incorrect_" + v1FrontendHash
+        val user =
+            createV1UserMock(
+                migrationToken = validMigrationToken,
+                migrationTokenExpiresAt = Instant.now().plusSeconds(60),
+            )
+        val request =
+            MigratePasswordRequest(
+                username = v1Username,
+                originalPassword = incorrectFrontendHash,
+                desiredPassword = v2FrontendHash,
+                migrationToken = validMigrationToken,
+            )
+
+        every { userRepository.findByUsername(v1Username) } returns user
+        every { user.isMigrationTokenValid(validMigrationToken) } returns true
+        // verifyPassword for incorrect hash returns false (mocked in setup)
+
+        // When/Then
+        val exception =
+            assertThrows<HttpStatusException> {
+                authService.migratePassword(request)
+            }
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+        assertEquals("Invalid original password", exception.message)
+
+        verify(exactly = 1) { userRepository.findByUsername(v1Username) }
+        verify(exactly = 1) { user.isMigrationTokenValid(validMigrationToken) }
+        verify(exactly = 1) { authService["verifyPassword"](incorrectFrontendHash, v1BackendHash) } // verify attempted
+        verify(exactly = 0) { userRepository.updatePasswordSettings(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `test migrate password for non existent user`() {
+        // Given
+        val nonExistentUsername = "non_existent_user"
+        val request = MigratePasswordRequest(nonExistentUsername, validMigrationToken, v1FrontendHash, v2FrontendHash)
+
+        every { userRepository.findByUsername(nonExistentUsername) } returns null
+
+        // When/Then
+        val exception =
+            assertThrows<HttpStatusException> {
+                authService.migratePassword(request)
+            }
+        assertEquals(HttpStatus.UNAUTHORIZED, exception.status)
+        assertEquals("Invalid credentials", exception.message) // This message comes from findByUsername failing
+
+        verify(exactly = 1) { userRepository.findByUsername(nonExistentUsername) }
+        verify(exactly = 0) { authService["verifyPassword"](any<String>(), any<String>()) }
+        verify(exactly = 0) { userRepository.updatePasswordSettings(any(), any(), any(), any(), any()) }
     }
 }

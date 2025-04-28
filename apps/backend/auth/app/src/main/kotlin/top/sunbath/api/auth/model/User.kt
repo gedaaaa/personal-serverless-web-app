@@ -9,6 +9,18 @@ import top.sunbath.shared.dynamodb.Identified
 import top.sunbath.shared.dynamodb.Indexable
 import java.time.Instant
 
+enum class PasswordType {
+    /**
+     * Plain text password validation - original method
+     */
+    V1,
+
+    /**
+     * SHA-256 hashed password validation - new improved method
+     */
+    V2,
+}
+
 /**
  * A User entity.
  */
@@ -28,6 +40,15 @@ class User :
 
     @get:NonNull
     var password: String = ""
+
+    @get:NonNull
+    var passwordType: PasswordType = PasswordType.V2
+
+    @get:Nullable
+    var migrationToken: String? = null
+
+    @get:Nullable
+    var migrationTokenExpiresAt: Instant? = null
 
     @get:NonNull
     var roles: Set<String> = setOf("ROLE_USER")
@@ -58,6 +79,9 @@ class User :
      * @param username The username
      * @param email The email
      * @param password The hashed password
+     * @param passwordType The password type (PLAIN_TEXT or SHA_256)
+     * @param migrationToken The migration token for password upgrade
+     * @param migrationTokenExpiresAt When the migration token expires
      * @param roles The user roles
      * @param fullName The full name
      * @param emailVerified Whether the email is verified
@@ -71,6 +95,9 @@ class User :
         username: String,
         email: String,
         password: String,
+        passwordType: PasswordType = PasswordType.V2,
+        migrationToken: String? = null,
+        migrationTokenExpiresAt: Instant? = null,
         roles: Set<String> = setOf("ROLE_USER"),
         fullName: String? = null,
         emailVerified: Boolean = false,
@@ -82,6 +109,9 @@ class User :
         this.username = username
         this.email = email
         this.password = password
+        this.passwordType = passwordType
+        this.migrationToken = migrationToken
+        this.migrationTokenExpiresAt = migrationTokenExpiresAt
         this.roles = roles
         this.fullName = fullName
         this.emailVerified = emailVerified
@@ -125,6 +155,15 @@ class User :
         emailVerificationToken != null &&
             emailVerificationTokenExpiresAt != null &&
             emailVerificationTokenExpiresAt!!.isAfter(Instant.now())
+
+    /**
+     * Check if the migration token is valid.
+     * @return true if the token is valid and not expired
+     */
+    fun isMigrationTokenValid(token: String): Boolean =
+        migrationToken == token &&
+            migrationTokenExpiresAt != null &&
+            migrationTokenExpiresAt!!.isAfter(Instant.now())
 
     /**
      * Check if a verification email can be sent based on the minimum interval.

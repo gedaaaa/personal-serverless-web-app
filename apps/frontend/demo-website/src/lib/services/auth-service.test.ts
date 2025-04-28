@@ -3,7 +3,8 @@ import { AuthService } from './auth-service';
 import type { LoginRequest, RegisterRequest } from './auth-service';
 import { getDefaultClient } from '$lib/api/client';
 import * as authModule from '$lib/auth';
-
+import { sha256 } from '$lib/utils/sha256';
+import { ApiError } from '$lib/api/error';
 // Mock dependencies
 vi.mock('$lib/api/client', () => ({
   getDefaultClient: vi.fn(),
@@ -11,6 +12,10 @@ vi.mock('$lib/api/client', () => ({
 
 vi.mock('$lib/auth', () => ({
   login: vi.fn(),
+}));
+
+vi.mock('$lib/utils/sha256', () => ({
+  sha256: vi.fn(),
 }));
 
 describe('AuthService', () => {
@@ -30,12 +35,16 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     // Reset mocks
-    vi.clearAllMocks();
+    vi.resetAllMocks();
 
     // Setup ApiClient mock
     (
       getDefaultClient as unknown as ReturnType<typeof vi.fn>
     ).mockImplementation(() => mockApiClient);
+
+    (sha256 as unknown as ReturnType<typeof vi.fn>).mockImplementation(() =>
+      Promise.resolve('hashed-password'),
+    );
 
     // Create service instance
     authService = new AuthService();
@@ -57,7 +66,10 @@ describe('AuthService', () => {
       // Verify API client was called correctly
       expect(mockApiClient.post).toHaveBeenCalledWith(
         `${AUTH_API_PREFIX}/login`,
-        loginRequest,
+        {
+          username: loginRequest.username,
+          password: await sha256(loginRequest.password),
+        },
       );
     });
 
@@ -104,6 +116,56 @@ describe('AuthService', () => {
 
       // Call login method and expect it to throw
       await expect(authService.login(loginRequest)).rejects.toBe(error);
+    });
+
+    it('should handle password migration when 403 with migrationToken is received', async () => {
+      // Setup mock migration error
+      const migrationToken = 'migration-token-123';
+
+      const migrationError = new ApiError(403, 'Password migration required', {
+        migrationToken,
+      });
+
+      // Setup login to fail with migration error first time
+      mockApiClient.post
+        .mockImplementationOnce(() => {
+          throw migrationError;
+        })
+        .mockImplementationOnce(() => {
+          return { token: mockToken };
+        });
+
+      // Call login method
+      const result = await authService.login(loginRequest);
+
+      // Verify API client was called with hashed password, which leads to migration error
+      expect(mockApiClient.post).toHaveBeenNthCalledWith(
+        1,
+        `${AUTH_API_PREFIX}/login`,
+        {
+          username: loginRequest.username,
+          password: 'hashed-password',
+        },
+      );
+      expect(mockApiClient.post).toHaveBeenNthCalledWith(
+        2,
+        `${AUTH_API_PREFIX}/migrate-password`,
+        {
+          username: loginRequest.username,
+          migrationToken,
+          originalPassword: loginRequest.password,
+          desiredPassword: 'hashed-password',
+        },
+      );
+
+      // Verify auth was updated
+      expect(authModule.login).toHaveBeenCalledWith(
+        mockToken,
+        loginRequest.username,
+      );
+
+      // Verify result
+      expect(result).toBe(mockToken);
     });
   });
 
@@ -229,6 +291,53 @@ describe('AuthService', () => {
       await expect(authService.resendVerificationEmail(email)).rejects.toBe(
         error,
       );
+    });
+  });
+
+  describe('migratePassword', () => {
+    const username = 'testuser';
+    const migrationToken = 'migration-token';
+    const originalPassword = 'old-password';
+    const desiredPassword = 'hashed-new-password';
+
+    it('should call API client with correct endpoint and data', async () => {
+      // Setup mock response
+      mockApiClient.post.mockResolvedValue({ token: mockToken });
+
+      // Call migratePassword method
+      await authService.migratePassword(
+        username,
+        migrationToken,
+        originalPassword,
+        desiredPassword,
+      );
+
+      // Verify API client was called correctly
+      expect(mockApiClient.post).toHaveBeenCalledWith(
+        `${AUTH_API_PREFIX}/migrate-password`,
+        {
+          username,
+          migrationToken,
+          originalPassword,
+          desiredPassword,
+        },
+      );
+    });
+
+    it('should return token from response', async () => {
+      // Setup mock response
+      mockApiClient.post.mockResolvedValue({ token: mockToken });
+
+      // Call migratePassword method
+      const result = await authService.migratePassword(
+        username,
+        migrationToken,
+        originalPassword,
+        desiredPassword,
+      );
+
+      // Verify result
+      expect(result).toBe(mockToken);
     });
   });
 });

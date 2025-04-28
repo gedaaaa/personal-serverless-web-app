@@ -57,7 +57,7 @@
         }
       }
     },
-    "serve": {
+    "dev": {
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/frontend/demo-website",

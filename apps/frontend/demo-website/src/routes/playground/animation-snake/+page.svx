@@ -24,6 +24,7 @@ The movement algorithm follows these steps each frame:
    - Calculating direction vectors between consecutive nodes
    - Maintaining fixed inter-node distances
 3. **Position Update**: Each node's coordinates are recalculated using:
+
    ```
    node[i].position = node[i-1].position + direction_vector * node_distance
    ```

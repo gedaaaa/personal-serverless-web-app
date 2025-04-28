@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   moveAllCellsTo,
   fillRandomEmptyCellInOppositeSide,
-} from './game-logic'; 
+} from './game-logic';
 import _ from 'lodash';
 
 // Define Cell type if not easily importable

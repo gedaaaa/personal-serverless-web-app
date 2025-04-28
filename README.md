@@ -89,4 +89,12 @@ pnpm nx run <project-name>:test
 pnpm nx run <service-name>:deploy
 ```
 
+**Environment Strategy**: We maintain a single `production` stage for deployments. While this approach bypasses standard staging environments and CI/CD safety gates, it aligns with the project's constraints:
+
+- Cost optimization (no duplicate infrastructure)
+- Rapid iteration needs for experimental features
+- Acceptable risk profile for personal use
+
+**Warning**: This configuration definetly violates best practices. Direct production deployment will impact site stability.
+
 Live demo: [https://sunbath.top](https://sunbath.top)

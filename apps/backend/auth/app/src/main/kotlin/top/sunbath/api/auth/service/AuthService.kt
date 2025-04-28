@@ -7,9 +7,12 @@ import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
 import top.sunbath.api.auth.controller.request.CreateUserRequest
 import top.sunbath.api.auth.controller.request.LoginRequest
+import top.sunbath.api.auth.controller.request.MigratePasswordRequest
 import top.sunbath.api.auth.controller.response.RegisterResponse
+import top.sunbath.api.auth.model.PasswordType
 import top.sunbath.api.auth.repository.UserRepository
 import top.sunbath.api.auth.service.email.EmailService
+import top.sunbath.api.auth.service.outcome.LoginOutcome
 import java.security.SecureRandom
 import java.time.Instant
 import java.util.Base64
@@ -31,6 +34,9 @@ class AuthService(
         private const val VERIFICATION_TOKEN_LENGTH = 32
         private const val VERIFICATION_TOKEN_EXPIRES_IN_HOURS = 24L
         private const val MIN_VERIFICATION_EMAIL_INTERVAL_SECONDS = 300L // 5 minutes
+        private const val MIGRATION_TOKEN_LENGTH = 64
+        private const val MIGRATION_TOKEN_EXPIRES_IN_SECONDS = 60L // 1 minute
+        private const val ERROR_PASSWORD_MIGRATION_REQUIRED = "PASSWORD_MIGRATION_REQUIRED"
         private val secureRandom = SecureRandom()
     }
 
@@ -96,13 +102,28 @@ class AuthService(
      * @return The JWT token
      * @throws HttpStatusException if the credentials are invalid or email is not verified
      */
-    fun login(request: LoginRequest): String {
+    fun login(request: LoginRequest): LoginOutcome {
         // Find user by username
         val user =
             userRepository.findByUsername(request.username)
                 ?: throw HttpStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
 
-        // Verify password
+        // Check password type and handle accordingly
+        if (user.passwordType == PasswordType.V1) {
+            // For plain text passwords, generate migration token and throw special error
+            val migrationToken = generateMigrationToken()
+            userRepository.updatePasswordSettings(
+                id = user.id,
+                password = null,
+                passwordType = null,
+                migrationToken = migrationToken,
+                migrationTokenExpiresAt = Instant.now().plusSeconds(MIGRATION_TOKEN_EXPIRES_IN_SECONDS),
+            )
+
+            return LoginOutcome.MigrationRequired(migrationToken)
+        }
+
+        // For SHA-256 passwords, verify directly
         if (!verifyPassword(request.password, user.password)) {
             throw HttpStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
         }
@@ -116,7 +137,54 @@ class AuthService(
         }
 
         // Generate JWT token
+        return LoginOutcome.Success(jwtService.generateToken(user))
+    }
+
+    /**
+     * Migrate user's password from plain text to SHA-256.
+     * @param request The migration request
+     * @return The JWT token
+     * @throws HttpStatusException if migration fails
+     */
+    fun migratePassword(request: MigratePasswordRequest): String {
+        // Find user by username
+        val user =
+            userRepository.findByUsername(request.username)
+                ?: throw HttpStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
+
+        // Verify migration token
+        if (!user.isMigrationTokenValid(request.migrationToken)) {
+            throw HttpStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired migration token")
+        }
+
+        // Verify original password
+        if (!verifyPassword(request.originalPassword, user.password)) {
+            throw HttpStatusException(HttpStatus.UNAUTHORIZED, "Invalid original password")
+        }
+
+        val hashedPassword = hashPassword(request.desiredPassword)
+
+        // Update password to SHA-256 version
+        userRepository.updatePasswordSettings(
+            id = user.id,
+            password = hashedPassword,
+            passwordType = PasswordType.V2,
+            migrationToken = null,
+            migrationTokenExpiresAt = null,
+        )
+
+        // Generate and return JWT token
         return jwtService.generateToken(user)
+    }
+
+    /**
+     * Generate a random migration token.
+     * @return The migration token
+     */
+    private fun generateMigrationToken(): String {
+        val bytes = ByteArray(MIGRATION_TOKEN_LENGTH)
+        secureRandom.nextBytes(bytes)
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
     }
 
     /**

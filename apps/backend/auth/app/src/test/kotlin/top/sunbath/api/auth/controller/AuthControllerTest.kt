@@ -9,6 +9,7 @@ import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -16,6 +17,7 @@ import top.sunbath.api.auth.controller.request.CreateUserRequest
 import top.sunbath.api.auth.controller.request.LoginRequest
 import top.sunbath.api.auth.controller.response.RegisterResponse
 import top.sunbath.api.auth.service.AuthService
+import top.sunbath.api.auth.service.outcome.LoginOutcome
 import java.util.UUID
 
 /**
@@ -74,7 +76,7 @@ class AuthControllerTest {
         val loginRequest = LoginRequest(username, password)
         val token = "jwt.token.example"
 
-        every { authService.login(loginRequest) } returns token
+        every { authService.login(loginRequest) } returns LoginOutcome.Success(token)
 
         // When
         val response = controller.login(loginRequest)
@@ -83,7 +85,8 @@ class AuthControllerTest {
         assertEquals(HttpStatus.OK, response.status)
         val body = response.body()
         assertNotNull(body)
-        assertEquals(token, body["token"])
+        assertTrue(body is LoginOutcome.Success)
+        assertEquals(token, (body as LoginOutcome.Success).token)
 
         verify(exactly = 1) { authService.login(loginRequest) }
     }

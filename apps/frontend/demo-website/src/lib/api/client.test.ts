@@ -155,9 +155,11 @@ describe('ApiClient', () => {
       mockFetch.mockResolvedValueOnce(failResponse);
 
       // Call request method and expect it to throw
-      await expect(apiClient.request('/test-endpoint')).rejects.toEqual({
+      await expect(apiClient.request('/test-endpoint')).rejects.toMatchObject({
         status: 404,
         message: 'Not Found',
+        data: {},
+        name: 'ApiError',
       });
     });
 

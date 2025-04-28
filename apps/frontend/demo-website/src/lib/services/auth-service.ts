@@ -1,7 +1,8 @@
 import { ApiClient } from '$lib/api';
 import { getDefaultClient } from '$lib/api/client';
 import { login as authLogin } from '$lib/auth';
-
+import { ApiError } from '$lib/api/error';
+import { sha256 } from '$lib/utils/sha256';
 // Auth API path prefix
 const AUTH_API_PREFIX = '/auth/v1';
 
@@ -17,7 +18,6 @@ export interface RegisterRequest {
   fullName?: string;
 }
 
-// 新增邮箱验证相关接口
 export interface VerifyEmailRequest {
   token: string;
 }
@@ -46,18 +46,47 @@ export class AuthService {
    * @returns JWT token
    */
   async login(request: LoginRequest): Promise<string> {
-    const response = await this.apiClient.post<{ token: string }>(
-      `${AUTH_API_PREFIX}/login`,
-      request,
-    );
+    const hashedPassword = await sha256(request.password);
 
-    // Set token to API client
-    this.apiClient.setAuthToken(response.token);
+    let token: string;
+    try {
+      const response = await this.apiClient.post<{ token: string }>(
+        `${AUTH_API_PREFIX}/login`,
+        {
+          username: request.username,
+          password: hashedPassword,
+        },
+      );
+
+      // Set token to API client
+      token = response.token;
+    } catch (error) {
+      // if the error is a 403 and the data contains a migrationToken, migrate the password
+      if (
+        error instanceof ApiError &&
+        (error as ApiError<{ migrationToken: string }>).status === 403 &&
+        (error as ApiError<{ migrationToken: string }>).data.migrationToken
+      ) {
+        const migrationToken = (error as ApiError<{ migrationToken: string }>)
+          .data.migrationToken;
+        const originalPassword = request.password;
+
+        token = await this.migratePassword(
+          request.username,
+          migrationToken,
+          originalPassword,
+          hashedPassword,
+        );
+      } else {
+        throw error;
+      }
+    }
+
+    this.apiClient.setAuthToken(token);
 
     // Update auth store
-    authLogin(response.token, request.username);
-
-    return response.token;
+    authLogin(token, request.username);
+    return token;
   }
 
   /**
@@ -97,5 +126,18 @@ export class AuthService {
       { email },
     );
     return response.message;
+  }
+
+  async migratePassword(
+    username: string,
+    migrationToken: string,
+    originalPassword: string,
+    desiredPassword: string,
+  ): Promise<string> {
+    const response = await this.apiClient.post<{ token: string }>(
+      `${AUTH_API_PREFIX}/migrate-password`,
+      { username, migrationToken, originalPassword, desiredPassword },
+    );
+    return response.token;
   }
 }

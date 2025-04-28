@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse
+import top.sunbath.api.auth.model.PasswordType
 import top.sunbath.api.auth.model.User
 import top.sunbath.api.auth.repository.UserRepository
 import top.sunbath.shared.dynamodb.DynamoConfiguration
@@ -35,6 +36,9 @@ open class DefaultUserRepository(
         private const val ATTRIBUTE_USERNAME = "username"
         private const val ATTRIBUTE_EMAIL = "email"
         private const val ATTRIBUTE_PASSWORD = "password"
+        private const val ATTRIBUTE_PASSWORD_TYPE = "passwordType"
+        private const val ATTRIBUTE_MIGRATION_TOKEN = "migrationToken"
+        private const val ATTRIBUTE_MIGRATION_TOKEN_EXPIRES_AT = "migrationTokenExpiresAt"
         private const val ATTRIBUTE_ROLES = "roles"
         private const val ATTRIBUTE_FULLNAME = "fullName"
         private const val ATTRIBUTE_EMAIL_VERIFIED = "emailVerified"
@@ -52,12 +56,16 @@ open class DefaultUserRepository(
         private const val VERIFICATION_TOKEN_INDEX = "VERIFICATION_TOKEN_INDEX"
         private const val VERIFICATION_TOKEN_PK = "VERIFICATION_TOKEN_PK"
         private const val VERIFICATION_TOKEN_SK = "VERIFICATION_TOKEN_SK"
+        private const val MIGRATION_TOKEN_INDEX = "MIGRATION_TOKEN_INDEX"
+        private const val MIGRATION_TOKEN_PK = "MIGRATION_TOKEN_PK"
+        private const val MIGRATION_TOKEN_SK = "MIGRATION_TOKEN_SK"
 
         // Register indexes
         init {
             DynamoRepository.registerIndex(IndexDefinition(USERNAME_INDEX, USERNAME_PK, USERNAME_SK))
             DynamoRepository.registerIndex(IndexDefinition(EMAIL_INDEX, EMAIL_PK, EMAIL_SK))
             DynamoRepository.registerIndex(IndexDefinition(VERIFICATION_TOKEN_INDEX, VERIFICATION_TOKEN_PK, VERIFICATION_TOKEN_SK))
+            DynamoRepository.registerIndex(IndexDefinition(MIGRATION_TOKEN_INDEX, MIGRATION_TOKEN_PK, MIGRATION_TOKEN_SK))
         }
     }
 
@@ -87,6 +95,9 @@ open class DefaultUserRepository(
                 username = username,
                 email = email,
                 password = password,
+                passwordType = PasswordType.V2, // new user should use new version of password type
+                migrationToken = null,
+                migrationTokenExpiresAt = null,
                 roles = roles,
                 fullName = fullName,
                 emailVerified = emailVerified,
@@ -204,6 +215,29 @@ open class DefaultUserRepository(
         return true
     }
 
+    /**
+     * Update user's password related fields for migration.
+     */
+    override fun updatePasswordSettings(
+        @NonNull @NotBlank id: String,
+        password: String?,
+        passwordType: PasswordType?,
+        migrationToken: String?,
+        migrationTokenExpiresAt: Instant?,
+    ): Boolean {
+        val existingUser = findById(id) ?: return false
+
+        // Update only the non-null fields
+        password?.let { existingUser.password = it }
+        passwordType?.let { existingUser.passwordType = it }
+        existingUser.migrationToken = migrationToken
+        existingUser.migrationTokenExpiresAt = migrationTokenExpiresAt
+
+        // Save the updated user
+        save(existingUser)
+        return true
+    }
+
     @NonNull
     override fun findAll(): List<User> {
         val result = ArrayList<User>()
@@ -262,6 +296,17 @@ open class DefaultUserRepository(
             username = item[ATTRIBUTE_USERNAME]!!.s(),
             email = item[ATTRIBUTE_EMAIL]!!.s(),
             password = item[ATTRIBUTE_PASSWORD]!!.s(),
+            // default to V1 if password type is not set (possibly legacy users)
+            passwordType =
+                item[ATTRIBUTE_PASSWORD_TYPE]?.s()?.let {
+                    try {
+                        PasswordType.valueOf(it)
+                    } catch (e: Exception) {
+                        PasswordType.V1
+                    }
+                } ?: PasswordType.V1,
+            migrationToken = item[ATTRIBUTE_MIGRATION_TOKEN]?.s(),
+            migrationTokenExpiresAt = item[ATTRIBUTE_MIGRATION_TOKEN_EXPIRES_AT]?.s()?.let { Instant.parse(it) },
             roles = item[ATTRIBUTE_ROLES]?.ss()?.toSet() ?: setOf("ROLE_USER"),
             fullName = item[ATTRIBUTE_FULLNAME]?.s(),
             emailVerified = item[ATTRIBUTE_EMAIL_VERIFIED]?.bool() ?: false,
@@ -279,6 +324,13 @@ open class DefaultUserRepository(
         result[ATTRIBUTE_USERNAME] = AttributeValue.builder().s(entity.username).build()
         result[ATTRIBUTE_EMAIL] = AttributeValue.builder().s(entity.email).build()
         result[ATTRIBUTE_PASSWORD] = AttributeValue.builder().s(entity.password).build()
+        result[ATTRIBUTE_PASSWORD_TYPE] = AttributeValue.builder().s(entity.passwordType.name).build()
+        entity.migrationToken?.let {
+            result[ATTRIBUTE_MIGRATION_TOKEN] = AttributeValue.builder().s(it).build()
+        }
+        entity.migrationTokenExpiresAt?.let {
+            result[ATTRIBUTE_MIGRATION_TOKEN_EXPIRES_AT] = AttributeValue.builder().s(it.toString()).build()
+        }
         result[ATTRIBUTE_ROLES] = AttributeValue.builder().ss(entity.roles).build()
         entity.fullName?.let {
             result[ATTRIBUTE_FULLNAME] = AttributeValue.builder().s(it).build()

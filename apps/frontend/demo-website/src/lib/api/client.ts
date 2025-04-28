@@ -1,3 +1,5 @@
+import { ApiError } from './error';
+
 const API_BASE_URL = import.meta.env.VITE_PUBLIC_API_BASE_URL || '/api';
 
 import { getAuthToken } from '$lib/auth';
@@ -44,23 +46,19 @@ export class ApiClient {
       const response = await fetch(`${this.baseUrl}${url}`, requestOptions);
 
       if (!response.ok) {
-        let errorMessage = response.statusText;
+        const errorMessage = response.statusText;
+        let errorData: unknown;
         try {
-          const errorText = await response.text();
-          if (errorText) {
-            errorMessage = errorText;
-          }
+          errorData = await response.json();
         } catch {
-          // Ignore error if text() fails
+          // if JSON parsing fails, return empty object
+          errorData = {};
         }
 
-        throw {
-          status: response.status,
-          message: errorMessage,
-        };
+        throw new ApiError(response.status, errorMessage, errorData);
       }
 
-      // 检查响应内容长度，如果为0则返回空对象
+      // check if content length is 0 or status is 204
       const contentLength = response.headers?.get('content-length');
       if (contentLength === '0' || response.status === 204) {
         return {} as T;
@@ -69,7 +67,7 @@ export class ApiClient {
       try {
         return (await response.json()) as T;
       } catch {
-        // 如果JSON解析失败，返回空对象
+        // if JSON parsing fails, return empty object
         console.warn('Failed to parse JSON response');
         return {} as T;
       }

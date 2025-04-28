@@ -2,6 +2,7 @@ package top.sunbath.api.auth.repository
 
 import io.micronaut.core.annotation.NonNull
 import jakarta.validation.constraints.NotBlank
+import top.sunbath.api.auth.model.PasswordType
 import top.sunbath.api.auth.model.User
 import java.time.Instant
 
@@ -125,5 +126,13 @@ interface UserRepository {
         emailVerificationToken: String?,
         emailVerificationTokenExpiresAt: Instant?,
         lastVerificationEmailSentAt: Instant?,
+    ): Boolean
+
+    fun updatePasswordSettings(
+        @NonNull @NotBlank id: String,
+        password: String?,
+        passwordType: PasswordType?,
+        migrationToken: String?,
+        migrationTokenExpiresAt: Instant?,
     ): Boolean
 }

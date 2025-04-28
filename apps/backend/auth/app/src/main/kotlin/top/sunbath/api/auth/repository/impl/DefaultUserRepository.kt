@@ -56,16 +56,12 @@ open class DefaultUserRepository(
         private const val VERIFICATION_TOKEN_INDEX = "VERIFICATION_TOKEN_INDEX"
         private const val VERIFICATION_TOKEN_PK = "VERIFICATION_TOKEN_PK"
         private const val VERIFICATION_TOKEN_SK = "VERIFICATION_TOKEN_SK"
-        private const val MIGRATION_TOKEN_INDEX = "MIGRATION_TOKEN_INDEX"
-        private const val MIGRATION_TOKEN_PK = "MIGRATION_TOKEN_PK"
-        private const val MIGRATION_TOKEN_SK = "MIGRATION_TOKEN_SK"
 
         // Register indexes
         init {
             DynamoRepository.registerIndex(IndexDefinition(USERNAME_INDEX, USERNAME_PK, USERNAME_SK))
             DynamoRepository.registerIndex(IndexDefinition(EMAIL_INDEX, EMAIL_PK, EMAIL_SK))
             DynamoRepository.registerIndex(IndexDefinition(VERIFICATION_TOKEN_INDEX, VERIFICATION_TOKEN_PK, VERIFICATION_TOKEN_SK))
-            DynamoRepository.registerIndex(IndexDefinition(MIGRATION_TOKEN_INDEX, MIGRATION_TOKEN_PK, MIGRATION_TOKEN_SK))
         }
     }
 

@@ -36,7 +36,6 @@ class AuthService(
         private const val MIN_VERIFICATION_EMAIL_INTERVAL_SECONDS = 300L // 5 minutes
         private const val MIGRATION_TOKEN_LENGTH = 64
         private const val MIGRATION_TOKEN_EXPIRES_IN_SECONDS = 60L // 1 minute
-        private const val ERROR_PASSWORD_MIGRATION_REQUIRED = "PASSWORD_MIGRATION_REQUIRED"
         private val secureRandom = SecureRandom()
     }
 
@@ -108,9 +107,17 @@ class AuthService(
             userRepository.findByUsername(request.username)
                 ?: throw HttpStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
 
+        // Check email verification
+        if (!user.emailVerified) {
+            throw HttpStatusException(
+                HttpStatus.FORBIDDEN,
+                "Email not verified. Please check your email for verification instructions.",
+            )
+        }
+
         // Check password type and handle accordingly
         if (user.passwordType == PasswordType.V1) {
-            // For plain text passwords, generate migration token and throw special error
+            // For plain text passwords, generate migration token and return specific outcome
             val migrationToken = generateMigrationToken()
             userRepository.updatePasswordSettings(
                 id = user.id,
@@ -126,14 +133,6 @@ class AuthService(
         // For SHA-256 passwords, verify directly
         if (!verifyPassword(request.password, user.password)) {
             throw HttpStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials")
-        }
-
-        // Check email verification
-        if (!user.emailVerified) {
-            throw HttpStatusException(
-                HttpStatus.FORBIDDEN,
-                "Email not verified. Please check your email for verification instructions.",
-            )
         }
 
         // Generate JWT token

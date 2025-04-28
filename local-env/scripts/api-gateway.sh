@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Stop existing api gateway.
-lsof -i:3000 | awk 'NR!=1 {print $2}' | xargs kill
+lsof -i:3000 | awk 'NR!=1 {print $2}' | xargs kill -9
 # Start local api gateway.
 sam local start-api \
   --template local-env/templates/template.yaml \

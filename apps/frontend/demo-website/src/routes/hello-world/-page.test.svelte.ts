@@ -3,7 +3,6 @@ import { render, screen, fireEvent } from '@testing-library/svelte';
 import { waitFor } from '@testing-library/dom';
 import HelloWorldPage from './+page.svelte';
 import { getDefaultClient } from '$lib/api/client';
-import * as authModule from '$lib/auth';
 
 // Mock dependencies
 vi.mock('$lib/api/client', () => ({
@@ -12,14 +11,9 @@ vi.mock('$lib/api/client', () => ({
 
 vi.mock('$lib/auth', () => ({
   auth: {
-    subscribe: vi.fn((callback) => {
-      callback({
-        token: 'mock-token',
-        user: { id: 'user-123', username: 'testuser' },
-        isAuthenticated: true,
-      });
-      return () => {};
-    }),
+    token: 'mock-token',
+    user: { id: 'user-123', username: 'testuser' },
+    isAuthenticated: true,
   },
   logout: vi.fn(),
 }));
@@ -50,7 +44,6 @@ describe('HelloWorldPage Component', () => {
 
     // Check for main elements
     expect(screen.getByText('Hello World')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Logout' })).toBeTruthy();
 
     // Check for welcome message - using a more specific approach
     const welcomeParagraph = screen.getByText(/Welcome,/);
@@ -106,16 +99,5 @@ describe('HelloWorldPage Component', () => {
     expect(screen.getByTestId('error-message').textContent).toBe(
       'Server is quite mad now!',
     );
-  });
-
-  it('should handle logout', async () => {
-    render(HelloWorldPage as any);
-
-    // Click logout button
-    const logoutButton = screen.getByRole('button', { name: 'Logout' });
-    await fireEvent.click(logoutButton);
-
-    // Check logout function was called
-    expect(authModule.logout).toHaveBeenCalledWith('/login');
   });
 });

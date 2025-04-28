@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 import { redirect } from '@sveltejs/kit';
-import { getAuthToken } from './auth';
+import { getAuthToken } from './auth.svelte';
 import { jwtDecode } from 'jwt-decode';
 
 interface JwtPayload {

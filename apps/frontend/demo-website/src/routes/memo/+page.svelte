@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { type Memo } from './_services/memo-service';
   import { store, applyFilter } from './_stores/memoStore.svelte';
   import MemoCard from './_components/MemoCard.svelte';
@@ -10,8 +9,7 @@
   import InfiniteScroll from './_components/InfiniteScroll.svelte';
   import { flip } from 'svelte/animate';
   import { quintOut } from 'svelte/easing';
-  import { goto } from '$app/navigation';
-  import { auth } from '$lib/auth';
+  import { jumpToLoginIfNotAuthenticated } from '$lib/auth/jumpIfNotAuthenticated.svelte';
 
   // --- Local State for Modal Management ---
   let openModalType: 'create' | 'edit' | 'delete' | undefined =
@@ -28,12 +26,7 @@
     activeMemo = undefined;
   }
 
-  // --- Initial Data Fetch ---
-  onMount(() => {
-    if (!$auth.isAuthenticated) {
-      goto('/login?location=/memo');
-    }
-  });
+  jumpToLoginIfNotAuthenticated();
 </script>
 
 <div class="mx-auto my-8 max-w-4xl px-4">

@@ -29,7 +29,7 @@
 
   onMount(() => {
     // If user is already logged in, redirect to location from search param
-    if ($auth.isAuthenticated) {
+    if (auth.isAuthenticated) {
       goto(location);
     }
   });

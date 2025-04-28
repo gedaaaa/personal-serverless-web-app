@@ -24,15 +24,11 @@ vi.mock('$app/state', () => ({
 
 vi.mock('$lib/auth', () => ({
   auth: {
-    subscribe: vi.fn((callback) => {
-      callback({
-        token: null,
-        user: null,
-        isAuthenticated: false,
-      });
-      return () => {};
-    }),
+    token: null,
+    user: null,
+    isAuthenticated: false,
   },
+  // Other exports like login/logout may still be needed
 }));
 
 describe('Login/Register Page', () => {
@@ -51,15 +47,10 @@ describe('Login/Register Page', () => {
       () => mockAuthService,
     );
 
-    // Setup auth store mock with default unauthenticated state
-    vi.mocked(authStore.auth.subscribe).mockImplementation((callback) => {
-      callback({
-        token: null,
-        user: null,
-        isAuthenticated: false,
-      });
-      return () => {};
-    });
+    // Setup auth state with default unauthenticated state
+    vi.mocked(authStore.auth).token = null;
+    vi.mocked(authStore.auth).user = null;
+    vi.mocked(authStore.auth).isAuthenticated = false;
   });
 
   afterEach(() => {
@@ -83,14 +74,9 @@ describe('Login/Register Page', () => {
 
     it('should redirect to hello-world if user is already authenticated', () => {
       // Mock authenticated user
-      vi.mocked(authStore.auth.subscribe).mockImplementation((callback) => {
-        callback({
-          token: 'mock-token',
-          user: { id: 'user-123', username: 'testuser' },
-          isAuthenticated: true,
-        });
-        return () => {};
-      });
+      vi.mocked(authStore.auth).token = 'mock-token';
+      vi.mocked(authStore.auth).user = { id: 'user-123', username: 'testuser' };
+      vi.mocked(authStore.auth).isAuthenticated = true;
 
       render(Page as any);
 

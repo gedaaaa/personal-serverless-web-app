@@ -1,17 +1,7 @@
 <script lang="ts">
   import { auth, logout } from '$lib/auth';
-  import { isAdmin } from '$lib/auth/permissions';
-  import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
 
   let { children } = $props();
-
-  onMount(() => {
-    // 如果用户未登录或不是管理员，重定向到首页
-    if (!$auth.isAuthenticated || !isAdmin()) {
-      goto('/');
-    }
-  });
 
   const handleLogout = () => {
     logout('/');
@@ -37,9 +27,9 @@
           </div>
         </div>
         <div class="flex items-center">
-          {#if $auth.user}
+          {#if auth.user}
             <span class="mr-4 text-sm text-gray-700"
-              >欢迎，{$auth.user.username}</span
+              >欢迎，{auth.user.username}</span
             >
           {/if}
           <button

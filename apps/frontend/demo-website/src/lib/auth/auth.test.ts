@@ -3,7 +3,6 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { get } from 'svelte/store';
 
 // Mock browser environment
 vi.mock('$app/environment', () => ({
@@ -44,7 +43,7 @@ import {
   getAuthToken,
   getCurrentUser,
   type User,
-} from './auth';
+} from './auth.svelte';
 import { goto } from '$app/navigation';
 
 describe('Auth Module', () => {
@@ -57,11 +56,9 @@ describe('Auth Module', () => {
     mockLocalStorage.clear();
 
     // Reset auth store to initial state
-    auth.set({
-      token: null,
-      user: null,
-      isAuthenticated: false,
-    });
+    auth.token = null;
+    auth.user = null;
+    auth.isAuthenticated = false;
   });
 
   afterEach(() => {
@@ -75,13 +72,12 @@ describe('Auth Module', () => {
       login('test-token', 'testuser');
 
       // Verify auth store was updated
-      const authState = get(auth);
-      expect(authState.token).toBe('test-token');
-      expect(authState.user).toEqual({
+      expect(auth.token).toBe('test-token');
+      expect(auth.user).toEqual({
         id: 'testuser',
         username: 'testuser',
       });
-      expect(authState.isAuthenticated).toBe(true);
+      expect(auth.isAuthenticated).toBe(true);
     });
 
     it('should save token and user to localStorage', () => {
@@ -115,10 +111,9 @@ describe('Auth Module', () => {
       logout();
 
       // Verify auth store was reset
-      const authState = get(auth);
-      expect(authState.token).toBeNull();
-      expect(authState.user).toBeNull();
-      expect(authState.isAuthenticated).toBe(false);
+      expect(auth.token).toBeNull();
+      expect(auth.user).toBeNull();
+      expect(auth.isAuthenticated).toBe(false);
     });
 
     it('should remove token and user from localStorage', () => {
@@ -239,11 +234,9 @@ describe('Auth Module', () => {
       mockLocalStorage.setItem('auth_user', JSON.stringify(user));
 
       // Reset auth store to initial state to simulate module initialization
-      auth.set({
-        token: null,
-        user: null,
-        isAuthenticated: false,
-      });
+      auth.token = null;
+      auth.user = null;
+      auth.isAuthenticated = false;
 
       // Import would re-execute the module code, but we can't do that in ESM
       // Instead, we'll manually call the initialization logic
@@ -256,11 +249,9 @@ describe('Auth Module', () => {
         try {
           const token = mockLocalStorage.getItem('auth_token');
           const user = JSON.parse(mockLocalStorage.getItem('auth_user') || '');
-          auth.set({
-            token,
-            user,
-            isAuthenticated: true,
-          });
+          auth.token = token;
+          auth.user = user;
+          auth.isAuthenticated = true;
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_) {
           // Invalid stored data
@@ -270,10 +261,9 @@ describe('Auth Module', () => {
       }
 
       // Verify state
-      const authState = get(auth);
-      expect(authState.token).toBe('test-token');
-      expect(authState.user).toEqual(user);
-      expect(authState.isAuthenticated).toBe(true);
+      expect(auth.token).toBe('test-token');
+      expect(auth.user).toEqual(user);
+      expect(auth.isAuthenticated).toBe(true);
     });
 
     it('should initialize with default values if localStorage is empty', () => {
@@ -281,19 +271,16 @@ describe('Auth Module', () => {
       mockLocalStorage.clear();
 
       // Reset auth store to initial state
-      auth.set({
-        token: null,
-        user: null,
-        isAuthenticated: false,
-      });
+      auth.token = null;
+      auth.user = null;
+      auth.isAuthenticated = false;
 
       // Simulate initialization logic (which would do nothing in this case)
 
       // Verify state remains default
-      const authState = get(auth);
-      expect(authState.token).toBeNull();
-      expect(authState.user).toBeNull();
-      expect(authState.isAuthenticated).toBe(false);
+      expect(auth.token).toBeNull();
+      expect(auth.user).toBeNull();
+      expect(auth.isAuthenticated).toBe(false);
     });
 
     it('should handle invalid user JSON in localStorage', () => {
@@ -302,11 +289,9 @@ describe('Auth Module', () => {
       mockLocalStorage.setItem('auth_user', 'invalid-json');
 
       // Reset auth store to initial state
-      auth.set({
-        token: null,
-        user: null,
-        isAuthenticated: false,
-      });
+      auth.token = null;
+      auth.user = null;
+      auth.isAuthenticated = false;
 
       // Simulate initialization logic with invalid JSON
       if (
@@ -316,11 +301,9 @@ describe('Auth Module', () => {
         try {
           const token = mockLocalStorage.getItem('auth_token');
           const user = JSON.parse(mockLocalStorage.getItem('auth_user') || '');
-          auth.set({
-            token,
-            user,
-            isAuthenticated: true,
-          });
+          auth.token = token;
+          auth.user = user;
+          auth.isAuthenticated = true;
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_) {
           // Invalid stored data - should clear localStorage
@@ -330,10 +313,9 @@ describe('Auth Module', () => {
       }
 
       // Verify state remains default
-      const authState = get(auth);
-      expect(authState.token).toBeNull();
-      expect(authState.user).toBeNull();
-      expect(authState.isAuthenticated).toBe(false);
+      expect(auth.token).toBeNull();
+      expect(auth.user).toBeNull();
+      expect(auth.isAuthenticated).toBe(false);
 
       // Verify localStorage was cleared
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith('auth_token');

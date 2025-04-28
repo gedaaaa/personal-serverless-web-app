@@ -5,8 +5,15 @@
 
   let showShadow = $state(false);
 
-  const pathname = $derived(page.url.pathname);
-  const currentUrl = $derived(pathname + page.url.search + page.url.hash);
+  const currentUrl = $derived(
+    page.url.pathname ||
+      '' + page.url.search ||
+      '' + page.url.hash ||
+      '' ||
+      '/',
+  );
+
+  const encodedCurrentUrl = $derived(encodeURIComponent(currentUrl));
 
   // Handle scroll event to add shadow when scrolling
   const handleScroll = () => {
@@ -45,7 +52,7 @@
 
   // Handle login
   const goToLogin = () => {
-    window.location.href = '/login?location=' + encodeURIComponent(currentUrl);
+    window.location.href = '/login?location=' + encodedCurrentUrl;
   };
 </script>
 

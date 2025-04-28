@@ -1,11 +1,5 @@
 <script lang="ts">
-  import { auth, logout } from '$lib/auth';
-
   let { children } = $props();
-
-  const handleLogout = () => {
-    logout('/');
-  };
 </script>
 
 <div class="min-h-screen bg-gray-50">
@@ -25,19 +19,6 @@
               >用户管理</a
             >
           </div>
-        </div>
-        <div class="flex items-center">
-          {#if auth.user}
-            <span class="mr-4 text-sm text-gray-700"
-              >欢迎，{auth.user.username}</span
-            >
-          {/if}
-          <button
-            class="rounded-md bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-300"
-            onclick={handleLogout}
-          >
-            退出登录
-          </button>
         </div>
       </div>
     </div>

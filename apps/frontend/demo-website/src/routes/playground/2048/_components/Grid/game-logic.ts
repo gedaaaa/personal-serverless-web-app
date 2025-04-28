@@ -99,7 +99,7 @@ export async function fillRandomEmptyCellInOppositeSide(direction: Direction) {
  * @param direction - The direction to move the cells to
  * @returns - Whether the cells were moved
  */
-function moveAllCellsTo(direction: Direction) {
+export function moveAllCellsTo(direction: Direction) {
   // decide if the direction is vertical or horizontal
   const isVertical = direction === 'up' || direction === 'down';
   // decide if the direction is reverse
@@ -194,7 +194,29 @@ function moveAllCellsTo(direction: Direction) {
             id: state.increaseId++,
           };
           moved = true;
+
           continue checkCell;
+        }
+
+        // helper function to get the next cell cordinates
+        function getNextCellCordinates(cordinates: {
+          row: number;
+          col: number;
+        }) {
+          return {
+            row: cordinates.row + (isVertical ? (isReverse ? -1 : 1) : 0),
+            col: cordinates.col + (isVertical ? 0 : isReverse ? -1 : 1),
+          };
+        }
+
+        const nextCellCordinates = getNextCellCordinates(currentCellCordinates);
+
+        // If the check cell is not empty and is the next cell to current cell, we should move nothing
+        if (
+          nextCellCordinates.row === checkCellCordinates.row &&
+          nextCellCordinates.col === checkCellCordinates.col
+        ) {
+          break checkCell;
         }
 
         // if the current cell and the cell we are checking are not empty and not the same value,
@@ -209,9 +231,7 @@ function moveAllCellsTo(direction: Direction) {
         };
 
         // fill the cell next to current cell with the value of the cell we are checking
-        state.grid[
-          currentCellCordinates.row + (isVertical ? (isReverse ? -1 : 1) : 0)
-        ][currentCellCordinates.col + (isVertical ? 0 : isReverse ? -1 : 1)] = {
+        state.grid[nextCellCordinates.row][nextCellCordinates.col] = {
           value: checkCellValue,
           id: lastExamedCellId,
         };

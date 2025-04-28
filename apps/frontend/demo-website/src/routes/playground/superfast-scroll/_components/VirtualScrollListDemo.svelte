@@ -23,7 +23,8 @@
   let isInitializing = $state(true);
 
   const visibleItemsCount = 10;
-
+  const totalItemsToGenerate = 1000000;
+  const batchSize = 1000;
   /**
    * Initializes the data source with a large set of demo items.
    * Creates a million items and makes them available for the virtual scroll list.
@@ -32,24 +33,38 @@
     isInitializing = true;
     const initialDataSource = new DelayedDataSource<DemoItem>();
 
-    // Generate demo items
-    for (let i = 0; i < 1000000; i++) {
-      const item: DemoItem = {
-        id: i,
-        name: `Item ${i}`,
-        description: `This is the description for item ${i}`,
-      };
-      initialDataSource.insert(item);
-    }
+    // Process items in batches
+    const processBatch = (startIndex: number) => {
+      // Process current batch
+      const endIndex = Math.min(startIndex + batchSize, totalItemsToGenerate);
 
-    dataSource = initialDataSource;
+      for (let i = startIndex; i < endIndex; i++) {
+        const item: DemoItem = {
+          id: i,
+          name: `Item ${i}`,
+          description: `This is the description for item ${i}`,
+        };
+        initialDataSource.insert(item);
+      }
 
-    // Update total items count
-    Promise.resolve(dataSource.getTotalCount()).then((count) => {
-      totalItems = count;
-    });
-    jumpToPosition(0);
-    isInitializing = false;
+      // Schedule next batch if needed
+      if (endIndex < totalItemsToGenerate) {
+        setTimeout(() => processBatch(endIndex), 0);
+        Promise.resolve(initialDataSource.getTotalCount()).then((count) => {
+          totalItems = count;
+        });
+        if (startIndex === 0) {
+          dataSource = initialDataSource;
+          isInitializing = false;
+        }
+      } else {
+        // Finished loading all items
+        jumpToPosition(0);
+      }
+    };
+
+    // Start processing batches
+    processBatch(0);
   });
 
   /**
@@ -77,7 +92,6 @@
       type="number"
       bind:value={jumpTarget}
       min="0"
-      max={totalItems > 0 ? totalItems - 1 : 0}
       onkeydown={(e) => {
         if (e.key === 'Enter') {
           handleJump();

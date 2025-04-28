@@ -8,6 +8,7 @@ import io.micronaut.context.event.StartupEvent
 import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
 import top.sunbath.api.auth.devDbUtil.DevBootstrap
+import top.sunbath.api.auth.model.PasswordType
 import top.sunbath.api.auth.repository.UserRepository
 
 /**
@@ -45,6 +46,16 @@ class UserSeeder(
                     emailVerificationTokenExpiresAt = null,
                     lastVerificationEmailSentAt = null,
                 )
+            val newlyAdded = userRepository.findById(adminId)
+            if (newlyAdded != null) {
+                userRepository.updatePasswordSettings(
+                    id = adminId,
+                    password = null,
+                    passwordType = PasswordType.V1,
+                    migrationToken = null,
+                    migrationTokenExpiresAt = null,
+                )
+            }
             logger.info("Admin user created successfully, ID: $adminId")
         } else {
             logger.info("Admin user already exists, skipping creation")
@@ -69,6 +80,17 @@ class UserSeeder(
                         emailVerificationTokenExpiresAt = null,
                         lastVerificationEmailSentAt = null,
                     )
+
+                val newlyAdded = userRepository.findById(userId)
+                if (newlyAdded != null) {
+                    userRepository.updatePasswordSettings(
+                        id = userId,
+                        password = null,
+                        passwordType = PasswordType.V1,
+                        migrationToken = null,
+                        migrationTokenExpiresAt = null,
+                    )
+                }
                 logger.info("Regular user $username created successfully, ID: $userId")
             } else {
                 logger.info("User $username already exists, skipping creation")

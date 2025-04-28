@@ -1,14 +1,9 @@
 <script lang="ts">
   import { getDefaultClient } from '$lib/api/client';
-  import { auth, logout } from '$lib/auth';
-  import { goto } from '$app/navigation';
-  import { onMount } from 'svelte';
+  import { auth } from '$lib/auth';
+  import { jumpToLoginIfNotAuthenticated } from '$lib/auth/jumpIfNotAuthenticated.svelte';
 
-  onMount(() => {
-    if (!$auth.isAuthenticated) {
-      goto('/login?location=/hello-world');
-    }
-  });
+  jumpToLoginIfNotAuthenticated();
 
   let error = $state<string | null>(null);
   let greeting = $state<string | undefined>(undefined);
@@ -24,27 +19,16 @@
       error = 'Server is quite mad now!';
     }
   };
-
-  const handleLogout = () => {
-    // Logout and redirect to home page
-    logout('/login');
-  };
 </script>
 
 <div class="mx-auto my-12 max-w-md px-4">
   <div class="mb-6 flex items-center justify-between">
     <h1 class="text-2xl font-medium text-gray-800">Hello World</h1>
-    <button
-      class="rounded-md bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-300"
-      onclick={handleLogout}
-    >
-      Logout
-    </button>
   </div>
   <p class="mb-6 text-gray-600">
     Welcome,
-    {#if $auth.user}
-      <span class="font-medium">{$auth.user.username}</span>!
+    {#if auth.user}
+      <span class="font-medium">{auth.user.username}</span>!
     {/if}
   </p>
   <div class="rounded-lg bg-white p-6 shadow-sm">

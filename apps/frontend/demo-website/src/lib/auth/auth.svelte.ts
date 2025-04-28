@@ -1,4 +1,3 @@
-import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
 
@@ -41,7 +40,7 @@ if (browser) {
 }
 
 // Create the auth store
-export const auth = writable<AuthState>(initialState);
+export const auth = $state(initialState);
 
 /**
  * Login user with token and username
@@ -55,11 +54,9 @@ export const login = (token: string, username: string): void => {
   };
 
   // Update store
-  auth.update(() => ({
-    token,
-    user,
-    isAuthenticated: true,
-  }));
+  auth.token = token;
+  auth.user = user;
+  auth.isAuthenticated = true;
 
   // Save to localStorage
   if (browser) {
@@ -74,11 +71,9 @@ export const login = (token: string, username: string): void => {
  */
 export const logout = (redirectTo: string | null = null): void => {
   // Update store
-  auth.update(() => ({
-    token: null,
-    user: null,
-    isAuthenticated: false,
-  }));
+  auth.token = null;
+  auth.user = null;
+  auth.isAuthenticated = false;
 
   // Clear localStorage
   if (browser) {

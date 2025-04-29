@@ -15,10 +15,10 @@ const width = 1200;
 export const GET = async ({ url }) => {
   let metadata;
 
-  const isHomePage = url.searchParams.get('isHomePage');
+  const isDefault = url.searchParams.get('isDefault');
 
   // set default metadata for home page
-  if (isHomePage && url.searchParams.size === 1) {
+  if (isDefault === 'true' && url.searchParams.size === 1) {
     metadata = defaultMetadata;
   }
 
@@ -92,7 +92,7 @@ export const GET = async ({ url }) => {
                     month: 'long',
                     day: 'numeric',
                   })
-                : ''
+                : 'Enjoy!'
             }
           </div>
         </div>

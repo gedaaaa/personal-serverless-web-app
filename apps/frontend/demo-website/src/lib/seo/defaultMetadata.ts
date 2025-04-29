@@ -11,5 +11,5 @@ export default {
     'Kotlin',
     'AWS Lambda',
   ],
-  ogImage: '/og',
+  ogImage: '/og?isDefault=true',
 };

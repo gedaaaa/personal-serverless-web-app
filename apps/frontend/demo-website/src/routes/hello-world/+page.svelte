@@ -1,9 +1,6 @@
 <script lang="ts">
   import { getDefaultClient } from '$lib/api/client';
   import { auth } from '$lib/auth';
-  import { jumpToLoginIfNotAuthenticated } from '$lib/auth/jumpIfNotAuthenticated.svelte';
-
-  jumpToLoginIfNotAuthenticated();
 
   let error = $state<string | null>(null);
   let greeting = $state<string | undefined>(undefined);

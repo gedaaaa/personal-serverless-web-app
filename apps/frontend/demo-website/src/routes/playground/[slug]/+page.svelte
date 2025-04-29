@@ -1,19 +1,24 @@
-<!-- src/routes/blog/[slug]/+page.svelte -->
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
-  import { page } from '$app/stores';
+  import type { Component } from 'svelte';
+  import { page } from '$app/state';
 
-  let PostComponent;
-  let error = null;
+  let PostComponent: Component;
+  let error: Error | null = null;
 
   onMount(async () => {
     try {
-      // 动态导入 .svx 文件（客户端加载）
-      const slug = $page.params.slug;
-      const module = await import(`../markdowns/${slug}.svx`);
-      PostComponent = module.default;
+      const slug = page.params.slug;
+      let module;
+      try {
+        module = await import(`../markdowns/${slug}.svx`);
+      } catch {
+        module = await import(`../markdowns/${slug}.md`);
+      }
+
+      PostComponent = module?.default as Component;
     } catch (e) {
-      error = e;
+      error = e as Error;
     }
   });
 </script>

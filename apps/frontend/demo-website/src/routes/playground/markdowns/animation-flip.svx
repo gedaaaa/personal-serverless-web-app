@@ -1,10 +1,16 @@
+---
+title: FLIP animations
+description: FLIP animations are a technique proposed by Paul Lewis in 2014 for creating smooth element transitions.
+date: 2025-04-21
+tags:
+  - animation
+  - flip
+---
+
 <script lang="ts">
   import _ from 'lodash';
-  import { flip } from 'svelte/animate';
-  import { quintOut } from 'svelte/easing';
-  import BuiltInFlip from './_components/BuiltInFlip.svelte';
-  import ManuallyFlip from './_components/ManuallyFlip.svelte';
-</script>
+  import { ManuallyFlip, BuiltInFlip } from '$lib/components/Flips';
+</script> 
 
 # Demo of FLIP animations
 ## Introduction to FLIP animations

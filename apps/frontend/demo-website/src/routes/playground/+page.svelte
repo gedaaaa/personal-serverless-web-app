@@ -1,4 +1,3 @@
-<!-- src/routes/blog/+page.svelte -->
 <script>
   export let data;
   const posts = data.posts; // 从服务端获取的文章列表
@@ -15,10 +14,12 @@
       {#each posts as post}
         <li class="my-4 text-left">
           <a
-            class="group my-4 block w-full rounded-md px-4 py-4 shadow-md hover:shadow-lg hover:shadow-purple-400/50"
+            class="group my-4 block w-full rounded-md px-4 py-4 shadow-md duration-1000 hover:shadow-lg hover:shadow-purple-400/50"
             href="/playground/{post.slug}"
           >
-            <h2 class="mb-4 text-lg font-bold group-hover:text-purple-600">
+            <h2
+              class="mb-4 text-lg font-bold duration-1000 group-hover:text-purple-600"
+            >
               {post.title}
             </h2>
             <p class="mb-2 text-sm text-gray-500">

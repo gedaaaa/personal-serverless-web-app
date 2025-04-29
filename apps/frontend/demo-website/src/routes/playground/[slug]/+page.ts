@@ -14,6 +14,7 @@ export async function load({ params }) {
   }
 
   try {
+    // Load the content
     let post;
     try {
       post = await import(`../markdowns/${params.slug}.svx`);
@@ -23,7 +24,10 @@ export async function load({ params }) {
 
     return {
       Content: post.default,
-      metadata: post.metadata,
+      metadata: {
+        ...post.metadata,
+        ogImage: `/og?title=${post.metadata.title}`,
+      },
     };
   } catch {
     throw error(404, 'Not found');

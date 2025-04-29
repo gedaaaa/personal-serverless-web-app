@@ -1,17 +1,42 @@
 <script lang="ts">
   import type { Component } from 'svelte';
+  import defaultMetadata from '$lib/seo/defaultMetadata';
 
   export let data: {
     Content?: Component;
-    metadata: {
+    metadata?: {
       title: string;
       date: string;
       description: string;
       tags: string[];
+      ogImage: string;
     };
   };
-  const Content = data.Content;
+  let { Content, metadata } = data;
+  if (!metadata) {
+    metadata = { ...defaultMetadata, date: new Date().toISOString(), tags: [] };
+  }
 </script>
+
+<svelte:head>
+  <!-- SEO -->
+  <title>{metadata.title}</title>
+  <meta name="description" content={metadata.description} />
+  <meta name="keywords" content={metadata.tags.join(', ')} />
+  <meta name="date" content={metadata.date} />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content={metadata.title} />
+  <meta property="og:description" content={metadata.description} />
+  <meta property="og:image" content={metadata.ogImage} />
+  <meta property="og:type" content="article" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={metadata.title} />
+  <meta name="twitter:description" content={metadata.description} />
+  <meta name="twitter:image" content={metadata.ogImage} />
+</svelte:head>
 
 {#if Content}
   <Content />

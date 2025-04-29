@@ -10,14 +10,14 @@
   });
 </script>
 
-<article class="mx-auto max-w-3xl px-4 py-8">
+<article class="mx-auto max-w-3xl px-4 py-4">
   <header class="mb-8">
     {#if title}
-      <h1 class="mb-2 text-4xl font-bold leading-tight">{title}</h1>
+      <h1 class="mb-6 text-4xl font-bold leading-tight">{title}</h1>
     {/if}
 
     {#if description}
-      <p class="mb-4 text-xl text-gray-700">{description}</p>
+      <p class="mb-2 text-xl text-gray-500">{description}</p>
     {/if}
 
     {#if date}

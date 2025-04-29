@@ -57,6 +57,7 @@
   "dependencies": {
     "lodash": "^4.17.21",
     "mermaid": "^11.6.0",
+    "shiki": "^3.3.0",
     "sst": "3.7.1",
     "svelte-kit-sst": "2.43.5"
   }

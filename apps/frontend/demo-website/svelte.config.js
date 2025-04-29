@@ -1,6 +1,21 @@
 import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
-import { mdsvex, code_highlighter } from 'mdsvex';
+import { mdsvex, escapeSvelte } from 'mdsvex';
+import { createHighlighter } from 'shiki';
+
+let highlighter;
+
+export async function highlight(code, lang) {
+  if (!highlighter) {
+    highlighter = await createHighlighter({
+      themes: ['github-dark'],
+      langs: ['ts', 'svelte'],
+    });
+  }
+  return escapeSvelte(
+    await highlighter.codeToHtml(code, { lang, theme: 'github-dark' }),
+  );
+}
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
   // Consult https://svelte.dev/docs/kit/integrations
@@ -22,7 +37,7 @@ const config = {
               .replace(/([<])/g, "{'<'}");
             return `<pre><code class="language-mermaid">${escapedCode}</code></pre>`;
           }
-          return code_highlighter(code, lang);
+          return highlight(code, lang);
         },
       },
       extensions: ['.md', '.svx'],

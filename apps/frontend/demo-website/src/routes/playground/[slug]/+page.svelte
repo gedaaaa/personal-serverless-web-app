@@ -23,6 +23,10 @@
   });
 </script>
 
+{#if error && import.meta.env.MODE === 'development'}
+  <p>Error: {error.message}</p>
+{/if}
+
 {#if PostComponent}
   <PostComponent />
 {:else}

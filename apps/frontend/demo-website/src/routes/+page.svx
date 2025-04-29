@@ -69,5 +69,6 @@ Our Kotlin-centric backend requirements and JVM optimizations necessitated a mor
 - [Hello World](https://sunbath.top/hello-world) - The genesis page
 - [Memo System](https://sunbath.top/memo) - Personal memo management
 - [Dev Playground](https://sunbath.top/playground) - Experimental features
+- [Source Code](https://github.com/gedaaaa/personal-serverless-web-app) - The repository of this website
 
 *Continually evolving - Last updated 2025-04-29*

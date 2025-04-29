@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 
-// Load function that handles exsistence checking.
+// Load function that handles exsistence checking and load Mdsvex or Markdown content.
 export async function load({ params }) {
   const modules = import.meta.glob('../markdowns/*.{svx,md}');
   const slugs = Object.keys(modules).map((path) =>
@@ -13,11 +13,29 @@ export async function load({ params }) {
     });
   }
 
-  return {};
+  try {
+    // Load the content
+    let post;
+    try {
+      post = await import(`../markdowns/${params.slug}.svx`);
+    } catch {
+      post = await import(`../markdowns/${params.slug}.md`);
+    }
+
+    return {
+      Content: post.default,
+      metadata: {
+        ...post.metadata,
+        ogImage: `/og?title=${post.metadata.title}`,
+      },
+    };
+  } catch {
+    throw error(404, 'Not found');
+  }
 }
 
 // Entries function that returns a list of all possible slugs.
-export async function entries() {
+export function entries() {
   const modules = import.meta.glob('../markdowns/*.{svx,md}');
   return Object.keys(modules).map((path) => ({
     slug: path.replace('../markdowns/', '').replace(/\.(svx|md)$/, ''),

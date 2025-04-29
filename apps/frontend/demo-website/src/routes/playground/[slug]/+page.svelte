@@ -1,34 +1,45 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import type { Component } from 'svelte';
-  import { page } from '$app/state';
+  import defaultMetadata from '$lib/seo/defaultMetadata';
 
-  let PostComponent: Component;
-  let error: Error | null = null;
-
-  onMount(async () => {
-    try {
-      const slug = page.params.slug;
-      let module;
-      try {
-        module = await import(`../markdowns/${slug}.svx`);
-      } catch {
-        module = await import(`../markdowns/${slug}.md`);
-      }
-
-      PostComponent = module?.default as Component;
-    } catch (e) {
-      error = e as Error;
-    }
-  });
+  export let data: {
+    Content?: Component;
+    metadata?: {
+      title: string;
+      date: string;
+      description: string;
+      tags: string[];
+      ogImage: string;
+    };
+  };
+  let { Content, metadata } = data;
+  if (!metadata) {
+    metadata = { ...defaultMetadata, date: new Date().toISOString(), tags: [] };
+  }
 </script>
 
-{#if error && import.meta.env.MODE === 'development'}
-  <p>Error: {error.message}</p>
-{/if}
+<svelte:head>
+  <!-- SEO -->
+  <title>{metadata.title}</title>
+  <meta name="description" content={metadata.description} />
+  <meta name="keywords" content={metadata.tags.join(', ')} />
+  <meta name="date" content={metadata.date} />
 
-{#if PostComponent}
-  <PostComponent />
+  <!-- Open Graph -->
+  <meta property="og:title" content={metadata.title} />
+  <meta property="og:description" content={metadata.description} />
+  <meta property="og:image" content={metadata.ogImage} />
+  <meta property="og:type" content="article" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={metadata.title} />
+  <meta name="twitter:description" content={metadata.description} />
+  <meta name="twitter:image" content={metadata.ogImage} />
+</svelte:head>
+
+{#if Content}
+  <Content />
 {:else}
-  <p>Loding...</p>
+  <p>Loading...</p>
 {/if}

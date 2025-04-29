@@ -1,5 +1,14 @@
+---
+title: Animation - Kinematic Snake Simulation
+description: A simple simulation of a snake moving on a 2D plane.
+date: 2025-04-23
+tags:
+  - animation
+  - snake
+---
+
 <script lang="ts">
-  import MovingSnake from './_component/MovingSnake';
+  import MovingSnake from '$lib/components/MovingSnake';
 </script>
 
 # Animation - Kinematic Snake Simulation

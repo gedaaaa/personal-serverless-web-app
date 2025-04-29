@@ -1,15 +1,21 @@
 ---
 title: Superfast Scroll
-description: High-performance virtual scroll list practice
+description: A practice demo for getting familiar with svelte store and reactive programming
+date: 2025-03-09
+tags:
+  - scroll
+  - virtual scroll
 ---
 
 <script lang="ts">
-  import VirtualScrollListDemo from './_components/';
+  import VirtualScrollListDemo from '$lib/components/VirtualScrollListDemo';
 </script>
 
 ## Demo
 
 <VirtualScrollListDemo />
+
+I'm new to Svelte. This practice demo is for me to getting familiar with svelte store and reactive programming.
 
 # Technical Notes
 
@@ -33,7 +39,6 @@ We perform a carefully choreographed dance between two circular buffers:
 - Reuses a limited number of DOM nodes, significantly reducing memory usage and DOM operations
 ```mermaid
 graph LR
-    A[DOM Element 1] <--> B[DOM Element 2]
     B <--> C[DOM Element 3]
     C <--> D[DOM Element ...]
     D <--> E[DOM Element n]

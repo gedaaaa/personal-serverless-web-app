@@ -1,3 +1,12 @@
+---
+title: CSS Tricks - Spotlight on Text
+description: A simple demonstration of using CSS animation techniques to create sequential character highlighting effects, simulating a scanning light pattern.
+date: 2025-04-21
+tags:
+  - css
+  - animation
+---
+
 <script lang="ts">
   let text = 'Hello, world!';
 </script>

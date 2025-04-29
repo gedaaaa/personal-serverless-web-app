@@ -15,6 +15,8 @@
 
   const encodedCurrentUrl = $derived(encodeURIComponent(currentUrl));
 
+  const isLoginPage = $derived(page.url?.pathname === '/login');
+
   // Handle scroll event to add shadow when scrolling
   const handleScroll = () => {
     showShadow = window.scrollY > 0;
@@ -83,7 +85,7 @@
         >
           Logout
         </button>
-      {:else}
+      {:else if !isLoginPage}
         <button
           onclick={goToLogin}
           class="rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-800 transition-colors hover:bg-gray-200"

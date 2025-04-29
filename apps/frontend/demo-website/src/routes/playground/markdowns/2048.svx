@@ -1,8 +1,16 @@
-<script lang="ts">
-  import Grid2048 from './_components/Grid/Grid2048.svelte';
-</script>
+---
+title: Classic 2048 Game
+description: A simple implementation of the 2048 game using Svelte
+date: 2025-04-25
+tags:
+  - Svelte
+  - Game
+  - 2048
+---
 
-# This is a 2048 game
+<script lang="ts">
+  import Grid2048 from '$lib/components/Grid2048';
+</script>
 
 This implementation explores recreating the classic 2048 puzzle game using Svelte's reactive. 
 

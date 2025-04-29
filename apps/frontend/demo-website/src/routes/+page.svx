@@ -1,5 +1,74 @@
-# Home page
+---
+title: Welcome to Sunbath
+description: My personal playground for web experimentation and utility development
+date: 2025-04-29
+---
 
-The orignial home page is actually the login page.
+The name "Sunbath" is a direct English translation of my wife's name - a heartfelt tribute to our partnership.
 
-new home page under construction.
+## About This Project
+
+Sunbath serves two primary purposes:
+
+1. **Rapid Development Sandbox**  
+A platform for quickly implementing personal utilities and experimental concepts.
+
+2. **Technology Playground**  
+A space to explore new languages and frameworks beyond my professional experience.
+
+### Core Philosophy: Lean Architecture
+
+- **Cost-Efficient Operation**  
+Maintain near-zero operational costs. Current average: **$0.1/month**  
+Leverages AWS Free Tier benefits including:
+  - 1M monthly Lambda requests
+  - 25GB DynamoDB storage
+  - Serverless message queues
+
+### Tech Stack Breakdown
+
+#### Frontend Architecture
+
+- **Framework**: SvelteKit
+- **Deployment**: AWS Lambda via SST
+- **Delivery**: CloudFront Edge Network
+- **Optimization**: Cloudflare CDN with CNAME routing
+
+#### Backend Infrastructure
+
+- **Framework**: Micronaut (Kotlin)
+- **Deployment**: AWS Lambda via CDK
+- **Interface**: API Gateway unified endpoint
+- **Cold Start Solution**: sub-second through SnapStart
+
+### Architectural Decisions
+
+**Why Serverless?**  
+
+The serverless model perfectly aligns with our cost optimization goals while providing:
+- Automatic scaling
+- Pay-per-use billing
+- Minimal maintenance overhead
+
+**Why Cloudflare + AWS?**  
+
+While CloudFront provides solid CDN capabilities, Cloudflare enhances our stack with:
+- Enterprise-grade DDoS protection
+- Unlimited bandwidth
+- Automated SSL management
+- Global DNS optimization
+
+All above are included in **free plan**.
+
+**Why Not Vercel/Cloudflare Pages?**  
+
+Our Kotlin-centric backend requirements and JVM optimizations necessitated a more customizable serverless approach than traditional static site hosts provide.
+
+## Explore Featured Sections
+
+- [Hello World](https://sunbath.top/hello-world) - The genesis page
+- [Memo System](https://sunbath.top/memo) - Personal memo management
+- [Dev Playground](https://sunbath.top/playground) - Experimental features
+- [Source Code](https://github.com/gedaaaa/personal-serverless-web-app) - The repository of this website
+
+*Continually evolving - Last updated 2025-04-29*

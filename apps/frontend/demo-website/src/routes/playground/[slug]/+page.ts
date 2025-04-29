@@ -26,7 +26,7 @@ export async function load({ params }) {
       Content: post.default,
       metadata: {
         ...post.metadata,
-        ogImage: `/og?title=${post.metadata.title}`,
+        ogImage: `/og?category=playground&slug=${params.slug}`,
       },
     };
   } catch {

@@ -1,6 +1,6 @@
 ---
 title: Classic 2048 Game
-description: A simple implementation of the 2048 game using Svelte
+description: A simple implementation of the 2048 game. Let's play it!
 date: 2025-04-25
 tags:
   - Svelte

@@ -9,7 +9,7 @@ This repository serves two primary objectives:
 
 ### Key Constraints
 
-- **Cost Optimization**: Maintain near-zero operational costs (current average: $0.01/month for storage)
+- **Cost Optimization**: Maintain near-zero operational costs (current average: $0.1/month for storage)
 - **Serverless Architecture**: Leverage cloud free-tier services exclusively
 
 ## Technical Stack

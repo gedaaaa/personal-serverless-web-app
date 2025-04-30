@@ -120,7 +120,7 @@
         </h2>
         <p class="mb-6">{message}</p>
         <a
-          href="/"
+          href="/login"
           class="inline-block rounded-md bg-purple-600 px-6 py-2 text-white hover:bg-purple-700"
         >
           Go to Login

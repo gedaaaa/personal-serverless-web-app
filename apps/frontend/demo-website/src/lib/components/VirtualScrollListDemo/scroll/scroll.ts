@@ -18,8 +18,6 @@ export function handleScroll(delta: number) {
   const listItemsCount = listState.dataWindowSize;
   const items = listState.dataWindowItems;
 
-  console.log('handleScroll', delta, translateY, visualHead, listItemsCount);
-
   if (!provider) {
     scrollState.listTranslateY = translateY;
     scrollState.domRingHead = visualHead;

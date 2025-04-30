@@ -181,13 +181,17 @@ describe('AuthService', () => {
       // Setup mock response
       mockApiClient.post.mockResolvedValue({ id: mockUserId });
 
+      (sha256 as unknown as ReturnType<typeof vi.fn>).mockImplementation(() =>
+        Promise.resolve('hashed-password'),
+      );
+
       // Call register method
       await authService.register(registerRequest);
 
       // Verify API client was called correctly
       expect(mockApiClient.post).toHaveBeenCalledWith(
         `${AUTH_API_PREFIX}/register`,
-        registerRequest,
+        { ...registerRequest, password: 'hashed-password' },
       );
     });
 

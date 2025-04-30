@@ -95,9 +95,10 @@ export class AuthService {
    * @returns User ID
    */
   async register(request: RegisterRequest): Promise<string> {
+    const hashedPassword = await sha256(request.password);
     const response = await this.apiClient.post<{ id: string }>(
       `${AUTH_API_PREFIX}/register`,
-      request,
+      { ...request, password: hashedPassword },
     );
     return response.id;
   }

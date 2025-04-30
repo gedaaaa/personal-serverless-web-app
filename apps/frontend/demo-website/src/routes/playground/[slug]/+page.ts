@@ -13,25 +13,31 @@ export async function load({ params }) {
     });
   }
 
+  // Load the content
+  let post;
   try {
-    // Load the content
-    let post;
-    try {
-      post = await import(`../markdowns/${params.slug}.svx`);
-    } catch {
-      post = await import(`../markdowns/${params.slug}.md`);
+    post = await import(`../markdowns/${params.slug}.svx`);
+  } catch (e) {
+    if (import.meta.env.DEV) {
+      console.error(e);
     }
-
-    return {
-      Content: post.default,
-      metadata: {
-        ...post.metadata,
-        ogImage: `/og?category=playground&slug=${params.slug}`,
-      },
-    };
-  } catch {
-    throw error(404, 'Not found');
+    try {
+      post = await import(`../markdowns/${params.slug}.md`);
+    } catch (e) {
+      if (import.meta.env.DEV) {
+        console.error(e);
+      }
+      throw error(404, 'Not found');
+    }
   }
+
+  return {
+    Content: post.default,
+    metadata: {
+      ...post.metadata,
+      ogImage: `/og?category=playground&slug=${params.slug}`,
+    },
+  };
 }
 
 // Entries function that returns a list of all possible slugs.

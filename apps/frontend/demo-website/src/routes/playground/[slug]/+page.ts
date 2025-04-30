@@ -18,7 +18,8 @@ export async function load({ params }) {
     let post;
     try {
       post = await import(`../markdowns/${params.slug}.svx`);
-    } catch {
+    } catch (e) {
+      console.log(e);
       post = await import(`../markdowns/${params.slug}.md`);
     }
 

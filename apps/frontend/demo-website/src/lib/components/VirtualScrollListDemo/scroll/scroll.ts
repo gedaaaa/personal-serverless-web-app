@@ -1,27 +1,5 @@
-import type { DataItem } from '../data/DataSource/DataSource';
-import type { DataWindowProvider } from '../data/DataWindowProvider';
-
-/**
- * Parameters required for scroll handling operations.
- */
-export interface ScrollParams<T extends DataItem> {
-  translateY: number;
-  itemHeight: number;
-  provider: DataWindowProvider<T> | null;
-  visualHead: number;
-  listItemsCount: number;
-  items: T[];
-}
-
-/**
- * The result of a scroll handling operation.
- */
-export interface ScrollResult<T extends DataItem> {
-  translateY: number;
-  visualHead: number;
-  items: T[];
-  success: boolean;
-}
+import { state as scrollState } from '../store/scroll.svelte';
+import { state as listState } from '../store/list.svelte';
 
 /**
  * Processes scroll events and manages the virtual scroll viewport's state.
@@ -31,28 +9,22 @@ export interface ScrollResult<T extends DataItem> {
  * repositioning elements and loading new data as needed.
  *
  * @param delta The scroll amount (positive for downward, negative for upward)
- * @param params Current scroll state parameters
  */
-export function handleScroll<T extends DataItem>(
-  delta: number,
-  params: ScrollParams<T>,
-): ScrollResult<T> {
-  const {
-    translateY,
-    itemHeight,
-    provider,
-    visualHead,
-    listItemsCount,
-    items,
-  } = params;
+export function handleScroll(delta: number) {
+  const translateY = scrollState.listTranslateY;
+  const itemHeight = listState.itemHeight;
+  const provider = listState.dataWindowProvider;
+  const visualHead = scrollState.domRingHead;
+  const listItemsCount = listState.dataWindowSize;
+  const items = listState.dataWindowItems;
+
+  console.log('handleScroll', delta, translateY, visualHead, listItemsCount);
 
   if (!provider) {
-    return {
-      translateY,
-      visualHead,
-      items,
-      success: false,
-    };
+    scrollState.listTranslateY = translateY;
+    scrollState.domRingHead = visualHead;
+    listState.dataWindowItems = items;
+    return;
   }
 
   // Calculate the new translateY position
@@ -78,20 +50,16 @@ export function handleScroll<T extends DataItem>(
         const newItems = [...items];
         newItems[targetIndex] = nextItem;
 
-        return {
-          translateY: -itemHeight, // Reset to -itemHeight
-          visualHead: newDomRingHead,
-          items: newItems,
-          success: true,
-        };
+        scrollState.listTranslateY = -itemHeight;
+        scrollState.domRingHead = newDomRingHead;
+        listState.dataWindowItems = newItems;
+        return;
       } else {
         // If there's no next item (end of the list)
-        return {
-          translateY: -2 * itemHeight, // Stay at boundary position
-          visualHead,
-          items,
-          success: false,
-        };
+        scrollState.listTranslateY = -2 * itemHeight;
+        scrollState.domRingHead = visualHead;
+        listState.dataWindowItems = items;
+        return;
       }
     }
   }
@@ -112,29 +80,23 @@ export function handleScroll<T extends DataItem>(
         const newItems = [...items];
         newItems[newDomRingHead] = prevItem;
 
-        return {
-          translateY: -itemHeight, // Reset to -itemHeight
-          visualHead: newDomRingHead,
-          items: newItems,
-          success: true,
-        };
+        scrollState.listTranslateY = -itemHeight;
+        scrollState.domRingHead = newDomRingHead;
+        listState.dataWindowItems = newItems;
+        return;
       } else {
         // If there's no previous item (beginning of the list)
-        return {
-          translateY: 0, // Stay at boundary position
-          visualHead,
-          items,
-          success: false,
-        };
+        scrollState.listTranslateY = 0;
+        scrollState.domRingHead = visualHead;
+        listState.dataWindowItems = items;
+        return;
       }
     }
   }
 
   // Normal scrolling (within boundaries)
-  return {
-    translateY: newTranslateY,
-    visualHead,
-    items,
-    success: true,
-  };
+  scrollState.listTranslateY = newTranslateY;
+  scrollState.domRingHead = visualHead;
+  listState.dataWindowItems = items;
+  return;
 }

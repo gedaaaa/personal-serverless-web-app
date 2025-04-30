@@ -1,9 +1,9 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import VirtualScrollList from './internal/components/VirtualScrollList.svelte';
   import type { DataItem, DataSource } from './data/DataSource/DataSource';
   import { DelayedDataSource } from './data/DataSource/DelayedDataSource';
-
+  import { setJumpTargetPosition } from './store/data.svelte';
+  import VirtualScrollList from './components/VirtualScrollList.svelte';
   /**
    * Defines the structure of items to be displayed in the virtual scroll list.
    */
@@ -17,12 +17,10 @@
    * Application state for the virtual scroll demo.
    */
   let dataSource: DataSource<DemoItem> | null = $state(null);
-  let jumpToPosition: (position: number) => void = $state(() => {});
   let jumpTarget = $state(0);
   let totalItems = $state(0);
   let isInitializing = $state(true);
 
-  const visibleItemsCount = 10;
   const totalItemsToGenerate = 1000000;
   const batchSize = 1000;
   /**
@@ -57,24 +55,12 @@
           dataSource = initialDataSource;
           isInitializing = false;
         }
-      } else {
-        // Finished loading all items
-        jumpToPosition(0);
       }
     };
 
     // Start processing batches
     processBatch(0);
   });
-
-  /**
-   * Navigates to the specified position in the list when triggered.
-   */
-  function handleJump() {
-    if (jumpToPosition) {
-      jumpToPosition(jumpTarget);
-    }
-  }
 </script>
 
 <div class="mx-auto max-w-3xl p-5">
@@ -86,7 +72,7 @@
   {/if}
 
   <div class="mb-5 flex items-center gap-3">
-    <!-- <label for="jump-target" class="text-gray-700">Jump to position:</label> -->
+    <label for="jump-target" class="text-gray-700">Jump to position:</label>
     <input
       id="jump-target"
       type="number"
@@ -94,13 +80,14 @@
       min="0"
       onkeydown={(e) => {
         if (e.key === 'Enter') {
-          handleJump();
+          e.preventDefault();
+          setJumpTargetPosition(jumpTarget);
         }
       }}
       class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
     />
     <button
-      onclick={handleJump}
+      onclick={() => setJumpTargetPosition(jumpTarget)}
       class="rounded-md bg-green-500 px-4 py-2 text-white transition-colors hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
     >
       Jump
@@ -108,11 +95,6 @@
   </div>
 
   <div class="overflow-hidden rounded-md border border-gray-300">
-    <VirtualScrollList
-      {dataSource}
-      {visibleItemsCount}
-      itemHeight={100}
-      bind:jumpToPosition
-    />
+    <VirtualScrollList {dataSource} visibleItemsCount={10} itemHeight={100} />
   </div>
 </div>

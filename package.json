@@ -60,7 +60,6 @@
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
     "lodash": "^4.17.21",
-    "mermaid": "^11.6.0",
     "satori": "^0.12.2",
     "satori-html": "^0.3.2",
     "shiki": "^3.3.0",

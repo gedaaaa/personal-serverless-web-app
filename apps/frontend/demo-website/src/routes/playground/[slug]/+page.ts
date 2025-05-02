@@ -47,5 +47,3 @@ export function entries() {
     slug: path.replace('../markdowns/', '').replace(/\.(svx|md)$/, ''),
   }));
 }
-
-export const prerender = true;

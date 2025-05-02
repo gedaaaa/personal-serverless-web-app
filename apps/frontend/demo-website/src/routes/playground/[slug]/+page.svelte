@@ -2,20 +2,29 @@
   import type { Component } from 'svelte';
   import defaultMetadata from '$lib/seo/defaultMetadata';
 
-  export let data: {
-    Content?: Component;
-    metadata?: {
-      title: string;
-      date: string;
-      description: string;
-      tags: string[];
-      ogImage: string;
+  let {
+    data,
+  }: {
+    data: {
+      Content?: Component;
+      metadata?: {
+        title: string;
+        date: string;
+        description: string;
+        tags: string[];
+        ogImage: string;
+      };
     };
-  };
-  let { Content, metadata } = data;
-  if (!metadata) {
-    metadata = { ...defaultMetadata, date: new Date().toISOString(), tags: [] };
-  }
+  } = $props();
+
+  const Content = $derived(data.Content);
+  const metadata = $derived(
+    data.metadata ?? {
+      ...defaultMetadata,
+      date: new Date().toISOString(),
+      tags: [],
+    },
+  );
 </script>
 
 <svelte:head>

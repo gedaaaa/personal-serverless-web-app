@@ -1,0 +1,116 @@
+---
+title: Integrate rehype-mermaid with MDsveX
+description: A record of how to integrate rehype-mermaid with MDsveX to achieve better client-side loading performance for markdown-based pages with Mermaid graphs.
+date: 2025-05-02
+tags:
+  - Svelte
+  - MDsveX
+  - Mermaid
+  - rehype
+  - rehype-mermaid
+---
+
+## Introduction
+
+[MDsveX](https://github.com/pngwn/MDsveX) is a popular markdown preprocessor for Svelte, allowing you to write blog-style content in your website using markdown syntax.
+
+When writing markdown, you can easily generate diagrams (such as flowcharts, Gantt charts, sequence diagrams, etc.) using the [Mermaid](https://mermaid.js.org/) language. Simply use a code block labeled with the language 'mermaid', and initialize a Mermaid instance to convert the code block into a rendered diagram. This process is described in [this article](https://jamesjoy.site/posts/2023-06-26-svelte-mermaidjs).
+
+While this approach is convenient and produces attractive diagrams, it has a significant drawback: since Mermaid.js requires a browser environment, the conversion from code to image happens on the client side (as in the article above). This is a CPU-intensive task and can negatively impact your page performance metrics (such as TBT and INP).
+
+## The Problem
+
+To address this, there is a [rehype](https://github.com/rehypejs/rehype) plugin called [rehype-mermaid](https://github.com/remcohaszing/rehype-mermaid). Since MDsveX uses rehype for file transformation, this plugin allows you to generate diagram images at build time, offloading the work from the client.
+
+However, if you try to use rehype-mermaid directly, you may notice that the generated page still displays the original code block (possibly with syntax highlighting), rather than the expected diagram image. I spent an entire afternoon troubleshooting this and finally found the root cause: it relates to how MDsveX processes these plugins. In the current version of MDsveX, you can find [these lines](https://github.com/pngwn/MDsveX/blob/bdf1ca706769113aa647dc39c92dc29706caa974/packages/mdsvex/src/index.ts#L79):
+
+```ts
+const toMDAST = unified()
+  .use(markdown)
+  .use(mdsvex_parser)
+  .use(external, { target: false, rel: ['nofollow'] })
+  .use(escape_brackets)
+  .use(escape_code, { blocks: !!highlight })
+  .use(extract_frontmatter, [{ type: fm_opts.type, marker: fm_opts.marker }])
+  .use(parse_frontmatter, { parse: fm_opts.parse, type: fm_opts.type });
+
+if (smartypants) {
+  toMDAST.use(
+    smartypants_transformer,
+    typeof smartypants === 'boolean' ? {} : smartypants,
+  );
+}
+
+apply_plugins(remarkPlugins, toMDAST).use(highlight_blocks, highlight || {});
+
+const toHAST = toMDAST.use(remark2rehype, {
+  // @ts-ignore
+  allowDangerousHtml: true,
+  allowDangerousCharacters: true,
+});
+
+apply_plugins(rehypePlugins, toHAST);
+```
+
+This means that code highlighting is applied before rehype plugins.
+
+## Why Doesn't rehype-mermaid Work Out of the Box?
+
+The built-in code highlighter (and external highlighters like Shiki, which I use) returns a string, resulting in an AST node of type 'raw' with HTML content (often using Svelte's `{@html ...}` syntax). However, rehype-mermaid only recognizes AST nodes of type 'element' with certain tag names (typically `pre` or `code`) and never look into 'raw' nodes. This is reasonable, as 'raw' nodes are unstructured and difficult to parse.
+
+## The Solution
+
+The solution is to intercept the code highlighter's process and return a structure that rehype-mermaid can consume.
+
+```js
+// In your svelte.config.js
+const config = {
+  preprocess: [
+    // ... other preprocessors like vitePreprocess
+    mdsvex({
+      // Set strategy to 'img-svg'. The default inline SVG can conflict with the Svelte compiler (mainly due to '<' and '>' in SVG tags).
+      rehypePlugins: [[rehypeMermaid, { strategy: 'img-svg' }]],
+      highlight: {
+        highlighter: (code, lang) => {
+          // Intercept the highlighter for mermaid blocks and return an AST node directly.
+          if (lang === 'mermaid') {
+            return {
+              type: 'element',
+              tagName: 'code',
+              properties: { className: 'language-mermaid' },
+              children: [{ type: 'text', value: code }],
+            };
+          }
+          // Use your chosen highlighter for other languages
+          return highlight(code, lang);
+        },
+      },
+      // ... other configurations
+    }),
+  ],
+};
+```
+
+With this setup, you can remove the Mermaid.js dependency and client-side initialization. Mermaid diagrams will be rendered as images at build time.
+
+## Example
+
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
+
+## Performance Impact
+
+The performance improvement is substantial. In my implementation testing a content-heavy [page with multiple Mermaid diagrams](/playground/superfast-scroll):
+
+Before: 1200-1500ms Total Blocking Time
+
+After: 50-90ms Total Blocking Time
+
+- test run on a 2020 i5 macbook with lighthouse 12.4
+
+This optimization dramatically improving user experience and Core Web Vitals metrics.

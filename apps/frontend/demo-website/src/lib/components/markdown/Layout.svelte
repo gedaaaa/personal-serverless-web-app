@@ -1,13 +1,6 @@
 <script>
-  import { onMount } from 'svelte';
   // You can access frontmatter metadata if available
   let { date, title, description } = $props();
-
-  onMount(async () => {
-    const { default: mermaid } = await import('mermaid');
-    mermaid.initialize({ theme: 'dark' });
-    await mermaid.run({ querySelector: '.language-mermaid' });
-  });
 </script>
 
 <article class="mx-auto max-w-3xl px-4 py-4">

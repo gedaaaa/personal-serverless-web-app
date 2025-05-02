@@ -17,7 +17,7 @@ tags:
 
 I'm new to Svelte. This practice demo is for me to getting familiar with svelte store and reactive programming.
 
-# Technical Notes
+## Technical Notes
 
 This high-performance virtual scroll implementation combines battle-tested techniques with some experimental spice:
 
@@ -42,7 +42,8 @@ graph LR
     B <--> C[DOM Element 3]
     C <--> D[DOM Element ...]
     D <--> E[DOM Element n]
-    E <--> A
+    E <--> A[DOM Element 1 ringHead]
+    A <--> B[DOM Element 2]
     style A fill:#f9f,stroke:#333,stroke-width:2px
 ```
 

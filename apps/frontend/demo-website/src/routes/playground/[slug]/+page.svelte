@@ -25,9 +25,6 @@
       tags: [],
     },
   );
-
-  console.log(data);
-  console.log(Content);
 </script>
 
 <svelte:head>

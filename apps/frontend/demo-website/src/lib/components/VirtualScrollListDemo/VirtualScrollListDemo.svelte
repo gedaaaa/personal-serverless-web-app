@@ -88,7 +88,7 @@
     />
     <button
       onclick={() => setJumpTargetPosition(jumpTarget)}
-      class="rounded-md bg-green-500 px-4 py-2 text-white transition-colors hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+      class="rounded-md bg-purple-600 px-4 py-2 text-white transition-colors"
     >
       Jump
     </button>

@@ -17,7 +17,7 @@ tags:
 
 I'm new to Svelte. This practice demo is for me to getting familiar with svelte store and reactive programming.
 
-# Technical Notes
+## Technical Notes
 
 This high-performance virtual scroll implementation combines battle-tested techniques with some experimental spice:
 

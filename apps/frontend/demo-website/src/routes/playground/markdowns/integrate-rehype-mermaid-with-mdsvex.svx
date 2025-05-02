@@ -1,7 +1,7 @@
 ---
 title: Integrate rehype-mermaid with MDsveX
 description: A record of how to integrate rehype-mermaid with MDsveX to achieve better client-side loading performance for markdown-based pages with Mermaid graphs.
-data: 2025-05-02
+date: 2025-05-02
 tags:
   - Svelte
   - MDsveX

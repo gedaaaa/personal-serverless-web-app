@@ -2,6 +2,7 @@ import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { mdsvex, escapeSvelte } from 'mdsvex';
 import { createHighlighter } from 'shiki';
+import rehypeMermaid from 'rehype-mermaid';
 
 let highlighter;
 
@@ -23,19 +24,20 @@ const config = {
   preprocess: [
     vitePreprocess(),
     mdsvex({
+      rehypePlugins: [[rehypeMermaid, { strategy: 'img-svg' }]],
       highlight: {
-        // Mermaid can not handle highlightened (which is the default for mdsvex) code blocks,
-        // so we need set mermaid highlighter to a custom one.
-        // And other code block will be handled by mdsvex default highlighter.
+        // return type of mdsvex default highlighter and shiki highlighter is string,
+        // which will be transformed to 'raw' block with returned content(html string).
+        // but rehype-mermaid can not handle this, it requires an element node with type 'code' and className 'language-mermaid' in AST
+        // so we manually transform the code block to the required AST node here
         highlighter: (code, lang) => {
           if (lang === 'mermaid') {
-            // '{' and '}' are special characters for Svelte, so we need to escape them.
-            const escapedCode = code
-              .replace(/([{}])/g, (match) =>
-                match === '{' ? "{'{'}" : "{'}'}",
-              )
-              .replace(/([<])/g, "{'<'}");
-            return `<pre><code class="language-mermaid">${escapedCode}</code></pre>`;
+            return {
+              type: 'element',
+              tagName: 'code',
+              properties: { className: 'language-mermaid' },
+              children: [{ type: 'text', value: code }],
+            };
           }
           return highlight(code, lang);
         },

@@ -102,3 +102,15 @@ graph TD;
     B-->D;
     C-->D;
 ```
+
+## Performance Impact
+
+The performance improvement is substantial. In my implementation testing a content-heavy [page with multiple Mermaid diagrams](/playground/superfast-scroll):
+
+Before: 1200-1500ms Total Blocking Time
+
+After: 50-90ms Total Blocking Time
+
+- test run on a 2020 i5 macbook with lighthouse 12.4
+
+This optimization dramatically improving user experience and Core Web Vitals metrics.
